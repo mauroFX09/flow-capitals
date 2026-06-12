@@ -1,115 +1,178 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 
-export default function Dashboard() {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+const CLOCKS = [
+  { city: 'LONDON', offset: 1 },
+  { city: 'NEW YORK', offset: -4 },
+  { city: 'TOKYO', offset: 9 },
+  { city: 'DUBAI', offset: 4 },
+  { city: 'SYDNEY', offset: 10 },
+]
+
+function getTime(offset: number) {
+  const d = new Date()
+  const utc = d.getUTCHours() * 3600 + d.getUTCMinutes() * 60 + d.getUTCSeconds()
+  const t = (utc + offset * 3600 + 86400) % 86400
+  const h = Math.floor(t / 3600).toString().padStart(2, '0')
+  const m = Math.floor((t % 3600) / 60).toString().padStart(2, '0')
+  const s = (t % 60).toString().padStart(2, '0')
+  return `${h}:${m}:${s}`
+}
+
+const QUOTES = [
+  'The goal is not to be right. The goal is to follow the process.',
+  'Patience is not passive. It is concentrated strength.',
+  'Every mistake studied is a future profit protected.',
+  'The market rewards discipline, not intelligence.',
+  'Flow state is not found. It is built, one session at a time.',
+  'Your journal is your edge. Read it more than your charts.',
+  'Consistency is the only strategy that compounds.',
+]
+
+const SCHEDULE = [
+  { day: 0, label: 'Market Breakdown', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD' },
+  { day: 1, label: 'Live Session', type: 'live', desc: 'Premium live session — deeper market analysis' },
+  { day: 2, label: 'Live Reading', type: 'live', desc: 'Live price action reading — key levels and structure' },
+  { day: 3, label: 'Live Session', type: 'live', desc: 'Premium live deep dive — setups and execution' },
+  { day: 4, label: 'Live Session + 1-on-1', type: 'personal', desc: 'Premium live session + personal weekly call' },
+  { day: 5, label: 'Psychology Call', type: 'psych', desc: 'Mindset and emotional control session' },
+  { day: 6, label: 'Rest & Review', type: 'rest', desc: 'Recovery, reflection, and preparation' },
+]
+
+export default function DashboardHome() {
+  const [dark, setDark] = useState(false)
+  const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
+  const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0 })
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push('/login')
-      } else {
-        setUser(session.user)
-        setLoading(false)
+    const saved = localStorage.getItem('fc-dark-mode')
+    if (saved === 'true') setDark(true)
+    const handler = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
+    window.addEventListener('storage', handler)
+window.addEventListener('fc-theme-change', handler)
+    return () => window.removeEventListener('storage', handler)
+window.removeEventListener('fc-theme-change', handler)
+  }, [])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return
+      const { data: trades } = await supabase.from('trades').select('pnl').eq('user_id', session.user.id)
+      if (trades && trades.length > 0) {
+        const total = trades.length
+        const pnl = trades.reduce((sum, tr) => sum + (tr.pnl || 0), 0)
+        const wins = trades.filter(tr => (tr.pnl || 0) > 0).length
+        setStats({ total, pnl, winRate: Math.round((wins / total) * 100) })
       }
     })
-  }, [router])
+  }, [])
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/')
+  useEffect(() => {
+    const interval = setInterval(() => setTimes(CLOCKS.map(c => getTime(c.offset))), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const today = new Date()
+  const todaySession = SCHEDULE[today.getDay()]
+  const quote = QUOTES[today.getDate() % QUOTES.length]
+  const dateStr = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+  // Theme values
+  const bg = dark ? '#080d14' : '#F5F2EC'
+  const cardBg = dark ? '#0f1825' : '#ffffff'
+  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
+  const textPrimary = dark ? '#e0ecf8' : '#1a1a1a'
+  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
+  const textSecondary = dark ? '#a0c0d8' : '#3a3530'
+  const accent = dark ? '#7aaee8' : '#2B5EA7'
+  const darkPanel = '#0d1e36'
+
+  const sessionStyles: Record<string, { bg: string; border: string; label: string }> = {
+    live: { bg: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.06)', border: dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.2)', label: dark ? '#7aaee8' : '#2B5EA7' },
+    personal: { bg: dark ? 'rgba(180,120,0,0.15)' : 'rgba(180,120,0,0.05)', border: dark ? 'rgba(180,120,0,0.3)' : 'rgba(180,120,0,0.2)', label: dark ? '#fbbf24' : '#b47800' },
+    psych: { bg: dark ? 'rgba(120,80,180,0.15)' : 'rgba(120,80,180,0.05)', border: dark ? 'rgba(120,80,180,0.3)' : 'rgba(120,80,180,0.2)', label: dark ? '#c4b5fd' : '#7850b4' },
+    rest: { bg: dark ? 'rgba(255,255,255,0.03)' : 'rgba(26,26,26,0.02)', border: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.08)', label: dark ? 'rgba(255,255,255,0.3)' : '#8a8070' },
   }
-
-  if (loading) return (
-    <div style={{ background: '#F5F2EC', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#8a8070', fontSize: '16px' }}>Loading...</div>
-    </div>
-  )
+  const sc = sessionStyles[todaySession.type]
 
   return (
-    <div style={{ background: '#F5F2EC', minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+    <div style={{ padding: '40px 48px', maxWidth: '1100px', background: bg, minHeight: '100vh' }}>
 
-      {/* Topbar */}
-      <div style={{ background: '#ffffff', borderBottom: '0.5px solid rgba(26,26,26,0.08)', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', letterSpacing: '1px' }}>
-          FLOW <span style={{ color: '#2B5EA7' }}>CAPITALS</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#8a8070' }}>{user?.email}</div>
-          <button onClick={handleLogout} style={{ background: 'none', border: '0.5px solid rgba(26,26,26,0.15)', color: '#8a8070', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.08em', padding: '6px 14px', cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,26,26,0.15)'; e.currentTarget.style.color = '#8a8070' }}
-          >Sign out</button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: '64px 80px', maxWidth: '1100px', margin: '0 auto' }}>
-
-        {/* Greeting */}
-        <div style={{ marginBottom: '48px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '24px', height: '1px', background: '#2B5EA7' }} />Member Dashboard
+      {/* Welcome + clocks */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '36px' }}>
+        <div>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '24px', height: '1px', background: accent }} />Member Dashboard
           </div>
-          <h1 style={{ fontSize: '48px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '8px' }}>
-            Welcome back.
-          </h1>
-          <p style={{ fontStyle: 'italic', fontSize: '16px', color: '#8a8070' }}>Your journey continues here.</p>
+          <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>Welcome back.</h1>
+          <p style={{ fontStyle: 'italic', fontSize: '14px', color: textMuted }}>{dateStr}</p>
         </div>
-
-        {/* Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '40px' }}>
-          {[
-            { label: 'Courses', value: 'Coming soon', icon: '📐', desc: 'Technical & psychology modules' },
-            { label: 'Journal', value: 'Coming soon', icon: '📓', desc: 'Track your trades and growth' },
-            { label: 'Trading Wall', value: 'Coming soon', icon: '🏆', desc: 'Payout proofs and achievements' },
-            { label: 'Q & A', value: 'Coming soon', icon: '💬', desc: 'Ask your mentor directly' },
-          ].map(card => (
-            <div key={card.label} style={{ background: '#ffffff', border: '0.5px solid rgba(26,26,26,0.08)', padding: '24px', cursor: 'default', transition: 'border-color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#2B5EA7'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(26,26,26,0.08)'}
-            >
-              <div style={{ fontSize: '24px', marginBottom: '12px' }}>{card.icon}</div>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#8a8070', marginBottom: '6px' }}>{card.label}</div>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#2B5EA7', marginBottom: '4px' }}>{card.value}</div>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#8a8070', lineHeight: '1.5' }}>{card.desc}</div>
+        <div style={{ display: 'flex', gap: '24px', background: cardBg, border: `0.5px solid ${cardBorder}`, padding: '14px 20px' }}>
+          {CLOCKS.map((c, i) => (
+            <div key={c.city} style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: textMuted, letterSpacing: '0.1em', marginBottom: '3px' }}>{c.city}</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: textPrimary }}>{times[i]}</div>
             </div>
           ))}
         </div>
-
-        {/* Welcome message */}
-        <div style={{ background: '#0d1e36', padding: '40px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#7aaee8', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '24px', height: '1px', background: '#7aaee8' }} />You are in
-            </div>
-            <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#ffffff', letterSpacing: '-1px', lineHeight: '1.1', marginBottom: '16px' }}>
-              The platform is<br /><span style={{ color: '#7aaee8', fontStyle: 'italic' }}>being built for you.</span>
-            </h2>
-            <p style={{ fontStyle: 'italic', fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.7' }}>
-              Courses, journal, trading wall, and Q&A are all coming very soon. You are among the first members of Flow Capitals.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '12px' }}>
-            {[
-              'Access to all courses when released',
-              'Trading journal to track your progress',
-              'Direct Q&A with your mentor',
-              'Trading wall — share your payouts',
-            ].map(item => (
-              <div key={item} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', fontSize: '14px', color: 'rgba(255,255,255,0.65)', lineHeight: '1.5' }}>
-                <div style={{ width: '5px', height: '5px', background: '#7aaee8', borderRadius: '50%', flexShrink: 0, marginTop: '8px' }} />
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
+
+      {/* Stats + today */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: '10px', marginBottom: '20px' }}>
+        <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, padding: '22px 24px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Trades Logged</div>
+          <div style={{ fontSize: '38px', fontWeight: '700', color: textPrimary, lineHeight: 1, marginBottom: '3px' }}>{stats.total}</div>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>Total entries</div>
+        </div>
+        <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, padding: '22px 24px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total P&L</div>
+          <div style={{ fontSize: '38px', fontWeight: '700', color: stats.pnl >= 0 ? accent : '#dc3232', lineHeight: 1, marginBottom: '3px' }}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</div>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>All time</div>
+        </div>
+        <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, padding: '22px 24px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Win Rate</div>
+          <div style={{ fontSize: '38px', fontWeight: '700', color: textPrimary, lineHeight: 1, marginBottom: '3px' }}>{stats.winRate}%</div>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>Based on logged trades</div>
+        </div>
+        <div style={{ background: sc.bg, border: `0.5px solid ${sc.border}`, padding: '22px 24px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: sc.label }} />
+            Today&apos;s Session
+          </div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>{todaySession.label}</div>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession.desc}</div>
+        </div>
+      </div>
+
+      {/* Quick links */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+        {[
+          { label: 'Trading Journal', desc: 'Log trades, track emotions, analyse performance', href: '/dashboard/journal', num: 'I' },
+          { label: 'Courses', desc: 'Technical pillars, psychology, tape reading', href: '/dashboard/courses', num: 'II' },
+          { label: 'Trading Wall', desc: 'Share payouts and community achievements', href: '/dashboard/wall', num: 'III' },
+        ].map(card => (
+          <a key={card.label} href={card.href} style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, padding: '22px 24px', textDecoration: 'none', display: 'block', transition: 'border-color 0.2s', position: 'relative', overflow: 'hidden' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = accent}
+            onMouseLeave={e => e.currentTarget.style.borderColor = cardBorder}
+          >
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '44px', fontWeight: '700', color: dark ? 'rgba(122,174,232,0.08)' : 'rgba(43,94,167,0.05)', lineHeight: 1, position: 'absolute', top: '8px', right: '14px' }}>{card.num}</div>
+            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px' }}>Go to</div>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: textPrimary, marginBottom: '4px' }}>{card.label}</div>
+            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{card.desc}</div>
+          </a>
+        ))}
+      </div>
+
+      {/* Daily quote */}
+      <div style={{ background: darkPanel, padding: '28px 36px', display: 'flex', alignItems: 'center', gap: '28px' }}>
+        <div style={{ width: '3px', height: '44px', background: '#2B5EA7', flexShrink: 0 }} />
+        <div>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '6px' }}>Daily reminder</div>
+          <p style={{ fontStyle: 'italic', fontSize: '17px', color: '#ffffff', lineHeight: '1.6', margin: 0 }}>&ldquo;{quote}&rdquo;</p>
+        </div>
+      </div>
+
     </div>
   )
 }
