@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { label: 'Courses', href: '/dashboard/courses', icon: '▤', access: 'premium' },
   { label: 'Trading Wall', href: '/dashboard/wall', icon: '◈', access: 'all' },
   { label: 'Q & A', href: '/dashboard/qa', icon: '◎', access: 'premium' },
-  { label: 'Achievements', href: '/dashboard/achievements', icon: '◇', access: 'premium' },
+  
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px', whiteSpace: 'nowrap' as const }}>Platform</div>
           )}
           {NAV_ITEMS.map(item => {
-            const active = pathname === item.href || pathname.startsWith(item.href + '/')
+            const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
             const locked = item.access === 'premium' && !isPremium
             return (
               <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
