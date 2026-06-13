@@ -105,6 +105,7 @@ function WinRateCircle({ winRate, beRate, dark }: { winRate: number; beRate: num
 
 export default function DashboardHome() {
   const [dark, setDark] = useState(false)
+  const [firstName, setFirstName] = useState('')
   const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
   const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0, beRate: 0, profitFactor: 0, grossProfit: 0, grossLoss: 0 })
 
@@ -123,6 +124,8 @@ export default function DashboardHome() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return
+      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single()
+if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
       const { data: trades } = await supabase.from('trades').select('pnl').eq('user_id', session.user.id)
       if (trades && trades.length > 0) {
         const total = trades.length
@@ -182,7 +185,7 @@ export default function DashboardHome() {
           <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '24px', height: '1px', background: accent }} />Member Dashboard
           </div>
-          <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>Welcome back.</h1>
+          <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>Welcome back{firstName ? `, ${firstName}` : ''}.</h1>
           <p style={{ fontStyle: 'italic', fontSize: '14px', color: textMuted }}>{dateStr}</p>
         </div>
         <div style={{ display: 'flex', gap: '24px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '14px 20px' }}>
