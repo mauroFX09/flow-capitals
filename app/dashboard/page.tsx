@@ -31,7 +31,7 @@ const QUOTES = [
 ]
 
 const SCHEDULE = [
-  { day: 0, label: 'Market Breakdown', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD' },
+  { day: 0, label: 'Market Analysis', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD' },
   { day: 1, label: 'Live Session', type: 'live', desc: 'Premium live session — deeper market analysis' },
   { day: 2, label: 'Live Reading', type: 'live', desc: 'Live price action reading — key levels and structure' },
   { day: 3, label: 'Live Session', type: 'live', desc: 'Premium live deep dive — setups and execution' },
@@ -41,22 +41,14 @@ const SCHEDULE = [
 ]
 
 function CircleGauge({ value, max, color, label, dark }: { value: number; max: number; color: string; label: string; dark: boolean }) {
-  const size = 72
-  const strokeWidth = 7
-  const radius = (size - strokeWidth) / 2
+  const size = 72; const strokeWidth = 7; const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const fill = Math.min(value / max, 1) * circumference
-
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={radius} fill="none"
-          stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'}
-          strokeWidth={strokeWidth} />
-        <circle cx={size/2} cy={size/2} r={radius} fill="none"
-          stroke={color} strokeWidth={strokeWidth}
-          strokeDasharray={`${fill} ${circumference}`}
-          strokeLinecap="round" />
+        <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'} strokeWidth={strokeWidth} />
+        <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeDasharray={`${fill} ${circumference}`} strokeLinecap="round" />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontWeight: '700', color: color }}>{label}</span>
@@ -66,35 +58,19 @@ function CircleGauge({ value, max, color, label, dark }: { value: number; max: n
 }
 
 function WinRateCircle({ winRate, beRate, dark }: { winRate: number; beRate: number; dark: boolean }) {
-  const size = 72
-  const strokeWidth = 7
-  const radius = (size - strokeWidth) / 2
+  const size = 72; const strokeWidth = 7; const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const lossRate = Math.max(0, 100 - winRate - beRate)
   const winDash = (winRate / 100) * circumference
   const beDash = (beRate / 100) * circumference
   const lossDash = (lossRate / 100) * circumference
-
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={radius} fill="none"
-          stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'}
-          strokeWidth={strokeWidth} />
-        {winRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none"
-          stroke="#22c55e" strokeWidth={strokeWidth}
-          strokeDasharray={`${winDash} ${circumference - winDash}`}
-          strokeLinecap="round" />}
-        {beRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none"
-          stroke="#94a3b8" strokeWidth={strokeWidth}
-          strokeDasharray={`${beDash} ${circumference - beDash}`}
-          strokeDashoffset={-winDash}
-          strokeLinecap="round" />}
-        {lossRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none"
-          stroke="#dc3232" strokeWidth={strokeWidth}
-          strokeDasharray={`${lossDash} ${circumference - lossDash}`}
-          strokeDashoffset={-(winDash + beDash)}
-          strokeLinecap="round" />}
+        <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'} strokeWidth={strokeWidth} />
+        {winRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#22c55e" strokeWidth={strokeWidth} strokeDasharray={`${winDash} ${circumference - winDash}`} strokeLinecap="round" />}
+        {beRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#94a3b8" strokeWidth={strokeWidth} strokeDasharray={`${beDash} ${circumference - beDash}`} strokeDashoffset={-winDash} strokeLinecap="round" />}
+        {lossRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#dc3232" strokeWidth={strokeWidth} strokeDasharray={`${lossDash} ${circumference - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
@@ -107,6 +83,7 @@ export default function DashboardHome() {
   const [dark, setDark] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
+  const [allTrades, setAllTrades] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0, beRate: 0, profitFactor: 0, grossProfit: 0, grossLoss: 0 })
 
   useEffect(() => {
@@ -125,15 +102,16 @@ export default function DashboardHome() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return
       const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single()
-if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
-      const { data: trades } = await supabase.from('trades').select('pnl').eq('user_id', session.user.id)
+      if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
+      const { data: trades } = await supabase.from('trades').select('*').eq('user_id', session.user.id)
       if (trades && trades.length > 0) {
+        setAllTrades(trades)
         const total = trades.length
-        const pnl = trades.reduce((sum, tr) => sum + (tr.pnl || 0), 0)
-        const wins = trades.filter(tr => (tr.pnl || 0) > 0).length
-        const be = trades.filter(tr => (tr.pnl || 0) === 0).length
-        const grossProfit = trades.filter(tr => (tr.pnl || 0) > 0).reduce((sum, tr) => sum + tr.pnl, 0)
-        const grossLoss = Math.abs(trades.filter(tr => (tr.pnl || 0) < 0).reduce((sum, tr) => sum + tr.pnl, 0))
+        const pnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0)
+        const wins = trades.filter(t => (t.pnl || 0) > 0).length
+        const be = trades.filter(t => (t.pnl || 0) === 0).length
+        const grossProfit = trades.filter(t => (t.pnl || 0) > 0).reduce((sum, t) => sum + t.pnl, 0)
+        const grossLoss = Math.abs(trades.filter(t => (t.pnl || 0) < 0).reduce((sum, t) => sum + t.pnl, 0))
         const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0
         setStats({ total, pnl, winRate: Math.round((wins / total) * 100), beRate: Math.round((be / total) * 100), profitFactor, grossProfit, grossLoss })
       }
@@ -169,12 +147,24 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
   const pfColor = stats.profitFactor >= 2 ? '#22c55e' : stats.profitFactor >= 1 ? accent : stats.profitFactor === 0 ? textMuted : '#dc3232'
 
   const card = {
-    background: cardBg,
-    border: `0.5px solid ${cardBorder}`,
-    borderRadius: '16px',
-    boxShadow: cardShadow,
-    padding: '22px 24px',
+    background: cardBg, border: `0.5px solid ${cardBorder}`,
+    borderRadius: '16px', boxShadow: cardShadow, padding: '22px 24px',
   }
+
+  // Week strip data
+  const dayOfWeek = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label, i) => {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + i)
+    const dateKey = date.toISOString().split('T')[0]
+    const dayTrades = allTrades.filter(t => t.created_at.split('T')[0] === dateKey)
+    const dayPnl = dayTrades.reduce((s, t) => s + (t.pnl || 0), 0)
+    const hasTrades = dayTrades.length > 0
+    const isToday = date.toDateString() === today.toDateString()
+    return { label, date: date.getDate(), hasTrades, dayPnl, isToday }
+  })
 
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px', background: bg, minHeight: '100vh' }}>
@@ -185,7 +175,9 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
           <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '24px', height: '1px', background: accent }} />Member Dashboard
           </div>
-          <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>Welcome back{firstName ? `, ${firstName}` : ''}.</h1>
+          <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>
+            Welcome back{firstName ? `, ${firstName}` : ''}.
+          </h1>
           <p style={{ fontStyle: 'italic', fontSize: '14px', color: textMuted }}>{dateStr}</p>
         </div>
         <div style={{ display: 'flex', gap: '24px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '14px 20px' }}>
@@ -200,7 +192,6 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: '12px', marginBottom: '20px' }}>
-
         {/* Net P&L */}
         <div style={{ ...card }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -215,19 +206,11 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
         <div style={{ ...card }}>
           <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <CircleGauge
-              value={stats.profitFactor}
-              max={3}
-              color={pfColor}
-              label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)}
-              dark={dark}
-            />
+            <CircleGauge value={stats.profitFactor} max={3} color={pfColor} label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)} dark={dark} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#22c55e' }}>+{stats.grossProfit.toFixed(0)}€</div>
               <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#dc3232' }}>-{stats.grossLoss.toFixed(0)}€</div>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, marginTop: '2px' }}>
-                {stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}
-              </div>
+              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted }}>{stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}</div>
             </div>
           </div>
         </div>
@@ -238,15 +221,9 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <WinRateCircle winRate={stats.winRate} beRate={stats.beRate} dark={dark} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>
-                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>
-                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>
-                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE
-              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
             </div>
           </div>
         </div>
@@ -286,6 +263,32 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
         ))}
       </div>
 
+      {/* This week strip */}
+      <div style={{ ...card, marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>This Week</div>
+          <a href="/dashboard/journal" style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, textDecoration: 'none' }}>Full calendar →</a>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+          {weekDays.map(({ label, date, hasTrades, dayPnl, isToday }) => {
+            const isProfit = hasTrades && dayPnl > 0
+            const isLoss = hasTrades && dayPnl < 0
+            let bg = 'transparent'
+            let border = dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'
+            let pnlColor = textMuted
+            if (isProfit) { bg = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.06)'; border = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
+            if (isLoss) { bg = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; border = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
+            return (
+              <div key={label} style={{ background: bg, border: `0.5px solid ${isToday ? accent : border}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
+                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: isToday ? accent : textMuted, marginBottom: '3px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
+                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{date}</div>
+                {hasTrades && <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</div>}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Daily quote */}
       <div style={{ background: '#0d1e36', padding: '28px 36px', display: 'flex', alignItems: 'center', gap: '28px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
         <div style={{ width: '3px', height: '44px', background: '#2B5EA7', flexShrink: 0, borderRadius: '2px' }} />
@@ -301,7 +304,6 @@ if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
           50% { transform: scale(2.5); opacity: 0; }
         }
       `}</style>
-
     </div>
   )
 }
