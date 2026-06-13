@@ -9,7 +9,6 @@ const NAV_ITEMS = [
   { label: 'Courses', href: '/dashboard/courses', icon: '▤', access: 'premium' },
   { label: 'Trading Wall', href: '/dashboard/wall', icon: '◈', access: 'all' },
   { label: 'Q & A', href: '/dashboard/qa', icon: '◎', access: 'premium' },
-  
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -52,7 +51,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const isPremium = role === 'premium' || role === 'admin'
-
   const bg = dark ? '#080d14' : '#F5F2EC'
   const sidebar = dark ? '#0c1220' : '#ffffff'
   const border = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
@@ -106,7 +104,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             return (
               <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
                 title={collapsed ? item.label : undefined}
-                style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '12px', padding: collapsed ? '10px 0' : '10px 10px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: '8px', textDecoration: 'none', marginBottom: '2px', background: active ? navActive : 'transparent', borderLeft: collapsed ? 'none' : active ? '2px solid #2B5EA7' : '2px solid transparent', transition: 'all 0.15s', opacity: locked ? 0.5 : 1, position: 'relative' as const }}
+                style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '12px', padding: collapsed ? '10px 0' : '10px 10px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: '8px', textDecoration: 'none', marginBottom: '2px', background: active ? navActive : 'transparent', borderLeft: collapsed ? 'none' : active ? '2px solid #2B5EA7' : '2px solid transparent', transition: 'all 0.15s', opacity: locked ? 0.5 : 1 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = navHover }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
               >
@@ -149,8 +147,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </button>
               </div>
 
-              {/* User */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              {/* User — clickable avatar */}
+              <a href="/dashboard/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', textDecoration: 'none', cursor: 'pointer', padding: '6px 4px', borderRadius: '8px', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background = navHover}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
                 <div style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
                 </div>
@@ -158,7 +159,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: text, fontWeight: '500', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
                   <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
                 </div>
-              </div>
+              </a>
+
               <button onClick={handleLogout} style={{ width: '100%', background: 'none', border: `0.5px solid ${border}`, color: muted, fontFamily: 'Arial, sans-serif', fontSize: '10px', textTransform: 'uppercase' as const, padding: '7px', cursor: 'pointer', borderRadius: '6px' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
@@ -174,9 +176,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '6px 0' }}>
                 {dark ? '🌙' : '☀️'}
               </button>
-              <div style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} title={user?.email}>
+              <a href="/dashboard/profile" style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }} title={user?.email}>
                 <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
-              </div>
+              </a>
               <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, padding: '4px' }}
                 title="Sign out"
                 onMouseEnter={e => e.currentTarget.style.color = '#dc3232'}
