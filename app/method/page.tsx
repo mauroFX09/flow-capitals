@@ -3,17 +3,17 @@ import { useState } from 'react'
 import Nav from '@/components/Nav'
 
 const ROADMAP = [
-  { num: '01', title: 'Market Foundations', sub: 'Understanding the world you are entering', points: ['How the global economy is structured and what drives it', 'The different markets — Forex, Indices, Commodities explained clearly', 'How central banks and institutions move price', 'Market sessions, liquidity windows, and timing', 'Price action fundamentals — reading charts without indicators', 'Market structure, order flow, and ICT core concepts'] },
-  { num: '02', title: 'Build Your Edge', sub: 'A strategy built on data, not feelings', points: ['Identify the concepts that match your personality and schedule', 'Swing, intraday or scalping — find what fits your life', 'Build a fully rules-based trading plan from scratch', 'Backtest your strategy across 100+ historical setups', 'Risk management framework — protect capital above everything', 'Journal setup — every trade logged and analysed from day one'] },
-  { num: '03', title: 'Demo Trading', sub: 'Build confidence before risking a single euro', points: ['Execute your plan in real market conditions with zero risk', 'Collect live data — what works, what does not, and why', 'Track every entry, exit, emotion, and result meticulously', 'Refine and optimise based on real performance data', 'Build the habits and discipline of a professional trader', 'Only advance when your data proves consistency'] },
-  { num: '04', title: 'Go Live — Your Choice', sub: 'Prop firm or own capital — both paths fully mapped', points: ['Option A: Prop Firm — trade up to $200K with zero personal risk', 'Option B: Live capital — trade your own account with full control', 'Prop firm evaluation strategy — how to pass on the first attempt', 'Risk/reward on funded accounts is unmatched when executed correctly', 'Capital allocation and position sizing rules for live trading', 'The psychological shift when real money is on the line'] },
-  { num: '05', title: 'Consistency Phase', sub: 'Where real traders are built', points: ['Managing the psychological pressure of real capital', 'Every mistake studied, documented, and eliminated — no exceptions', 'Weekly 1-on-1 trade reviews for Premium members', 'Emotional control under drawdown — the hardest and most important skill', 'Drawdown management and recovery protocols', 'Building the daily routine that elite traders follow'] },
-  { num: '06', title: 'First Payout', sub: 'The moment the blueprint is proven', points: ['Your first certified withdrawal — proof that the system works', 'Payout posted on the Flow Capitals Trading Wall', 'Full performance review — what got you here and how to repeat it', 'Refining the edge for larger and more consistent returns', 'Community recognition and accountability', 'This is the beginning of your verified track record'] },
-  { num: '07', title: 'Scale & Grow', sub: 'Now we go to the next level', points: ['Scaling funded accounts from $50K to $200K and beyond', 'Managing multiple prop firm accounts simultaneously', 'Portfolio thinking — diversify across markets and strategies', 'Building trading as a real sustainable income stream', 'Advanced psychology for high-capital high-pressure trading', 'The life the top 1% of traders live — within reach'] },
+  { num: '01', title: 'Market Foundations', sub: 'Understanding the world you are entering', points: ['How the global economy is structured and what drives it', 'The different markets — Forex, Indices, Commodities explained clearly', 'How central banks and institutions move price', 'Market sessions, liquidity windows, and timing', 'Price action fundamentals — reading charts without indicators', 'Market structure, order flow, and ICT core concepts', 'Premium: weekly 1-on-1 call to guide your foundation personally'] },
+  { num: '02', title: 'Build Your Edge', sub: 'A strategy built on data, not feelings', points: ['Identify the concepts that match your personality and schedule', 'Swing, intraday or scalping — find what fits your life', 'Build a fully rules-based trading plan from scratch', 'Backtest your strategy across 100+ historical setups', 'Risk management framework — protect capital above everything', 'Journal setup — every trade logged and analysed from day one', 'Premium: weekly 1-on-1 call to build your personal edge together'] },
+  { num: '03', title: 'Demo Trading', sub: 'Build confidence before risking a single euro', points: ['Execute your plan in real market conditions with zero risk', 'Collect live data — what works, what does not, and why', 'Track every entry, exit, emotion, and result meticulously', 'Refine and optimise based on real performance data', 'Build the habits and discipline of a professional trader', 'Only advance when your data proves consistency', 'Premium: weekly 1-on-1 call to review your demo performance and accelerate progress'] },
+  { num: '04', title: 'Go Live — Your Choice', sub: 'Prop firm or own capital — both paths fully mapped', points: ['Option A: Prop Firm — trade up to $200K with zero personal risk', 'Option B: Live capital — trade your own account with full control', 'Prop firm evaluation strategy — how to pass on the first attempt', 'Risk/reward on funded accounts is unmatched when executed correctly', 'Capital allocation and position sizing rules for live trading', 'The psychological shift when real money is on the line', 'Premium: weekly 1-on-1 call to prepare you for going live with confidence'] },
+  { num: '05', title: 'Consistency Phase', sub: 'Where real traders are built', points: ['Managing the psychological pressure of real capital', 'Every mistake studied, documented, and eliminated — no exceptions', 'Weekly 1-on-1 trade reviews for Premium members', 'Emotional control under drawdown — the hardest and most important skill', 'Drawdown management and recovery protocols', 'Building the daily routine that elite traders follow', 'Premium: weekly 1-on-1 call — every mistake turned into a lesson'] },
+  { num: '06', title: 'First Payout', sub: 'The moment the blueprint is proven', points: ['Your first certified withdrawal — proof that the system works', 'Payout posted on the Flow Capitals Trading Wall', 'Full performance review — what got you here and how to repeat it', 'Refining the edge for larger and more consistent returns', 'Community recognition and accountability', 'This is the beginning of your verified track record', 'Premium: weekly 1-on-1 call to lock in what worked and scale it'] },
+  { num: '07', title: 'Scale & Grow', sub: 'Now we go to the next level', points: ['Scaling funded accounts from $50K to $200K and beyond', 'Managing multiple prop firm accounts simultaneously', 'Portfolio thinking — diversify across markets and strategies', 'Building trading as a real sustainable income stream', 'Advanced psychology for high-capital high-pressure trading', 'The life the top 1% of traders live — within reach', 'Premium: weekly 1-on-1 call to build your scaling strategy together'] },
 ]
 
 const STANDARD_SCHEDULE = [
-  { day: 'SUN', label: 'Market Breakdown', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD, DXY' },
+  { day: 'SUN', label: 'Market Analysis', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD, DXY' },
   { day: 'MON', label: 'Study Day', type: 'async', desc: 'Review Sunday breakdown, work through course content' },
   { day: 'TUE', label: 'Live Reading', type: 'live', desc: 'Live price action reading session — key levels and structure' },
   { day: 'WED', label: 'Study Day', type: 'async', desc: 'Apply concepts, practice exercises, community support' },
@@ -23,7 +23,7 @@ const STANDARD_SCHEDULE = [
 ]
 
 const PREMIUM_SCHEDULE = [
-  { day: 'SUN', label: 'Market Breakdown', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD, DXY' },
+  { day: 'SUN', label: 'Market Analysis', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD, DXY' },
   { day: 'MON', label: 'Live Session', type: 'live', desc: 'Extra premium live session — deeper market analysis' },
   { day: 'TUE', label: 'Live Reading', type: 'live', desc: 'Live price action reading session — key levels and structure' },
   { day: 'WED', label: 'Live Session', type: 'live', desc: 'Premium live deep dive — setups, concepts, execution' },
@@ -109,12 +109,15 @@ export default function Method() {
                 </div>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {ROADMAP[activeStage].points.map((point, i) => (
-                  <li key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '14px 0', borderBottom: '0.5px solid rgba(26,26,26,0.06)' }}>
-                    <div style={{ width: '6px', height: '6px', background: '#2B5EA7', borderRadius: '50%', flexShrink: 0, marginTop: '8px' }} />
-                    <span style={{ fontSize: '15px', color: '#3a3530', lineHeight: '1.65', fontFamily: 'Georgia, serif' }}>{point}</span>
-                  </li>
-                ))}
+                {ROADMAP[activeStage].points.map((point, i) => {
+                  const isPremium = point.startsWith('Premium:')
+                  return (
+                    <li key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', padding: '14px 0', borderBottom: '0.5px solid rgba(26,26,26,0.06)' }}>
+                      <div style={{ width: '6px', height: '6px', background: isPremium ? '#7aaee8' : '#2B5EA7', borderRadius: '50%', flexShrink: 0, marginTop: '8px' }} />
+                      <span style={{ fontSize: '15px', color: isPremium ? '#2B5EA7' : '#3a3530', lineHeight: '1.65', fontFamily: 'Georgia, serif', fontStyle: isPremium ? 'italic' : 'normal', fontWeight: isPremium ? '500' : '400' }}>{point}</span>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           </div>
@@ -187,7 +190,7 @@ export default function Method() {
             <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#3a3530', lineHeight: '1.85', marginBottom: '18px' }}>The Flow Capitals method is built on the opposite principle. Each stage has a gate. You do not move forward until your data proves you are ready. Not your feelings — your data.</p>
             <p style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: '#3a3530', lineHeight: '1.85' }}>This is how you build a trading career that lasts. Not a winning streak — a career.</p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '16px' }}>
             {[
               { num: '01', title: 'Data over feelings', desc: 'Every decision is based on your journal data, your backtest results, your real performance — never on how you feel about a trade.' },
               { num: '02', title: 'Gates between stages', desc: 'You earn the right to move to the next stage. No rushing, no skipping. Each gate protects your capital and your psychology.' },
