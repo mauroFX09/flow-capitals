@@ -32,7 +32,6 @@ export default function Discovery() {
               </h2>
               <div style={{ width: '40px', height: '3px', background: '#2B5EA7', margin: '24px 0 28px' }} />
 
-              {/* Photo placeholder */}
               <div style={{ width: '100%', height: '340px', background: 'rgba(43,94,167,0.04)', border: '1px solid rgba(43,94,167,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '15px', color: '#8a8070', marginBottom: '8px' }}>Photo coming soon</div>
@@ -52,7 +51,7 @@ export default function Discovery() {
                 I dropped out of International Business at 20. Not because I was lazy — because I knew the corporate path wasn&apos;t mine. I spent months researching every online business model and trading was the one that truly fit. Numbers, data, markets. It matched who I am.
               </p>
               <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', color: '#3a3530', lineHeight: '1.9', marginBottom: '22px' }}>
-                So I went back to work for a boss. Saved every single euro. Over the next two years I invested more than <strong>invested every euro I had into trading education</strong> — multiple mentors, multiple programs. None of it worked the way I needed it to. The strategies didn&apos;t fit my personality. I absorbed some knowledge — risk management, journaling basics — but I was still searching for the real foundation.
+                So I went back to work for a boss. Saved every single euro. Over the next two years I invested more than <strong>€15,000 into trading education</strong> — multiple mentors, multiple programs. None of it worked the way I needed it to. The strategies didn&apos;t fit my personality. I absorbed some knowledge — risk management, journaling basics — but I was still searching for the real foundation.
               </p>
               <p style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', color: '#3a3530', lineHeight: '1.9', marginBottom: '22px' }}>
                 Then I found <strong>ICT on YouTube</strong>. I studied it like a university degree — deep, obsessive, methodical. After years of trial and error I built something that had never existed for me before: a strategy that was entirely my own. Personalised to my character, my schedule, and my psychology.
@@ -78,22 +77,22 @@ export default function Discovery() {
           <div style={{ width: '40px', height: '3px', background: '#2B5EA7', margin: '24px 0 48px' }} />
 
           {[
-            { year: '2020', title: 'The decision', desc: 'Dropped out of International Business. Refused the corporate path. Started searching for something that matched who I really am.' },
-            { year: '2022', title: 'First investment', desc: 'Started working to save capital. Invested the first €5,000+ into trading education. The strategy never clicked — but the foundation of risk management and journaling was laid.' },
-            { year: '2022–23', title: '€15,000 in education', desc: 'Continued investing in mentors and programs. Total spent exceeded €15,000. Still searching. Still not finding a strategy that fit my personality and schedule.' },
-            { year: '2023', title: 'The discovery', desc: 'Found ICT on YouTube. Studied it with the intensity of a university student. Months of deep obsessive learning. This was the missing piece.' },
-            { year: '2023–24', title: 'The expensive lesson', desc: 'Built a personalised strategy and moved to live capital too soon. Lost everything. Back to working for a boss. Saved again. But this time, the blueprint existed.' },
-            { year: '2024', title: 'The process', desc: 'Returned with patience. Followed the blueprint exactly — demo phase, data collection, refinement, proper evaluation. No rushing. Just process.' },
-            { year: '2025', title: 'Flow Capitals', desc: 'Consistent payouts. Multiple funded accounts. A verified track record. Flow Capitals launched to give every serious trader the path I had to build alone.' },
+            { year: '2021', title: 'The decision', desc: 'Dropped out of International Business. Refused the corporate path. Started researching every online business model — trading was the one that matched who I am.', milestone: false },
+            { year: '2022', title: 'First investment', desc: 'Went back to work and saved. Invested the first €5,000+ into trading education. The strategy never clicked — but the foundation of risk management and journaling was laid.', milestone: false },
+            { year: '2023', title: '€15,000 spent. Still searching.', desc: 'Total invested in mentors and programs exceeded €15,000. Found ICT on YouTube. Studied it with the intensity of a university student. The missing piece was finally found.', milestone: false },
+            { year: '2023', title: 'The expensive lesson', desc: 'Built a personalised strategy and moved to live capital too soon. Lost everything. Back to working for a boss. Saved again. But this time, the blueprint existed.', milestone: false },
+            { year: '2024', title: 'Flow Capitals founded.', desc: 'Returned with patience. Followed the blueprint exactly. Consistent payouts. Multiple funded accounts. A verified track record. Flow Capitals was launched to give every serious trader the path I had to build alone.', milestone: true },
+            { year: '2025', title: 'First members. First payouts.', desc: 'The first students joined the blueprint. Christian Arena and Oliwier Kowal — both students who mastered the strategy — were promoted to mentors and became partners in the mission.', milestone: false },
+            { year: '2026', title: 'The community grows.', desc: 'Flow Capitals continues to grow — more members, more payouts, more proof. The platform you are on right now is the result of every lesson learned since 2021.', milestone: true },
           ].map((item, i, arr) => (
             <div key={i} style={{ display: 'flex', gap: '28px' }}>
-              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '4px' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: i === arr.length - 1 ? '#2B5EA7' : '#ffffff', border: `2px solid #2B5EA7`, flexShrink: 0 }} />
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column' as const, alignItems: 'center', paddingTop: '4px' }}>
+                <div style={{ width: item.milestone ? '16px' : '12px', height: item.milestone ? '16px' : '12px', borderRadius: '50%', background: item.milestone ? '#2B5EA7' : '#ffffff', border: `2px solid #2B5EA7`, flexShrink: 0, boxShadow: item.milestone ? '0 0 0 4px rgba(43,94,167,0.1)' : 'none' }} />
                 {i < arr.length - 1 && <div style={{ width: '1px', height: '64px', background: 'rgba(43,94,167,0.15)', marginTop: '3px' }} />}
               </div>
               <div style={{ paddingBottom: i < arr.length - 1 ? '16px' : '0' }}>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.1em', marginBottom: '4px', textTransform: 'uppercase' as const }}>{item.year}</div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '17px', fontWeight: '700', color: '#1a1a1a', marginBottom: '6px' }}>{item.title}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: item.milestone ? '#2B5EA7' : '#8a8070', letterSpacing: '0.1em', marginBottom: '4px', textTransform: 'uppercase' as const, fontWeight: item.milestone ? '700' : '400' }}>{item.year}{item.milestone ? ' — Milestone' : ''}</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '17px', fontWeight: '700', color: item.milestone ? '#2B5EA7' : '#1a1a1a', marginBottom: '6px' }}>{item.title}</div>
                 <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', color: '#6a6060', lineHeight: '1.7' }}>{item.desc}</div>
               </div>
             </div>
@@ -101,8 +100,65 @@ export default function Discovery() {
         </div>
       </section>
 
-      {/* WHAT IS FLOW CAPITALS */}
+      {/* TEAM */}
       <section style={{ padding: '80px', background: '#F5F2EC' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '28px', height: '1px', background: '#2B5EA7' }} />The Team
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', marginBottom: '0', letterSpacing: '-1px' }}>
+            Three traders.<br /><span style={{ color: '#2B5EA7', fontStyle: 'italic' }}>One blueprint.</span>
+          </h2>
+          <div style={{ width: '40px', height: '3px', background: '#2B5EA7', margin: '24px 0 48px' }} />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', background: 'rgba(26,26,26,0.06)' }}>
+            {[
+              {
+                name: 'Mauro Steenhoudt',
+                role: 'Founder & Head Mentor',
+                age: '25',
+                origin: 'Belgium',
+                desc: 'Dropped out of business school, spent €15K on trading education that didn\'t work, found his own path through ICT and years of obsessive study. Built Flow Capitals so no one else has to pay that price.',
+                quote: 'The blueprint cost me everything. Now it costs you nothing compared to what I paid.',
+              },
+              {
+                name: 'Christian Arena',
+                role: 'Mentor & Partner',
+                age: '—',
+                origin: '—',
+                desc: 'One of the first students to master the Flow Capitals strategy from the ground up. Promoted to mentor after proving consistent results. Now helps guide the next generation of traders through the same blueprint.',
+                quote: 'I was a student here first. That\'s exactly why I know how to guide you.',
+              },
+              {
+                name: 'Oliwier Kowal',
+                role: 'Mentor & Partner',
+                age: '—',
+                origin: '—',
+                desc: 'Started as a member, mastered the strategy, and became a partner. Oliwier brings a methodical and analytical approach to mentorship — breaking down complex concepts into clear, actionable frameworks.',
+                quote: 'Consistency is not a talent. It is a system. We teach you the system.',
+              },
+            ].map((member, i) => (
+              <div key={member.name} style={{ background: '#ffffff', padding: '44px 40px' }}>
+                {/* Photo placeholder */}
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#0d1e36', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', fontWeight: '700', color: '#ffffff' }}>{member.name[0]}</span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#2B5EA7', letterSpacing: '0.14em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>{member.role}</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '22px', fontWeight: '700', color: '#1a1a1a', marginBottom: '16px', lineHeight: '1.2' }}>{member.name}</div>
+                <p style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#6a6060', lineHeight: '1.75', marginBottom: '20px' }}>{member.desc}</p>
+                <div style={{ padding: '16px 20px', background: '#F5F2EC', borderLeft: '2px solid #2B5EA7' }}>
+                  <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: '#2B5EA7', lineHeight: '1.6', margin: 0 }}>
+                    &ldquo;{member.quote}&rdquo;
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT IS FLOW CAPITALS */}
+      <section style={{ padding: '80px', background: '#ffffff' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '28px', height: '1px', background: '#2B5EA7' }} />What We Are
@@ -120,14 +176,14 @@ export default function Discovery() {
               { icon: '🤝', title: 'Real mentorship', desc: 'Premium members get a real human being in their corner every week. Not a bot, not a pre-recorded course. A mentor who has done it and is still doing it.' },
               { icon: '🏆', title: 'Proof, not promises', desc: '$100K+ in certified payouts from real members. Every payout posted publicly. We do not ask you to trust us — we show you the results.' },
               { icon: '🌊', title: 'The flow state', desc: 'Flow Capitals is named for the state where performance becomes effortless. That is what we are building toward — not a winning trade, but a way of trading.' },
-            ].map((item, i) => (
-              <div key={item.title} style={{ padding: '36px 32px', background: '#ffffff', transition: 'background 0.2s', cursor: 'default' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F5F2EC'}
-                onMouseLeave={e => e.currentTarget.style.background = '#ffffff'}
+            ].map((item) => (
+              <div key={item.title} style={{ padding: '36px 32px', background: '#F5F2EC', transition: 'background 0.2s', cursor: 'default' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#ffffff'}
+                onMouseLeave={e => e.currentTarget.style.background = '#F5F2EC'}
               >
                 <div style={{ fontSize: '28px', marginBottom: '14px' }}>{item.icon}</div>
                 <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '17px', fontWeight: '700', color: '#1a1a1a', marginBottom: '8px' }}>{item.title}</div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: '#8a8070', lineHeight: '1.75' }}>{item.desc}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#8a8070', lineHeight: '1.75' }}>{item.desc}</div>
               </div>
             ))}
           </div>
@@ -136,7 +192,7 @@ export default function Discovery() {
 
       {/* VALUES */}
       <section style={{ padding: '80px', background: '#1a2a4a' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' as const }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#7aaee8', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
             <div style={{ width: '28px', height: '1px', background: '#7aaee8' }} />Our Values<div style={{ width: '28px', height: '1px', background: '#7aaee8' }} />
           </div>
@@ -151,7 +207,7 @@ export default function Discovery() {
             ].map(item => (
               <div key={item.title} style={{ padding: '28px 24px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '18px', fontWeight: '700', color: '#ffffff', marginBottom: '10px' }}>{item.title}</div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.7' }}>{item.desc}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.7' }}>{item.desc}</div>
               </div>
             ))}
           </div>
@@ -179,7 +235,7 @@ export default function Discovery() {
       {/* FOOTER */}
       <footer style={{ background: '#1a1a1a', padding: '36px 80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', letterSpacing: '1px', color: '#ffffff' }}>FLOW <span style={{ color: '#7aaee8' }}>CAPITALS</span></div>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', maxWidth: '500px', textAlign: 'center', lineHeight: '1.6', fontFamily: 'var(--font-inter)' }}>Educational purposes only. Does not constitute financial advice. Trading involves significant risk.</div>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', maxWidth: '500px', textAlign: 'center' as const, lineHeight: '1.6', fontFamily: 'var(--font-inter)' }}>Educational purposes only. Does not constitute financial advice. Trading involves significant risk.</div>
         <div style={{ display: 'flex', gap: '24px' }}>
           {['Privacy Policy', 'Terms & Conditions'].map(link => (
             <a key={link} href="#" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', fontFamily: 'var(--font-inter)' }}>{link}</a>
