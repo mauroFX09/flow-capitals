@@ -94,21 +94,67 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INTRO STRIP */}
-      <section style={{ padding: '80px', background: '#ffffff', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0', borderBottom: '0.5px solid rgba(26,26,26,0.08)' }}>
-        {[
-  { num: 'I', title: 'The Blueprint', desc: 'A 7-stage roadmap built from years of expensive trial and error and obsessive study. The path that actually works.' },
-  { num: 'II', title: 'The Mentorship', desc: 'Weekly live sessions, 1-on-1 calls, and direct feedback on your trades and journal. The support I never had when I started.' },
-  { num: 'III', title: 'The Proof', desc: '$100K+ in certified payouts from real members. Posted publicly on the Trading Wall. We do not ask you to trust us — we show you the results.' },
-].map((item, i) => (
-  <div key={item.title} style={{ padding: '44px 48px', borderRight: i < 2 ? '0.5px solid rgba(26,26,26,0.08)' : 'none', position: 'relative', overflow: 'hidden' }}>
-    <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '88px', fontWeight: '700', color: 'rgba(43,94,167,0.06)', lineHeight: 1, position: 'absolute', top: '16px', right: '24px', letterSpacing: '-2px', userSelect: 'none' as const }}>{item.num}</div>
-    <div style={{ width: '28px', height: '2px', background: '#2B5EA7', marginBottom: '20px' }} />
-    <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '20px', fontWeight: '700', color: '#1a1a1a', marginBottom: '10px' }}>{item.title}</div>
-    <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', color: '#8a8070', lineHeight: '1.75' }}>{item.desc}</div>
+      {/* THREE PILLARS */}
+<section style={{ background: '#ffffff' }}>
+
+  {/* I — The Blueprint */}
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '0.5px solid rgba(26,26,26,0.08)' }}>
+    <div style={{ padding: '80px', borderRight: '0.5px solid rgba(26,26,26,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1e36', minHeight: '360px' }}>
+      <div style={{ textAlign: 'center' as const }}>
+        <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '120px', fontWeight: '700', color: 'rgba(122,174,232,0.15)', lineHeight: 1, letterSpacing: '-4px' }}>I</div>
+        <div style={{ width: '40px', height: '2px', background: '#2B5EA7', margin: '0 auto' }} />
+      </div>
+    </div>
+    <div style={{ padding: '80px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px' }}>The Foundation</div>
+      <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px', lineHeight: 1.1, marginBottom: '20px' }}>The Blueprint.</h2>
+      <p style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#6a6060', lineHeight: '1.8', marginBottom: '32px' }}>A 7-stage roadmap built from years of expensive trial and error and obsessive study. Not theory — a proven path that has been walked, tested, and refined in live markets. Every stage has a gate. You earn the right to move forward.</p>
+      <a href="/method" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#2B5EA7', textDecoration: 'none', fontWeight: '600', transition: 'gap 0.2s' }}
+        onMouseEnter={e => e.currentTarget.style.gap = '14px'}
+        onMouseLeave={e => e.currentTarget.style.gap = '8px'}
+      >See the roadmap <span>→</span></a>
+    </div>
   </div>
-))}
-      </section>
+
+  {/* II — The Mentorship */}
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '0.5px solid rgba(26,26,26,0.08)' }}>
+    <div style={{ padding: '80px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px' }}>The Support</div>
+      <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px', lineHeight: 1.1, marginBottom: '20px' }}>The Mentorship.</h2>
+      <p style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#6a6060', lineHeight: '1.8', marginBottom: '32px' }}>Weekly live sessions, 1-on-1 calls, and direct feedback on your trades and journal. Three mentors who have walked this path. The support we never had when we started — now available to you every single week.</p>
+      <a href="/membership" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#2B5EA7', textDecoration: 'none', fontWeight: '600', transition: 'gap 0.2s' }}
+        onMouseEnter={e => e.currentTarget.style.gap = '14px'}
+        onMouseLeave={e => e.currentTarget.style.gap = '8px'}
+      >View membership <span>→</span></a>
+    </div>
+    <div style={{ padding: '80px', borderLeft: '0.5px solid rgba(26,26,26,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1e36', minHeight: '360px' }}>
+      <div style={{ textAlign: 'center' as const }}>
+        <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '120px', fontWeight: '700', color: 'rgba(122,174,232,0.15)', lineHeight: 1, letterSpacing: '-4px' }}>II</div>
+        <div style={{ width: '40px', height: '2px', background: '#2B5EA7', margin: '0 auto' }} />
+      </div>
+    </div>
+  </div>
+
+  {/* III — The Proof */}
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+    <div style={{ padding: '80px', borderRight: '0.5px solid rgba(26,26,26,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1e36', minHeight: '360px' }}>
+      <div style={{ textAlign: 'center' as const }}>
+        <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '120px', fontWeight: '700', color: 'rgba(122,174,232,0.15)', lineHeight: 1, letterSpacing: '-4px' }}>III</div>
+        <div style={{ width: '40px', height: '2px', background: '#2B5EA7', margin: '0 auto' }} />
+      </div>
+    </div>
+    <div style={{ padding: '80px', display: 'flex', flexDirection: 'column' as const, justifyContent: 'center' }}>
+      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px' }}>The Results</div>
+      <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px', lineHeight: 1.1, marginBottom: '20px' }}>The Proof.</h2>
+      <p style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#6a6060', lineHeight: '1.8', marginBottom: '32px' }}>$100K+ in certified payouts from real members. Posted publicly on the Trading Wall. We do not ask you to trust us — we show you the results. Every payout is real, every name is real, every number is verified.</p>
+      <a href="/membership" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#2B5EA7', textDecoration: 'none', fontWeight: '600', transition: 'gap 0.2s' }}
+        onMouseEnter={e => e.currentTarget.style.gap = '14px'}
+        onMouseLeave={e => e.currentTarget.style.gap = '8px'}
+      >Join the community <span>→</span></a>
+    </div>
+  </div>
+
+</section>
 
       {/* QUOTE SECTION */}
       <section style={{ padding: '100px 80px', background: '#F5F2EC', textAlign: 'center' }}>
