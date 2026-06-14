@@ -49,7 +49,7 @@ function CircleProgress({ pct, dark, color }: { pct: number; dark: boolean; colo
           strokeDasharray={`${fill} ${circ - fill}`} strokeLinecap="round" />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: '700', color }}>{pct}%</span>
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color }}>{pct}%</span>
       </div>
     </div>
   )
@@ -64,7 +64,7 @@ function SegmentedControl({ options, value, onChange, dark }: { options: { label
     <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
       <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
       {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
+        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
           {opt.label}
         </button>
       ))}
@@ -143,7 +143,7 @@ export default function Courses() {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Courses
         </div>
         <h1 style={{ fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Your Learning Path.</h1>
@@ -155,15 +155,15 @@ export default function Courses() {
         <div style={{ ...card, padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
           <CircleProgress pct={overallPct} dark={dark} color={level.color} />
           <div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Overall Progress</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Overall Progress</div>
             <div style={{ fontSize: '28px', fontWeight: '700', color: level.color, lineHeight: 1, marginBottom: '4px' }}>{overallPct}%</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{level.description}</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{level.description}</div>
           </div>
         </div>
 
         {/* Lessons completed */}
         <div style={{ ...card, padding: '24px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Lessons Completed</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Lessons Completed</div>
           <div style={{ fontSize: '36px', fontWeight: '700', color: textPrimary, lineHeight: 1, marginBottom: '4px' }}>{completedLessons}<span style={{ fontSize: '18px', color: textMuted, fontWeight: '400' }}>/{totalLessons}</span></div>
           <div style={{ height: '4px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '2px', marginTop: '12px', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${overallPct}%`, background: level.color, borderRadius: '2px', transition: 'width 0.5s ease' }} />
@@ -172,7 +172,7 @@ export default function Courses() {
 
         {/* Level */}
         <div style={{ ...card, padding: '24px', background: dark ? `rgba(${level.color === '#22c55e' ? '34,197,94' : level.color === '#8b5cf6' ? '139,92,246' : level.color === '#3b82f6' ? '59,130,246' : level.color === '#f59e0b' ? '245,158,11' : '148,163,184'},0.08)` : cardBg, border: `0.5px solid ${level.color}30` }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Current Level</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Current Level</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: level.color, lineHeight: 1, marginBottom: '6px' }}>{level.label}</div>
           <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
             {LEVELS.map((l, i) => (
@@ -181,7 +181,7 @@ export default function Courses() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
             {LEVELS.map((l, i) => (
-              <div key={i} style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: overallPct >= l.min ? l.color : textMuted }}>{l.label[0]}</div>
+              <div key={i} style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: overallPct >= l.min ? l.color : textMuted }}>{l.label[0]}</div>
             ))}
           </div>
         </div>
@@ -189,11 +189,11 @@ export default function Courses() {
 
       {/* Course categories */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>Loading courses...</div>
+        <div style={{ textAlign: 'center', padding: '60px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading courses...</div>
       ) : courses.length === 0 ? (
         <div style={{ ...card, padding: '60px', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '18px', color: textMuted, marginBottom: '8px' }}>No courses available yet.</div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>Check back soon — content is being added.</div>
+          <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '18px', color: textMuted, marginBottom: '8px' }}>No courses available yet.</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>Check back soon — content is being added.</div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -214,17 +214,17 @@ export default function Courses() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
                     {/* Roman numeral icon */}
                     <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.08)', border: `0.5px solid ${dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.15)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '700', color: accent }}>{course.icon}</span>
+                      <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', fontWeight: '700', color: accent }}>{course.icon}</span>
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '17px', fontWeight: '700', color: textPrimary, marginBottom: '2px' }}>{course.title}</div>
-                      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{courseLessons.length} lessons · {courseCompleted} completed</div>
+                      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{courseLessons.length} lessons · {courseCompleted} completed</div>
                     </div>
                     {/* Progress bar */}
                     <div style={{ width: '180px', flexShrink: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: courseLevel.color, fontWeight: '600' }}>{courseLevel.label}</span>
-                        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>{coursePct}%</span>
+                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: courseLevel.color, fontWeight: '600' }}>{courseLevel.label}</span>
+                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{coursePct}%</span>
                       </div>
                       <div style={{ height: '5px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${coursePct}%`, background: courseLevel.color, borderRadius: '3px', transition: 'width 0.5s ease' }} />
@@ -239,7 +239,7 @@ export default function Courses() {
                 {isExpanded && (
                   <div style={{ borderTop: `0.5px solid ${tableBorder}` }}>
                     {courseLessons.length === 0 ? (
-                      <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>No lessons added yet — check back soon.</div>
+                      <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>No lessons added yet — check back soon.</div>
                     ) : (
                       courseLessons.map((lesson, idx) => {
                         const isCompleted = progress.find(p => p.lesson_id === lesson.id && p.completed)
@@ -253,24 +253,24 @@ export default function Courses() {
                               <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: isCompleted ? '#22c55e' : dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 {isCompleted
                                   ? <span style={{ color: '#ffffff', fontSize: '12px' }}>✓</span>
-                                  : <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>{idx + 1}</span>
+                                  : <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{idx + 1}</span>
                                 }
                               </div>
 
                               {/* Title + description */}
                               <div style={{ flex: 1 }}>
                                 <div style={{ fontSize: '14px', fontWeight: '600', color: isCompleted ? textMuted : textPrimary, marginBottom: '2px', textDecoration: isCompleted ? 'line-through' : 'none' }}>{lesson.title}</div>
-                                {lesson.description && <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{lesson.description}</div>}
+                                {lesson.description && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{lesson.description}</div>}
                               </div>
 
                               {/* Actions */}
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                                 {lesson.video_url && (
-                                  <button onClick={() => setActiveLesson(isActive ? null : lesson)} style={{ padding: '7px 16px', background: isActive ? accent : 'transparent', border: `0.5px solid ${isActive ? accent : dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)'}`, borderRadius: '8px', color: isActive ? '#ffffff' : accent, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <button onClick={() => setActiveLesson(isActive ? null : lesson)} style={{ padding: '7px 16px', background: isActive ? accent : 'transparent', border: `0.5px solid ${isActive ? accent : dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)'}`, borderRadius: '8px', color: isActive ? '#ffffff' : accent, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span>▶</span> {isActive ? 'Close' : 'Watch'}
                                   </button>
                                 )}
-                                <button onClick={() => toggleComplete(lesson.id)} style={{ padding: '7px 16px', background: isCompleted ? 'rgba(34,197,94,0.1)' : 'transparent', border: `0.5px solid ${isCompleted ? '#22c55e' : dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)'}`, borderRadius: '8px', color: isCompleted ? '#22c55e' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <button onClick={() => toggleComplete(lesson.id)} style={{ padding: '7px 16px', background: isCompleted ? 'rgba(34,197,94,0.1)' : 'transparent', border: `0.5px solid ${isCompleted ? '#22c55e' : dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)'}`, borderRadius: '8px', color: isCompleted ? '#22c55e' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span>{isCompleted ? '✓' : '○'}</span> {isCompleted ? 'Completed' : 'Mark done'}
                                 </button>
                               </div>

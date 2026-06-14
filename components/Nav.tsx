@@ -55,7 +55,7 @@ export default function Nav() {
           <span style={{
             fontSize: '13px', fontWeight: '700',
             letterSpacing: '0.5px',
-            fontFamily: 'Georgia, serif',
+            fontFamily: 'var(--font-playfair)',
             color: '#1a1a1a',
             whiteSpace: 'nowrap' as const,
           }}>
@@ -73,7 +73,7 @@ export default function Nav() {
                 letterSpacing: '0.06em',
                 padding: '7px 14px',
                 textDecoration: 'none',
-                fontFamily: 'Arial, sans-serif',
+                fontFamily: 'var(--font-inter)',
                 color: active ? '#ffffff' : '#6a6060',
                 background: active ? '#2B5EA7' : 'transparent',
                 borderRadius: '8px',
@@ -108,7 +108,7 @@ export default function Nav() {
           padding: '7px 18px',
           textDecoration: 'none',
           transition: 'all 0.18s',
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: 'var(--font-inter)',
           fontWeight: '600',
           borderRadius: '8px',
           flexShrink: 0,

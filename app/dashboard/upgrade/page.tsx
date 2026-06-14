@@ -36,13 +36,13 @@ export default function UpgradePage() {
         <h1 style={{ fontSize: '36px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '12px', textAlign: 'center' as const }}>
           Premium only.
         </h1>
-        <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '16px', color: textMuted, lineHeight: '1.7', textAlign: 'center' as const, marginBottom: '40px' }}>
+        <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '16px', color: textMuted, lineHeight: '1.7', textAlign: 'center' as const, marginBottom: '40px' }}>
           This section is available to Premium members. Upgrade your membership to unlock courses, Q&A, achievements and full personal guidance.
         </p>
 
         {/* What you get */}
         <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '28px 32px', marginBottom: '20px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>What Premium unlocks</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>What Premium unlocks</div>
           {[
             'Full course library — all 6 categories',
             'Live sessions 5x per week',
@@ -53,20 +53,20 @@ export default function UpgradePage() {
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', gap: '12px', marginBottom: '12px', alignItems: 'center' }}>
               <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: accent, flexShrink: 0 }} />
-              <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: textPrimary }}>{item}</span>
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary }}>{item}</span>
             </div>
           ))}
         </div>
 
         {/* Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <a href="/contact" style={{ display: 'block', background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', textAlign: 'center' as const, textDecoration: 'none', transition: 'opacity 0.2s' }}
+          <a href="/contact" style={{ display: 'block', background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', textAlign: 'center' as const, textDecoration: 'none', transition: 'opacity 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
           >
             Apply for Premium →
           </a>
-          <a href="/dashboard" style={{ display: 'block', background: 'transparent', color: textMuted, fontFamily: 'Arial, sans-serif', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: `0.5px solid ${cardBorder}`, cursor: 'pointer', borderRadius: '10px', fontWeight: '600', textAlign: 'center' as const, textDecoration: 'none', transition: 'all 0.2s' }}
+          <a href="/dashboard" style={{ display: 'block', background: 'transparent', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: `0.5px solid ${cardBorder}`, cursor: 'pointer', borderRadius: '10px', fontWeight: '600', textAlign: 'center' as const, textDecoration: 'none', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
           >

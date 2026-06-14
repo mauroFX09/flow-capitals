@@ -43,13 +43,13 @@ function ThreeArcGauge({ wins, losses, be, total, dark }: { wins: number; losses
           {losses > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#dc3232" strokeWidth={sw} strokeDasharray={`${lossDash} ${circ - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{total}</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{total}</span>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />{wins}W</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />{losses}L</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />{be}BE</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />{wins}W</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />{losses}L</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />{be}BE</div>
       </div>
     </div>
   )
@@ -69,13 +69,13 @@ function WinRateGauge({ winRate, beRate, dark }: { winRate: number; beRate: numb
           {lossRate > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#dc3232" strokeWidth={sw} strokeDasharray={`${lossDash} ${circ - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
       </div>
     </div>
   )
@@ -94,13 +94,13 @@ function AvgWinLossGauge({ avgWin, avgLoss, dark, accent }: { avgWin: number; av
           {fill > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={`${fill} ${circ - fill}`} strokeLinecap="round" />}
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontWeight: '700', color }}>{avgLoss > 0 ? ratio.toFixed(2) : avgWin > 0 ? '∞' : '—'}</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color }}>{avgLoss > 0 ? ratio.toFixed(2) : avgWin > 0 ? '∞' : '—'}</span>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#22c55e' }}>+{avgWin.toFixed(0)}€</div>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#dc3232' }}>-{avgLoss.toFixed(0)}€</div>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: dark ? 'rgba(255,255,255,0.3)' : '#8a8070' }}>{ratio >= 2 ? 'Excellent' : ratio >= 1 ? 'Profitable' : ratio === 0 ? 'No data' : 'Needs work'}</div>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e' }}>+{avgWin.toFixed(0)}€</div>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}>-{avgLoss.toFixed(0)}€</div>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: dark ? 'rgba(255,255,255,0.3)' : '#8a8070' }}>{ratio >= 2 ? 'Excellent' : ratio >= 1 ? 'Profitable' : ratio === 0 ? 'No data' : 'Needs work'}</div>
       </div>
     </div>
   )
@@ -109,7 +109,7 @@ function AvgWinLossGauge({ avgWin, avgLoss, dark, accent }: { avgWin: number; av
 function PnlChart({ data, trades, dark }: { data: number[]; trades: Trade[]; dark: boolean }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   if (data.length < 2) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0', fontSize: '13px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0', fontSize: '13px' }}>
       Log at least 2 trades to see your curve
     </div>
   )
@@ -187,7 +187,7 @@ function SegmentedControl({ options, value, onChange, dark }: { options: { label
     <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
       <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
       {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
+        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
           {opt.label}
         </button>
       ))}
@@ -246,10 +246,10 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
     <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '24px', marginTop: '12px' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Trading Calendar</div>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Trading Calendar</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={prevMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: 'pointer', color: textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
-          <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: '600', color: textPrimary, minWidth: '120px', textAlign: 'center' as const }}>{monthName}</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '600', color: textPrimary, minWidth: '120px', textAlign: 'center' as const }}>{monthName}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: isCurrentMonth ? 'not-allowed' : 'pointer', color: isCurrentMonth ? (dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.15)') : textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isCurrentMonth ? 0.3 : 1 }}>→</button>
         </div>
       </div>
@@ -257,7 +257,7 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
       {/* Day labels */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '4px' }}>
         {dayLabels.map(d => (
-          <div key={d} style={{ textAlign: 'center' as const, fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', padding: '4px 0' }}>{d}</div>
+          <div key={d} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', padding: '4px 0' }}>{d}</div>
         ))}
       </div>
 
@@ -284,9 +284,9 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
 
               return (
                 <div key={di} style={{ background: bg, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: '8px', padding: '6px 8px', minHeight: '48px', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: '2px' }}>{day}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: '2px' }}>{day}</div>
                   {hasTrades && (
-                    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', fontWeight: '700', color: pnlColor, lineHeight: 1 }}>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor, lineHeight: 1 }}>
                       {pnl > 0 ? '+' : ''}{pnl.toFixed(0)}€
                     </div>
                   )}
@@ -304,7 +304,7 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
           { color: '#dc3232', label: 'Loss day' },
           { color: '#94a3b8', label: 'Breakeven' },
         ].map(item => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>
+          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: item.color, opacity: 0.7 }} />
             {item.label}
           </div>
@@ -387,7 +387,7 @@ export default function JournalDashboard() {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
@@ -399,20 +399,20 @@ export default function JournalDashboard() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
         <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px', transition: 'all 0.4s ease' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total Net P&L</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total Net P&L</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '4px' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{total} trades</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{total} trades</div>
         </div>
         <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Total Trades</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Total Trades</div>
           <ThreeArcGauge wins={wins.length} losses={losses.length} be={be.length} total={total} dark={dark} />
         </div>
         <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
           <WinRateGauge winRate={winRate} beRate={beRate} dark={dark} />
         </div>
         <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Avg Win / Loss</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Avg Win / Loss</div>
           <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} accent={accent} />
         </div>
       </div>
@@ -422,8 +422,8 @@ export default function JournalDashboard() {
         <div style={{ ...card, padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Cumulative P&L</div>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Cumulative P&L</div>
+              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '24px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
             </div>
             <SegmentedControl options={[{ label: 'Daily', value: 'daily' }, { label: 'Weekly', value: 'weekly' }, { label: 'Monthly', value: 'monthly' }]} value={chartMode} onChange={setChartMode} dark={dark} />
           </div>
@@ -434,14 +434,14 @@ export default function JournalDashboard() {
 
         <div style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div style={{ padding: '20px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
-            <a href="/dashboard/journal/trades" style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, textDecoration: 'none' }}>View all →</a>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
+            <a href="/dashboard/journal/trades" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>View all →</a>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' as const }}>
             {loading ? (
-              <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+              <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
             ) : recentTrades.length === 0 ? (
-              <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted, fontSize: '14px' }}>No trades yet</div>
+              <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, fontSize: '14px' }}>No trades yet</div>
             ) : recentTrades.map(trade => (
               <div key={trade.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', borderTop: `0.5px solid ${tableBorder}`, transition: 'background 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(43,94,167,0.03)'}
@@ -450,16 +450,16 @@ export default function JournalDashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <PairIcon pair={trade.pair} />
                   <div>
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontWeight: '600', color: textPrimary }}>{trade.pair}</div>
-                    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted }}>{trade.direction} · {trade.emotion}</div>
+                    <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '600', color: textPrimary }}>{trade.pair}</div>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{trade.direction} · {trade.emotion}</div>
                   </div>
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '2px 7px', borderRadius: '4px' }}>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '2px 7px', borderRadius: '4px' }}>
                     {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
                   </span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</div>
+                  <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</div>
                 </div>
               </div>
             ))}

@@ -41,7 +41,7 @@ export default function Login() {
   }
 
   return (
-    <div style={{ background: '#F5F2EC', minHeight: '100vh', fontFamily: 'Georgia, serif', paddingTop: '88px' }}>
+    <div style={{ background: '#F5F2EC', minHeight: '100vh', fontFamily: 'var(--font-playfair)', paddingTop: '88px' }}>
       <Nav />
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 88px)', padding: '40px 20px' }}>
@@ -49,10 +49,10 @@ export default function Login() {
 
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: '700', letterSpacing: '1px', color: '#1a1a1a', marginBottom: '6px' }}>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '22px', fontWeight: '700', letterSpacing: '1px', color: '#1a1a1a', marginBottom: '6px' }}>
               FLOW <span style={{ color: '#2B5EA7' }}>CAPITALS</span>
             </div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>Member Area</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>Member Area</div>
           </div>
 
           {/* Card */}
@@ -61,7 +61,7 @@ export default function Login() {
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '0.5px solid rgba(26,26,26,0.08)', marginBottom: '32px' }}>
               {(['login', 'register'] as const).map(t => (
-                <button key={t} onClick={() => { setTab(t); setError(''); setSuccess('') }} style={{ flex: 1, padding: '12px', background: 'none', border: 'none', borderBottom: tab === t ? '2px solid #2B5EA7' : '2px solid transparent', color: tab === t ? '#2B5EA7' : '#8a8070', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, cursor: 'pointer', transition: 'all 0.2s', fontWeight: tab === t ? '600' : '400', marginBottom: '-0.5px' }}>
+                <button key={t} onClick={() => { setTab(t); setError(''); setSuccess('') }} style={{ flex: 1, padding: '12px', background: 'none', border: 'none', borderBottom: tab === t ? '2px solid #2B5EA7' : '2px solid transparent', color: tab === t ? '#2B5EA7' : '#8a8070', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, cursor: 'pointer', transition: 'all 0.2s', fontWeight: tab === t ? '600' : '400', marginBottom: '-0.5px' }}>
                   {t === 'login' ? 'Login' : 'Create Account'}
                 </button>
               ))}
@@ -69,28 +69,28 @@ export default function Login() {
 
             <form onSubmit={tab === 'login' ? handleLogin : handleRegister}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Email address</label>
+                <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Email address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
                   placeholder="your@email.com"
-                  style={{ width: '100%', background: '#F5F2EC', border: '0.5px solid rgba(26,26,26,0.12)', padding: '12px 14px', fontFamily: 'Georgia, serif', fontSize: '14px', color: '#1a1a1a', outline: 'none' }}
+                  style={{ width: '100%', background: '#F5F2EC', border: '0.5px solid rgba(26,26,26,0.12)', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '14px', color: '#1a1a1a', outline: 'none' }}
                   onFocus={e => e.currentTarget.style.borderColor = '#2B5EA7'}
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(26,26,26,0.12)'}
                 />
               </div>
 
               <div style={{ marginBottom: '8px' }}>
-                <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Password</label>
+                <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  style={{ width: '100%', background: '#F5F2EC', border: '0.5px solid rgba(26,26,26,0.12)', padding: '12px 14px', fontFamily: 'Georgia, serif', fontSize: '14px', color: '#1a1a1a', outline: 'none' }}
+                  style={{ width: '100%', background: '#F5F2EC', border: '0.5px solid rgba(26,26,26,0.12)', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '14px', color: '#1a1a1a', outline: 'none' }}
                   onFocus={e => e.currentTarget.style.borderColor = '#2B5EA7'}
                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(26,26,26,0.12)'}
                 />
@@ -98,34 +98,34 @@ export default function Login() {
 
               {tab === 'login' && (
                 <div style={{ textAlign: 'right', marginBottom: '24px' }}>
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#8a8070', cursor: 'pointer' }}>Forgot password?</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: '#8a8070', cursor: 'pointer' }}>Forgot password?</span>
                 </div>
               )}
 
               {error && (
-                <div style={{ background: 'rgba(220,50,50,0.06)', border: '0.5px solid rgba(220,50,50,0.2)', padding: '10px 14px', marginBottom: '16px', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '13px', color: '#dc3232' }}>
+                <div style={{ background: 'rgba(220,50,50,0.06)', border: '0.5px solid rgba(220,50,50,0.2)', padding: '10px 14px', marginBottom: '16px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: '#dc3232' }}>
                   {error}
                 </div>
               )}
 
               {success && (
-                <div style={{ background: 'rgba(43,94,167,0.06)', border: '0.5px solid rgba(43,94,167,0.2)', padding: '10px 14px', marginBottom: '16px', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '13px', color: '#2B5EA7' }}>
+                <div style={{ background: 'rgba(43,94,167,0.06)', border: '0.5px solid rgba(43,94,167,0.2)', padding: '10px 14px', marginBottom: '16px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: '#2B5EA7' }}>
                   {success}
                 </div>
               )}
 
-              <button type="submit" disabled={loading} style={{ width: '100%', background: '#2B5EA7', color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, padding: '15px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: '700', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', marginTop: tab === 'register' ? '24px' : '0' }}>
+              <button type="submit" disabled={loading} style={{ width: '100%', background: '#2B5EA7', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, padding: '15px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: '700', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', marginTop: tab === 'register' ? '24px' : '0' }}>
                 {loading ? 'Please wait...' : tab === 'login' ? 'Login →' : 'Create Account →'}
               </button>
             </form>
 
-            <div style={{ textAlign: 'center', marginTop: '24px', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '12px', color: '#8a8070' }}>
+            <div style={{ textAlign: 'center', marginTop: '24px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '12px', color: '#8a8070' }}>
               Every message is read personally. Access is granted within 24 hours.
             </div>
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <a href="/" style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const, textDecoration: 'none' }}>← Back to home page</a>
+            <a href="/" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#8a8070', letterSpacing: '0.1em', textTransform: 'uppercase' as const, textDecoration: 'none' }}>← Back to home page</a>
           </div>
         </div>
       </div>

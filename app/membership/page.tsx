@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 
 export default function Membership() {
   return (
-    <div style={{ background: '#F5F2EC', minHeight: '100vh', fontFamily: 'Georgia, serif' }}>
+    <div style={{ background: '#F5F2EC', minHeight: '100vh', fontFamily: 'var(--font-playfair)' }}>
       <Nav />
 
       {/* Hero */}
       <div style={{ paddingTop: '140px', paddingBottom: '80px', textAlign: 'center', maxWidth: '720px', margin: '0 auto', padding: '140px 24px 80px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
           <div style={{ width: '32px', height: '1px', background: '#2B5EA7' }} />
           Membership
           <div style={{ width: '32px', height: '1px', background: '#2B5EA7' }} />
@@ -26,7 +26,7 @@ export default function Membership() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
           {/* For you */}
           <div style={{ background: '#ffffff', padding: '40px 44px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#2B5EA7' }} />
               This is for you
             </div>
@@ -48,7 +48,7 @@ export default function Membership() {
 
           {/* Not for you */}
           <div style={{ background: '#0d1e36', padding: '40px 44px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#7aaee8' }} />
               This is not for you
             </div>
@@ -73,7 +73,7 @@ export default function Membership() {
       {/* Packages */}
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px 120px' }}>
         <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '16px' }}>The packages</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '16px' }}>The packages</div>
           <h2 style={{ fontSize: '38px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px' }}>Two ways in.</h2>
         </div>
 
@@ -81,7 +81,7 @@ export default function Membership() {
 
           {/* Standard */}
           <div style={{ background: '#ffffff', padding: '48px 44px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#8a8070', marginBottom: '8px' }}>Standard</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#8a8070', marginBottom: '8px' }}>Standard</div>
             <h3 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1px', marginBottom: '4px' }}>Self-Directed</h3>
             <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#8a8070', marginBottom: '32px', lineHeight: '1.6' }}>Everything you need to learn the strategy independently.</p>
 
@@ -94,7 +94,7 @@ export default function Membership() {
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: '12px', marginBottom: '12px', alignItems: 'center' }}>
                   <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#2B5EA7', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: '#3a3530' }}>{item}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#3a3530' }}>{item}</span>
                 </div>
               ))}
             </div>
@@ -103,22 +103,22 @@ export default function Membership() {
               {/* Stripe-ready button — placeholder for now */}
               <button
                 onClick={() => alert('Payment coming soon — Stripe integration in progress.')}
-                style={{ width: '100%', background: '#2B5EA7', color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '16px', border: 'none', cursor: 'pointer', fontWeight: '700', transition: 'opacity 0.2s' }}
+                style={{ width: '100%', background: '#2B5EA7', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '16px', border: 'none', cursor: 'pointer', fontWeight: '700', transition: 'opacity 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
                 Join Standard →
               </button>
-              <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#8a8070', textAlign: 'center', marginTop: '12px' }}>Instant access after payment</p>
+              <p style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#8a8070', textAlign: 'center', marginTop: '12px' }}>Instant access after payment</p>
             </div>
           </div>
 
           {/* Premium */}
           <div style={{ background: '#0d1e36', padding: '48px 44px', position: 'relative' as const }}>
-            <div style={{ position: 'absolute' as const, top: '20px', right: '20px', fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#7aaee8', background: 'rgba(122,174,232,0.1)', border: '0.5px solid rgba(122,174,232,0.2)', padding: '4px 12px' }}>
+            <div style={{ position: 'absolute' as const, top: '20px', right: '20px', fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#7aaee8', background: 'rgba(122,174,232,0.1)', border: '0.5px solid rgba(122,174,232,0.2)', padding: '4px 12px' }}>
               By application
             </div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '8px' }}>Premium</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '8px' }}>Premium</div>
             <h3 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', letterSpacing: '-1px', marginBottom: '4px' }}>Personal Guidance</h3>
             <p style={{ fontStyle: 'italic', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '32px', lineHeight: '1.6' }}>Full access. Direct mentorship. Built for serious traders only.</p>
 
@@ -133,19 +133,19 @@ export default function Membership() {
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: '12px', marginBottom: '12px', alignItems: 'center' }}>
                   <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#7aaee8', flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>{item}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>{item}</span>
                 </div>
               ))}
             </div>
 
             <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.08)', paddingTop: '28px' }}>
-              <a href="/contact" style={{ display: 'block', width: '100%', background: 'transparent', color: '#7aaee8', fontFamily: 'Arial, sans-serif', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '16px', border: '0.5px solid #7aaee8', cursor: 'pointer', fontWeight: '700', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s', boxSizing: 'border-box' as const }}
+              <a href="/contact" style={{ display: 'block', width: '100%', background: 'transparent', color: '#7aaee8', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '16px', border: '0.5px solid #7aaee8', cursor: 'pointer', fontWeight: '700', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s', boxSizing: 'border-box' as const }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#7aaee8'; e.currentTarget.style.color = '#0d1e36' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#7aaee8' }}
               >
                 Apply to Join →
               </a>
-              <p style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: '12px' }}>We review every application personally</p>
+              <p style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginTop: '12px' }}>We review every application personally</p>
             </div>
           </div>
         </div>

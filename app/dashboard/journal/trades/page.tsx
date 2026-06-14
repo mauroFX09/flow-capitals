@@ -75,7 +75,7 @@ function SegmentedControl({ options, value, onChange, dark }: {
     <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
       <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
       {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
+        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
           {opt.label}
         </button>
       ))}
@@ -103,21 +103,21 @@ function PairSelector({ value, onChange, dark }: { value: string; onChange: (v: 
     <div style={{ position: 'relative' }}>
       <button onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '10px 14px', cursor: 'pointer' }}>
         <span style={{ fontSize: '16px' }}>{getPairIcon(value)}</span>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: textPrimary, flex: 1, textAlign: 'left' as const }}>{value}</span>
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', color: textPrimary, flex: 1, textAlign: 'left' as const }}>{value}</span>
         <span style={{ fontSize: '10px', color: textMuted }}>▼</span>
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '12px', boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: '320px', overflowY: 'auto' as const }}>
           <div style={{ padding: '10px' }}>
-            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pairs..." style={{ width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', padding: '8px 12px', fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textPrimary, outline: 'none' }} />
+            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pairs..." style={{ width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', padding: '8px 12px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none' }} />
           </div>
           {Object.entries(filtered).map(([cat, pairs]) => (
             <div key={cat}>
-              <div style={{ padding: '6px 14px', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{cat}</div>
+              <div style={{ padding: '6px 14px', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{cat}</div>
               {pairs.map(pair => (
                 <button key={pair} onClick={() => { onChange(pair); setOpen(false); setSearch('') }} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '9px 14px', background: pair === value ? (dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.06)') : 'transparent', border: 'none', cursor: 'pointer' }}>
                   <span style={{ fontSize: '16px' }}>{getPairIcon(pair)}</span>
-                  <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: pair === value ? accent : textPrimary }}>{pair}</span>
+                  <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: pair === value ? accent : textPrimary }}>{pair}</span>
                 </button>
               ))}
             </div>
@@ -285,7 +285,7 @@ export default function TradeLog() {
                 <span style={{ fontSize: '24px' }}>{getPairIcon(detailTrade.pair)}</span>
                 <div>
                   <div style={{ fontSize: '22px', fontWeight: '700', color: textPrimary }}>{detailTrade.pair}</div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{new Date(detailTrade.created_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{new Date(detailTrade.created_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
                 </div>
               </div>
               <button onClick={() => setDetailTrade(null)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '20px', lineHeight: 1 }}>✕</button>
@@ -293,18 +293,18 @@ export default function TradeLog() {
 
             {/* Badges */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' as const }}>
-              <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', fontWeight: '700', color: detailTrade.pnl > 0 ? '#22c55e' : detailTrade.pnl < 0 ? '#dc3232' : '#94a3b8', background: detailTrade.pnl > 0 ? 'rgba(34,197,94,0.1)' : detailTrade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: detailTrade.pnl > 0 ? '#22c55e' : detailTrade.pnl < 0 ? '#dc3232' : '#94a3b8', background: detailTrade.pnl > 0 ? 'rgba(34,197,94,0.1)' : detailTrade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
                 {detailTrade.pnl > 0 ? 'WIN' : detailTrade.pnl < 0 ? 'LOSS' : 'BE'}
               </span>
-              <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', fontWeight: '700', color: detailTrade.direction === 'Long' ? '#22c55e' : '#dc3232', background: detailTrade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: detailTrade.direction === 'Long' ? '#22c55e' : '#dc3232', background: detailTrade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
                 {detailTrade.direction === 'Long' ? '↑ Long' : '↓ Short'}
               </span>
               {detailTrade.followed_plan !== null && (
-                <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', fontWeight: '700', color: detailTrade.followed_plan ? '#22c55e' : '#dc3232', background: detailTrade.followed_plan ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: detailTrade.followed_plan ? '#22c55e' : '#dc3232', background: detailTrade.followed_plan ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
                   {detailTrade.followed_plan ? '✓ Followed Plan' : '✕ Broke Plan'}
                 </span>
               )}
-              <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', padding: '4px 12px', borderRadius: '6px' }}>
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', padding: '4px 12px', borderRadius: '6px' }}>
                 {EMOTIONS.find(e => e.label === detailTrade.emotion)?.emoji} {detailTrade.emotion}
               </span>
             </div>
@@ -320,7 +320,7 @@ export default function TradeLog() {
                 { label: 'Lot Size', value: detailTrade.lot_size?.toString() || '—', color: textPrimary },
               ].map(stat => (
                 <div key={stat.label} style={{ background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(26,26,26,0.03)', borderRadius: '10px', padding: '14px 16px' }}>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>{stat.label}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>{stat.label}</div>
                   <div style={{ fontSize: '18px', fontWeight: '700', color: stat.color }}>{stat.value}</div>
                 </div>
               ))}
@@ -329,15 +329,15 @@ export default function TradeLog() {
             {/* Notes */}
             {detailTrade.notes && (
               <div style={{ marginBottom: '24px', padding: '16px', background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(26,26,26,0.03)', borderRadius: '10px' }}>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Notes & Thesis</div>
-                <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '14px', color: textPrimary, lineHeight: '1.7', margin: 0 }}>{detailTrade.notes}</p>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Notes & Thesis</div>
+                <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '14px', color: textPrimary, lineHeight: '1.7', margin: 0 }}>{detailTrade.notes}</p>
               </div>
             )}
 
             {/* Screenshots */}
             {detailTrade.screenshot_urls?.length > 0 && (
               <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Charts</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Charts</div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' as const }}>
                   {detailTrade.screenshot_urls.map((url, i) => (
                     <a key={i} href={url} target="_blank" rel="noopener noreferrer">
@@ -353,10 +353,10 @@ export default function TradeLog() {
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: '10px', paddingTop: '16px', borderTop: `0.5px solid ${tableBorder}` }}>
-              <button onClick={() => openEdit(detailTrade)} style={{ flex: 1, padding: '11px', background: accent, border: 'none', borderRadius: '10px', color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+              <button onClick={() => openEdit(detailTrade)} style={{ flex: 1, padding: '11px', background: accent, border: 'none', borderRadius: '10px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
                 ✎ Edit Trade
               </button>
-              <button onClick={() => deleteTrade(detailTrade.id)} style={{ padding: '11px 20px', background: 'none', border: `0.5px solid rgba(220,50,50,0.3)`, borderRadius: '10px', color: '#dc3232', fontFamily: 'Arial, sans-serif', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+              <button onClick={() => deleteTrade(detailTrade.id)} style={{ padding: '11px 20px', background: 'none', border: `0.5px solid rgba(220,50,50,0.3)`, borderRadius: '10px', color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
                 Delete
               </button>
             </div>
@@ -366,7 +366,7 @@ export default function TradeLog() {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
@@ -378,7 +378,7 @@ export default function TradeLog() {
               onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }}
               dark={dark}
             />
-            <button onClick={openNew} style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
+            <button onClick={openNew} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
               + Log Trade
             </button>
           </div>
@@ -389,7 +389,7 @@ export default function TradeLog() {
       {showForm && (
         <div style={{ ...card, padding: '32px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.16em', textTransform: 'uppercase' as const }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.16em', textTransform: 'uppercase' as const }}>
               {editingId ? 'Edit Trade' : 'New Trade Entry'}
             </div>
             <button onClick={() => { setShowForm(false); setEditingId(null) }} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '18px' }}>✕</button>
@@ -397,50 +397,50 @@ export default function TradeLog() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Trade Date</label>
-              <input type="date" value={form.trade_date} onChange={e => setForm({ ...form, trade_date: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Trade Date</label>
+              <input type="date" value={form.trade_date} onChange={e => setForm({ ...form, trade_date: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Pair</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Pair</label>
               <PairSelector value={form.pair} onChange={pair => setForm({ ...form, pair })} dark={dark} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Direction</label>
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Direction</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {['Long', 'Short'].map(d => (
-                  <button key={d} onClick={() => setForm({ ...form, direction: d })} style={{ flex: 1, padding: '10px', background: form.direction === d ? (d === 'Long' ? '#22c55e' : '#dc3232') : inputBg, border: `0.5px solid ${form.direction === d ? 'transparent' : inputBorder}`, borderRadius: '10px', color: form.direction === d ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '12px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
+                  <button key={d} onClick={() => setForm({ ...form, direction: d })} style={{ flex: 1, padding: '10px', background: form.direction === d ? (d === 'Long' ? '#22c55e' : '#dc3232') : inputBg, border: `0.5px solid ${form.direction === d ? 'transparent' : inputBorder}`, borderRadius: '10px', color: form.direction === d ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
                     {d === 'Long' ? '↑ Long' : '↓ Short'}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Entry Price</label>
-              <input type="number" step="any" placeholder="1.08500" value={form.entry_price} onChange={e => setForm({ ...form, entry_price: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Entry Price</label>
+              <input type="number" step="any" placeholder="1.08500" value={form.entry_price} onChange={e => setForm({ ...form, entry_price: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Stop Loss</label>
-              <input type="number" step="any" placeholder="1.08200" value={form.stop_loss} onChange={e => setForm({ ...form, stop_loss: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Stop Loss</label>
+              <input type="number" step="any" placeholder="1.08200" value={form.stop_loss} onChange={e => setForm({ ...form, stop_loss: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Take Profit</label>
-              <input type="number" step="any" placeholder="1.09500" value={form.take_profit} onChange={e => setForm({ ...form, take_profit: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Take Profit</label>
+              <input type="number" step="any" placeholder="1.09500" value={form.take_profit} onChange={e => setForm({ ...form, take_profit: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Lot Size</label>
-              <input type="number" step="any" placeholder="0.10" value={form.lot_size} onChange={e => setForm({ ...form, lot_size: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Lot Size</label>
+              <input type="number" step="any" placeholder="0.10" value={form.lot_size} onChange={e => setForm({ ...form, lot_size: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>P&L (€)</label>
-              <input type="number" step="any" placeholder="+120.00" value={form.pnl} onChange={e => setForm({ ...form, pnl: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: parseFloat(form.pnl) > 0 ? '#22c55e' : parseFloat(form.pnl) < 0 ? '#dc3232' : textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>P&L (€)</label>
+              <input type="number" step="any" placeholder="+120.00" value={form.pnl} onChange={e => setForm({ ...form, pnl: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: parseFloat(form.pnl) > 0 ? '#22c55e' : parseFloat(form.pnl) < 0 ? '#dc3232' : textPrimary, outline: 'none' }} />
             </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Emotion</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Emotion</label>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
               {EMOTIONS.map(em => (
-                <button key={em.label} onClick={() => setForm({ ...form, emotion: em.label })} style={{ padding: '7px 14px', background: form.emotion === em.label ? accent : inputBg, border: `0.5px solid ${form.emotion === em.label ? accent : inputBorder}`, borderRadius: '20px', color: form.emotion === em.label ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button key={em.label} onClick={() => setForm({ ...form, emotion: em.label })} style={{ padding: '7px 14px', background: form.emotion === em.label ? accent : inputBg, border: `0.5px solid ${form.emotion === em.label ? accent : inputBorder}`, borderRadius: '20px', color: form.emotion === em.label ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>{em.emoji}</span><span>{em.label}</span>
                 </button>
               ))}
@@ -448,24 +448,24 @@ export default function TradeLog() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Followed Trading Plan?</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Followed Trading Plan?</label>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setForm({ ...form, followed_plan: true })} style={{ padding: '10px 28px', background: form.followed_plan === true ? '#22c55e' : inputBg, border: `0.5px solid ${form.followed_plan === true ? '#22c55e' : inputBorder}`, borderRadius: '10px', color: form.followed_plan === true ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '13px', cursor: 'pointer', fontWeight: '700', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => setForm({ ...form, followed_plan: true })} style={{ padding: '10px 28px', background: form.followed_plan === true ? '#22c55e' : inputBg, border: `0.5px solid ${form.followed_plan === true ? '#22c55e' : inputBorder}`, borderRadius: '10px', color: form.followed_plan === true ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '13px', cursor: 'pointer', fontWeight: '700', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>✓</span> Yes
               </button>
-              <button onClick={() => setForm({ ...form, followed_plan: false })} style={{ padding: '10px 28px', background: form.followed_plan === false ? '#dc3232' : inputBg, border: `0.5px solid ${form.followed_plan === false ? '#dc3232' : inputBorder}`, borderRadius: '10px', color: form.followed_plan === false ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '13px', cursor: 'pointer', fontWeight: '700', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => setForm({ ...form, followed_plan: false })} style={{ padding: '10px 28px', background: form.followed_plan === false ? '#dc3232' : inputBg, border: `0.5px solid ${form.followed_plan === false ? '#dc3232' : inputBorder}`, borderRadius: '10px', color: form.followed_plan === false ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '13px', cursor: 'pointer', fontWeight: '700', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>✕</span> No
               </button>
             </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Notes & Thesis</label>
-            <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} placeholder="What was your reasoning? What did you see on the chart?" style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none', resize: 'vertical' as const }} />
+            <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Notes & Thesis</label>
+            <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} placeholder="What was your reasoning? What did you see on the chart?" style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none', resize: 'vertical' as const }} />
           </div>
 
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Screenshots <span style={{ opacity: 0.5 }}>(optional · max 3)</span></label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Screenshots <span style={{ opacity: 0.5 }}>(optional · max 3)</span></label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' as const }}>
               {screenshots.map((url, i) => (
                 <div key={i} style={{ position: 'relative', width: '100px', height: '70px', borderRadius: '8px', overflow: 'hidden', border: `0.5px solid ${inputBorder}` }}>
@@ -476,14 +476,14 @@ export default function TradeLog() {
               {screenshots.length < 3 && (
                 <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '100px', height: '70px', background: inputBg, border: `1px dashed ${inputBorder}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', color: textMuted }}>
                   <span style={{ fontSize: '20px' }}>{uploading ? '⏳' : '📎'}</span>
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px' }}>{uploading ? 'Uploading...' : 'Add chart'}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px' }}>{uploading ? 'Uploading...' : 'Add chart'}</span>
                 </button>
               )}
               <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => { const file = e.target.files?.[0]; if (file) await uploadScreenshot(file); e.target.value = '' }} />
             </div>
           </div>
 
-          <button onClick={saveTrade} disabled={saving} style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving ? 0.7 : 1 }}>
+          <button onClick={saveTrade} disabled={saving} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving ? 0.7 : 1 }}>
             {saving ? 'Saving...' : editingId ? 'Update Trade →' : 'Save Trade →'}
           </button>
         </div>
@@ -492,15 +492,15 @@ export default function TradeLog() {
       {/* Table */}
       <div style={{ ...card, overflow: 'hidden' }}>
         <div style={{ padding: '18px 24px', borderBottom: `0.5px solid ${tableBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase' as const }}>All Trades</div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{trades.length} total</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase' as const }}>All Trades</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{trades.length} total</div>
         </div>
         {loading ? (
-          <div style={{ padding: '48px', textAlign: 'center', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+          <div style={{ padding: '48px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
         ) : trades.length === 0 ? (
           <div style={{ padding: '64px', textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '18px', color: textMuted, marginBottom: '8px' }}>No trades logged yet.</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>Click &quot;+ Log Trade&quot; to add your first entry.</div>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '18px', color: textMuted, marginBottom: '8px' }}>No trades logged yet.</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>Click &quot;+ Log Trade&quot; to add your first entry.</div>
           </div>
         ) : (
           <>
@@ -509,7 +509,7 @@ export default function TradeLog() {
                 <thead>
                   <tr style={{ borderBottom: `0.5px solid ${tableBorder}` }}>
                     {['Date', 'Pair', 'Direction', 'Result', 'Entry', 'R:R', 'P&L', 'Emotion', 'Plan', 'Charts', ''].map(h => (
-                      <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: textMuted, fontWeight: '400', whiteSpace: 'nowrap' as const }}>{h}</th>
+                      <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: textMuted, fontWeight: '400', whiteSpace: 'nowrap' as const }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -520,28 +520,28 @@ export default function TradeLog() {
                       onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(43,94,167,0.03)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <td style={{ padding: '12px 14px', fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, whiteSpace: 'nowrap' as const }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, whiteSpace: 'nowrap' as const }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</td>
                       <td style={{ padding: '12px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ fontSize: '16px' }}>{getPairIcon(trade.pair)}</span>
-                          <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, fontWeight: '600' }}>{trade.pair}</span>
+                          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, fontWeight: '600' }}>{trade.pair}</span>
                         </div>
                       </td>
                       <td style={{ padding: '12px 14px' }}>
-                        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', color: trade.direction === 'Long' ? '#22c55e' : '#dc3232', background: trade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
+                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: trade.direction === 'Long' ? '#22c55e' : '#dc3232', background: trade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
                           {trade.direction === 'Long' ? '↑ Long' : '↓ Short'}
                         </span>
                       </td>
                       <td style={{ padding: '12px 14px' }}>
-                        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
+                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
                           {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>{trade.entry_price || '—'}</td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>{trade.rr ? `1:${trade.rr}` : '—'}</td>
-                      <td style={{ padding: '12px 14px', fontFamily: 'Georgia, serif', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{trade.entry_price || '—'}</td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{trade.rr ? `1:${trade.rr}` : '—'}</td>
+                      <td style={{ padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</td>
                       <td style={{ padding: '12px 14px' }}>
-                        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>
+                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>
                           {EMOTIONS.find(e => e.label === trade.emotion)?.emoji} {trade.emotion}
                         </span>
                       </td>
@@ -549,8 +549,8 @@ export default function TradeLog() {
                         {trade.followed_plan === null
                           ? <span style={{ color: textMuted, fontSize: '11px' }}>—</span>
                           : trade.followed_plan
-                          ? <span style={{ color: '#22c55e', fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', background: 'rgba(34,197,94,0.1)', padding: '3px 8px', borderRadius: '4px' }}>✓ YES</span>
-                          : <span style={{ color: '#dc3232', fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', background: 'rgba(220,50,50,0.1)', padding: '3px 8px', borderRadius: '4px' }}>✕ NO</span>
+                          ? <span style={{ color: '#22c55e', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', background: 'rgba(34,197,94,0.1)', padding: '3px 8px', borderRadius: '4px' }}>✓ YES</span>
+                          : <span style={{ color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', background: 'rgba(220,50,50,0.1)', padding: '3px 8px', borderRadius: '4px' }}>✕ NO</span>
                         }
                       </td>
                       <td style={{ padding: '12px 14px' }}>
@@ -579,15 +579,15 @@ export default function TradeLog() {
             </div>
             {totalPages > 1 && (
               <div style={{ padding: '16px 24px', borderTop: `0.5px solid ${tableBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>
                   Showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, trades.length)} of {trades.length}
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', color: page === 1 ? textMuted : textPrimary, cursor: page === 1 ? 'not-allowed' : 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '11px', opacity: page === 1 ? 0.4 : 1 }}>←</button>
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', color: page === 1 ? textMuted : textPrimary, cursor: page === 1 ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px', opacity: page === 1 ? 0.4 : 1 }}>←</button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <button key={p} onClick={() => setPage(p)} style={{ padding: '6px 10px', background: p === page ? accent : 'none', border: `0.5px solid ${p === page ? accent : cardBorder}`, borderRadius: '6px', color: p === page ? '#ffffff' : textPrimary, cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '11px' }}>{p}</button>
+                    <button key={p} onClick={() => setPage(p)} style={{ padding: '6px 10px', background: p === page ? accent : 'none', border: `0.5px solid ${p === page ? accent : cardBorder}`, borderRadius: '6px', color: p === page ? '#ffffff' : textPrimary, cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px' }}>{p}</button>
                   ))}
-                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: '6px 12px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', color: page === totalPages ? textMuted : textPrimary, cursor: page === totalPages ? 'not-allowed' : 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '11px', opacity: page === totalPages ? 0.4 : 1 }}>→</button>
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: '6px 12px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', color: page === totalPages ? textMuted : textPrimary, cursor: page === totalPages ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px', opacity: page === totalPages ? 0.4 : 1 }}>→</button>
                 </div>
               </div>
             )}

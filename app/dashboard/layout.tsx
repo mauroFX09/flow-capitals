@@ -63,12 +63,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) return (
     <div style={{ background: bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: muted }}>Loading...</div>
+      <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: muted }}>Loading...</div>
     </div>
   )
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: bg, fontFamily: 'Georgia, serif' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: bg, fontFamily: 'var(--font-playfair)' }}>
 
       {/* SIDEBAR */}
       <div style={{ width: sidebarWidth, flexShrink: 0, background: sidebar, borderRight: `0.5px solid ${border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 50, transition: 'width 0.25s ease', overflow: 'hidden' }}>
@@ -96,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Nav */}
         <div style={{ padding: collapsed ? '12px 8px' : '16px 10px', flex: 1 }}>
           {!collapsed && (
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px', whiteSpace: 'nowrap' as const }}>Platform</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px', whiteSpace: 'nowrap' as const }}>Platform</div>
           )}
           {NAV_ITEMS.map(item => {
             const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
@@ -110,10 +110,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <span style={{ fontSize: '18px', color: active ? '#2B5EA7' : muted, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
                 {!collapsed && (
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: active ? accent : muted, fontWeight: active ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : muted, fontWeight: active ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
                 )}
                 {!collapsed && locked && (
-                  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'Arial, sans-serif' }}>PRO</span>
+                  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
                 )}
               </a>
             )
@@ -127,15 +127,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {/* Role badge */}
               <div style={{ marginBottom: '12px', padding: '6px 10px', background: isPremium ? 'rgba(43,94,167,0.08)' : 'rgba(245,158,11,0.08)', border: `0.5px solid ${isPremium ? 'rgba(43,94,167,0.2)' : 'rgba(245,158,11,0.2)'}`, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPremium ? accent : '#f59e0b' }} />
-                <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: isPremium ? accent : '#f59e0b', fontWeight: '600' }}>{isPremium ? 'Premium' : 'Standard'}</span>
-                {!isPremium && <a href="/membership" style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: '#f59e0b', textDecoration: 'none', marginLeft: 'auto', opacity: 0.7 }}>Upgrade →</a>}
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isPremium ? accent : '#f59e0b', fontWeight: '600' }}>{isPremium ? 'Premium' : 'Standard'}</span>
+                {!isPremium && <a href="/membership" style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#f59e0b', textDecoration: 'none', marginLeft: 'auto', opacity: 0.7 }}>Upgrade →</a>}
               </div>
 
               {/* Dark mode toggle */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', padding: '0 2px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px' }}>{dark ? '🌙' : '☀️'}</span>
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: muted, whiteSpace: 'nowrap' as const }}>{dark ? 'Dark mode' : 'Light mode'}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: muted, whiteSpace: 'nowrap' as const }}>{dark ? 'Dark mode' : 'Light mode'}</span>
                 </div>
                 <button onClick={() => {
                   const newDark = !dark
@@ -153,15 +153,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: text, fontWeight: '500', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: text, fontWeight: '500', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
                 </div>
               </a>
 
-              <button onClick={handleLogout} style={{ width: '100%', background: 'none', border: `0.5px solid ${border}`, color: muted, fontFamily: 'Arial, sans-serif', fontSize: '10px', textTransform: 'uppercase' as const, padding: '7px', cursor: 'pointer', borderRadius: '6px' }}
+              <button onClick={handleLogout} style={{ width: '100%', background: 'none', border: `0.5px solid ${border}`, color: muted, fontFamily: 'var(--font-inter)', fontSize: '10px', textTransform: 'uppercase' as const, padding: '7px', cursor: 'pointer', borderRadius: '6px' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
               >Sign out</button>
@@ -177,7 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {dark ? '🌙' : '☀️'}
               </button>
               <a href="/dashboard/profile" style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }} title={user?.email}>
-                <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
               </a>
               <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, padding: '4px' }}
                 title="Sign out"

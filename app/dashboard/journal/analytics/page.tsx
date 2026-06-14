@@ -46,7 +46,7 @@ function SegmentedControl({ options, value, onChange, dark }: {
     <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
       <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
       {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
+        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
           {opt.label}
         </button>
       ))}
@@ -216,7 +216,7 @@ Keep it concise, honest, and practical.`
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
@@ -231,29 +231,29 @@ Keep it concise, honest, and practical.`
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '80px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '80px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
       ) : total === 0 ? (
         <div style={{ ...card, padding: '64px', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '20px', color: textMuted, marginBottom: '8px' }}>No trades to analyse yet.</div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted, marginBottom: '24px' }}>Log at least a few trades to unlock AI analysis.</div>
-          <a href="/dashboard/journal/trades" style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px 24px', textDecoration: 'none', borderRadius: '10px', fontWeight: '700' }}>Go to Trade Log →</a>
+          <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '20px', color: textMuted, marginBottom: '8px' }}>No trades to analyse yet.</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, marginBottom: '24px' }}>Log at least a few trades to unlock AI analysis.</div>
+          <a href="/dashboard/journal/trades" style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px 24px', textDecoration: 'none', borderRadius: '10px', fontWeight: '700' }}>Go to Trade Log →</a>
         </div>
       ) : (
         <>
           {/* Plan adherence — hero insight */}
           {(planYes.length > 0 || planNo.length > 0) && (
             <div style={{ ...card, padding: '24px', marginBottom: '20px', background: dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)', border: `0.5px solid rgba(34,197,94,0.2)` }}>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#22c55e', marginBottom: '16px' }}>Plan Adherence — Key Insight</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#22c55e', marginBottom: '16px' }}>Plan Adherence — Key Insight</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, marginBottom: '6px' }}>When you followed your plan</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '6px' }}>When you followed your plan</div>
                   <div style={{ fontSize: '36px', fontWeight: '700', color: '#22c55e', lineHeight: 1, marginBottom: '4px' }}>{planYesWinRate}%</div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{planYes.length} trades · {planYesPnl >= 0 ? '+' : ''}{planYesPnl.toFixed(0)}€</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{planYes.length} trades · {planYesPnl >= 0 ? '+' : ''}{planYesPnl.toFixed(0)}€</div>
                 </div>
                 <div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, marginBottom: '6px' }}>When you didn&apos;t follow your plan</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '6px' }}>When you didn&apos;t follow your plan</div>
                   <div style={{ fontSize: '36px', fontWeight: '700', color: '#dc3232', lineHeight: 1, marginBottom: '4px' }}>{planNoWinRate}%</div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{planNo.length} trades · {planNoPnl >= 0 ? '+' : ''}{planNoPnl.toFixed(0)}€</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{planNo.length} trades · {planNoPnl >= 0 ? '+' : ''}{planNoPnl.toFixed(0)}€</div>
                 </div>
               </div>
             </div>
@@ -264,33 +264,33 @@ Keep it concise, honest, and practical.`
 
             {/* By Pair */}
             <div style={{ ...card, padding: '24px' }}>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>By Pair</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>By Pair</div>
               {Object.entries(pairStats).sort((a, b) => b[1].pnl - a[1].pnl).slice(0, 6).map(([pair, s]) => (
                 <div key={pair} style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, fontWeight: '600' }}>{pair}</span>
-                    <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: s.pnl >= 0 ? '#22c55e' : '#dc3232', fontWeight: '600' }}>{s.pnl >= 0 ? '+' : ''}{s.pnl.toFixed(0)}€</span>
+                    <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, fontWeight: '600' }}>{pair}</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: s.pnl >= 0 ? '#22c55e' : '#dc3232', fontWeight: '600' }}>{s.pnl >= 0 ? '+' : ''}{s.pnl.toFixed(0)}€</span>
                   </div>
                   <div style={{ height: '4px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${Math.round((s.wins / s.total) * 100)}%`, background: s.pnl >= 0 ? '#22c55e' : '#dc3232', borderRadius: '2px' }} />
                   </div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted, marginTop: '2px' }}>{s.total} trades · {Math.round((s.wins / s.total) * 100)}% win</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, marginTop: '2px' }}>{s.total} trades · {Math.round((s.wins / s.total) * 100)}% win</div>
                 </div>
               ))}
             </div>
 
             {/* By Emotion */}
             <div style={{ ...card, padding: '24px' }}>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>By Emotion</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>By Emotion</div>
               {Object.entries(emotionStats).sort((a, b) => b[1].pnl - a[1].pnl).map(([em, s]) => (
                 <div key={em} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: `0.5px solid ${tableBorder}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '14px' }}>{EMOTIONS.find(e => e.label === em)?.emoji}</span>
-                    <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary }}>{em}</span>
+                    <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary }}>{em}</span>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: s.pnl >= 0 ? '#22c55e' : '#dc3232', fontWeight: '600' }}>{Math.round((s.wins / s.total) * 100)}%</div>
-                    <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}>{s.total} trades</div>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: s.pnl >= 0 ? '#22c55e' : '#dc3232', fontWeight: '600' }}>{Math.round((s.wins / s.total) * 100)}%</div>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{s.total} trades</div>
                   </div>
                 </div>
               ))}
@@ -298,17 +298,17 @@ Keep it concise, honest, and practical.`
 
             {/* By Day */}
             <div style={{ ...card, padding: '24px' }}>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>By Day of Week</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>By Day of Week</div>
               {Object.entries(dayStats).sort((a, b) => b[1].pnl - a[1].pnl).map(([day, s]) => (
                 <div key={day} style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary }}>{day}</span>
-                    <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: s.pnl >= 0 ? '#22c55e' : '#dc3232', fontWeight: '600' }}>{s.pnl >= 0 ? '+' : ''}{s.pnl.toFixed(0)}€</span>
+                    <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary }}>{day}</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: s.pnl >= 0 ? '#22c55e' : '#dc3232', fontWeight: '600' }}>{s.pnl >= 0 ? '+' : ''}{s.pnl.toFixed(0)}€</span>
                   </div>
                   <div style={{ height: '4px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${Math.round((s.wins / s.total) * 100)}%`, background: s.pnl >= 0 ? '#22c55e' : '#dc3232', borderRadius: '2px' }} />
                   </div>
-                  <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted, marginTop: '2px' }}>{s.total} trades · {Math.round((s.wins / s.total) * 100)}% win</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, marginTop: '2px' }}>{s.total} trades · {Math.round((s.wins / s.total) * 100)}% win</div>
                 </div>
               ))}
             </div>
@@ -318,31 +318,31 @@ Keep it concise, honest, and practical.`
           <div style={{ ...card, padding: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>AI Performance Analysis</div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: '700', color: textPrimary }}>Your personal trading coach</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>AI Performance Analysis</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '18px', fontWeight: '700', color: textPrimary }}>Your personal trading coach</div>
               </div>
-              <button onClick={analysePerformance} disabled={analysing} style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px 24px', border: 'none', cursor: analysing ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: analysing ? 0.7 : 1 }}>
+              <button onClick={analysePerformance} disabled={analysing} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px 24px', border: 'none', cursor: analysing ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: analysing ? 0.7 : 1 }}>
                 {analysing ? 'Analysing...' : analysis ? 'Re-analyse →' : 'Analyse my trades →'}
               </button>
             </div>
 
             {!analysis && !analysing && (
               <div style={{ padding: '40px', textAlign: 'center', border: `0.5px dashed ${cardBorder}`, borderRadius: '12px' }}>
-                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '16px', color: textMuted, marginBottom: '8px' }}>Ready to analyse {total} trades.</div>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>Get your personalised AI performance report — patterns, insights, and specific advice.</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '16px', color: textMuted, marginBottom: '8px' }}>Ready to analyse {total} trades.</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>Get your personalised AI performance report — patterns, insights, and specific advice.</div>
               </div>
             )}
 
             {analysing && (
               <div style={{ padding: '40px', textAlign: 'center' }}>
-                <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '16px', color: textMuted, marginBottom: '8px' }}>Analysing your {total} trades...</div>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>Reviewing patterns, emotions, plan adherence, and performance data.</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '16px', color: textMuted, marginBottom: '8px' }}>Analysing your {total} trades...</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>Reviewing patterns, emotions, plan adherence, and performance data.</div>
               </div>
             )}
 
             {analysis && !analysing && (
               <div style={{ background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(43,94,167,0.02)', border: `0.5px solid ${cardBorder}`, borderRadius: '12px', padding: '28px' }}>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: '15px', color: textPrimary, lineHeight: '1.85', whiteSpace: 'pre-wrap' as const }}>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '15px', color: textPrimary, lineHeight: '1.85', whiteSpace: 'pre-wrap' as const }}>
                   {analysis}
                 </div>
               </div>

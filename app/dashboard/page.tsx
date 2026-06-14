@@ -51,7 +51,7 @@ function CircleGauge({ value, max, color, label, dark }: { value: number; max: n
         <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeDasharray={`${fill} ${circumference}`} strokeLinecap="round" />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontWeight: '700', color: color }}>{label}</span>
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '12px', fontWeight: '700', color: color }}>{label}</span>
       </div>
     </div>
   )
@@ -73,7 +73,7 @@ function WinRateCircle({ winRate, beRate, dark }: { winRate: number; beRate: num
         {lossRate > 0 && <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#dc3232" strokeWidth={strokeWidth} strokeDasharray={`${lossDash} ${circumference - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '13px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
       </div>
     </div>
   )
@@ -172,7 +172,7 @@ export default function DashboardHome() {
       {/* Welcome + clocks */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '36px' }}>
         <div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '24px', height: '1px', background: accent }} />Member Dashboard
           </div>
           <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>
@@ -183,8 +183,8 @@ export default function DashboardHome() {
         <div style={{ display: 'flex', gap: '24px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '14px 20px' }}>
           {CLOCKS.map((c, i) => (
             <div key={c.city} style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: textMuted, letterSpacing: '0.1em', marginBottom: '3px' }}>{c.city}</div>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '14px', color: textPrimary }}>{times[i]}</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: textMuted, letterSpacing: '0.1em', marginBottom: '3px' }}>{c.city}</div>
+              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', color: textPrimary }}>{times[i]}</div>
             </div>
           ))}
         </div>
@@ -195,42 +195,42 @@ export default function DashboardHome() {
         {/* Net P&L */}
         <div style={{ ...card }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Net P&L</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '2px 8px', borderRadius: '10px' }}>{stats.total} trades</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Net P&L</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '2px 8px', borderRadius: '10px' }}>{stats.total} trades</div>
           </div>
           <div style={{ fontSize: '36px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '3px' }}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>All time</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>All time</div>
         </div>
 
         {/* Profit Factor */}
         <div style={{ ...card }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <CircleGauge value={stats.profitFactor} max={3} color={pfColor} label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)} dark={dark} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#22c55e' }}>+{stats.grossProfit.toFixed(0)}€</div>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#dc3232' }}>-{stats.grossLoss.toFixed(0)}€</div>
-              <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted }}>{stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e' }}>+{stats.grossProfit.toFixed(0)}€</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}>-{stats.grossLoss.toFixed(0)}€</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}</div>
             </div>
           </div>
         </div>
 
         {/* Win Rate */}
         <div style={{ ...card }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <WinRateCircle winRate={stats.winRate} beRate={stats.beRate} dark={dark} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
             </div>
           </div>
         </div>
 
         {/* Today's Session */}
         <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, opacity: isRest ? 0.6 : 1 }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {!isRest && (
               <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}>
                 <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} />
@@ -240,7 +240,7 @@ export default function DashboardHome() {
             {isRest ? '—' : 'Live today'}
           </div>
           <div style={{ fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>{todaySession.label}</div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession.desc}</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession.desc}</div>
         </div>
       </div>
 
@@ -255,10 +255,10 @@ export default function DashboardHome() {
             onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.transform = 'translateY(-2px)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.transform = 'translateY(0)' }}
           >
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: '44px', fontWeight: '700', color: dark ? 'rgba(122,174,232,0.06)' : 'rgba(43,94,167,0.05)', lineHeight: 1, position: 'absolute', top: '8px', right: '14px' }}>{c.num}</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px' }}>Go to</div>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: dark ? 'rgba(122,174,232,0.06)' : 'rgba(43,94,167,0.05)', lineHeight: 1, position: 'absolute', top: '8px', right: '14px' }}>{c.num}</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px' }}>Go to</div>
             <div style={{ fontSize: '15px', fontWeight: '600', color: textPrimary, marginBottom: '4px' }}>{c.label}</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{c.desc}</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{c.desc}</div>
           </a>
         ))}
       </div>
@@ -266,8 +266,8 @@ export default function DashboardHome() {
       {/* This week strip */}
       <div style={{ ...card, marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>This Week</div>
-          <a href="/dashboard/journal" style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, textDecoration: 'none' }}>Full calendar →</a>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>This Week</div>
+          <a href="/dashboard/journal" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>Full calendar →</a>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
           {weekDays.map(({ label, date, hasTrades, dayPnl, isToday }) => {
@@ -280,9 +280,9 @@ export default function DashboardHome() {
             if (isLoss) { bg = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; border = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
             return (
               <div key={label} style={{ background: bg, border: `0.5px solid ${isToday ? accent : border}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: isToday ? accent : textMuted, marginBottom: '3px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{date}</div>
-                {hasTrades && <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</div>}
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: isToday ? accent : textMuted, marginBottom: '3px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{date}</div>
+                {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</div>}
               </div>
             )
           })}
@@ -293,7 +293,7 @@ export default function DashboardHome() {
       <div style={{ background: '#0d1e36', padding: '28px 36px', display: 'flex', alignItems: 'center', gap: '28px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
         <div style={{ width: '3px', height: '44px', background: '#2B5EA7', flexShrink: 0, borderRadius: '2px' }} />
         <div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '6px' }}>Daily reminder</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '6px' }}>Daily reminder</div>
           <p style={{ fontStyle: 'italic', fontSize: '17px', color: '#ffffff', lineHeight: '1.6', margin: 0 }}>&ldquo;{quote}&rdquo;</p>
         </div>
       </div>

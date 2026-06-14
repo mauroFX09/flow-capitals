@@ -114,12 +114,12 @@ export default function ProfilePage() {
   const inputBorder = dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.12)'
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
-  const inputStyle = { width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }
-  const labelStyle = { display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }
+  const inputStyle = { width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }
+  const labelStyle = { display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }
 
   if (loading) return (
     <div style={{ background: bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+      <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
     </div>
   )
 
@@ -128,12 +128,12 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Profile
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <h1 style={{ fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Your Profile.</h1>
-          <button onClick={saveProfile} disabled={saving} style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px 24px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving ? 0.7 : 1, transition: 'all 0.2s' }}>
+          <button onClick={saveProfile} disabled={saving} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px 24px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving ? 0.7 : 1, transition: 'all 0.2s' }}>
             {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes →'}
           </button>
         </div>
@@ -151,7 +151,7 @@ export default function ProfilePage() {
                 <img src={profile.avatar_url} alt="avatar" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${accent}` }} />
               ) : (
                 <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#2B5EA7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                  <span style={{ fontFamily: 'Georgia, serif', fontSize: '28px', color: '#ffffff', fontWeight: '700' }}>
+                  <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', color: '#ffffff', fontWeight: '700' }}>
                     {(profile.full_name || profile.email || 'M')[0].toUpperCase()}
                   </span>
                 </div>
@@ -161,21 +161,21 @@ export default function ProfilePage() {
               </button>
             </div>
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => { const file = e.target.files?.[0]; if (file) await uploadAvatar(file) }} />
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: '16px', fontWeight: '700', color: textPrimary, marginBottom: '4px' }}>{profile.full_name || 'Your Name'}</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textMuted }}>{profile.email}</div>
+            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', fontWeight: '700', color: textPrimary, marginBottom: '4px' }}>{profile.full_name || 'Your Name'}</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{profile.email}</div>
           </div>
 
           {/* Locked info */}
           <div style={{ ...card, padding: '20px 24px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '14px' }}>Account Info</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '14px' }}>Account Info</div>
             {[
               { label: 'Email', value: profile.email },
               { label: 'Membership', value: profile.role.charAt(0).toUpperCase() + profile.role.slice(1) },
               { label: 'Member Since', value: profile.created_at ? new Date(profile.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
             ].map(item => (
               <div key={item.label} style={{ marginBottom: '12px' }}>
-                <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '3px' }}>{item.label}</div>
-                <div style={{ fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary }}>{item.value}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: '3px' }}>{item.label}</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary }}>{item.value}</div>
               </div>
             ))}
           </div>
@@ -186,7 +186,7 @@ export default function ProfilePage() {
 
           {/* Personal */}
           <div style={{ ...card, padding: '28px 32px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '20px' }}>Personal Information</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '20px' }}>Personal Information</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div>
                 <label style={labelStyle}>Full Name</label>
@@ -201,14 +201,14 @@ export default function ProfilePage() {
 
           {/* Trading */}
           <div style={{ ...card, padding: '28px 32px' }}>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '20px' }}>Trading Profile</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '20px' }}>Trading Profile</div>
 
             {/* Experience */}
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Experience Level</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
                 {EXPERIENCE_OPTIONS.map(exp => (
-                  <button key={exp} onClick={() => setProfile(p => ({ ...p, experience: exp }))} style={{ padding: '7px 16px', background: profile.experience === exp ? accent : inputBg, border: `0.5px solid ${profile.experience === exp ? accent : inputBorder}`, borderRadius: '20px', color: profile.experience === exp ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  <button key={exp} onClick={() => setProfile(p => ({ ...p, experience: exp }))} style={{ padding: '7px 16px', background: profile.experience === exp ? accent : inputBg, border: `0.5px solid ${profile.experience === exp ? accent : inputBorder}`, borderRadius: '20px', color: profile.experience === exp ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
                     {exp}
                   </button>
                 ))}
@@ -220,7 +220,7 @@ export default function ProfilePage() {
               <label style={labelStyle}>Preferred Pairs</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
                 {PAIR_OPTIONS.map(pair => (
-                  <button key={pair} onClick={() => togglePair(pair)} style={{ padding: '6px 12px', background: profile.preferred_pairs.includes(pair) ? accent : inputBg, border: `0.5px solid ${profile.preferred_pairs.includes(pair) ? accent : inputBorder}`, borderRadius: '20px', color: profile.preferred_pairs.includes(pair) ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  <button key={pair} onClick={() => togglePair(pair)} style={{ padding: '6px 12px', background: profile.preferred_pairs.includes(pair) ? accent : inputBg, border: `0.5px solid ${profile.preferred_pairs.includes(pair) ? accent : inputBorder}`, borderRadius: '20px', color: profile.preferred_pairs.includes(pair) ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>
                     {pair}
                   </button>
                 ))}

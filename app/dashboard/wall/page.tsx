@@ -32,7 +32,7 @@ function SegmentedControl({ options, value, onChange, dark }: {
     <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
       <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
       {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 20px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px', whiteSpace: 'nowrap' as const }}>
+        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 20px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px', whiteSpace: 'nowrap' as const }}>
           {opt.label}
         </button>
       ))}
@@ -164,14 +164,14 @@ export default function TradingWall() {
 
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Wall
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <h1 style={{ fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Wall of Proof.</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <SegmentedControl options={TABS} value={tab} onChange={setTab} dark={dark} />
-            <button onClick={() => setShowForm(!showForm)} style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
+            <button onClick={() => setShowForm(!showForm)} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
               {showForm ? '— Cancel' : '+ Post Payout'}
             </button>
           </div>
@@ -181,11 +181,11 @@ export default function TradingWall() {
       {/* Post form */}
       {showForm && (
         <div style={{ ...card, padding: '32px', marginBottom: '24px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: accent, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: '20px' }}>New Payout Post</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: '20px' }}>New Payout Post</div>
 
           {/* Screenshot upload */}
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Screenshot</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Screenshot</label>
             {screenshotUrl ? (
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <img src={screenshotUrl} alt="payout" style={{ width: '200px', height: '130px', objectFit: 'cover', borderRadius: '10px', border: `0.5px solid ${cardBorder}` }} />
@@ -197,7 +197,7 @@ export default function TradingWall() {
                 onMouseLeave={e => e.currentTarget.style.borderColor = inputBorder}
               >
                 <span style={{ fontSize: '28px' }}>{uploading ? '⏳' : '📸'}</span>
-                <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px' }}>{uploading ? 'Uploading...' : 'Upload screenshot'}</span>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px' }}>{uploading ? 'Uploading...' : 'Upload screenshot'}</span>
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
@@ -210,29 +210,29 @@ export default function TradingWall() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '14px', marginBottom: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Amount (€)</label>
-              <input type="number" step="any" placeholder="1250" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: parseFloat(form.amount) > 0 ? '#22c55e' : textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Amount (€)</label>
+              <input type="number" step="any" placeholder="1250" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: parseFloat(form.amount) > 0 ? '#22c55e' : textPrimary, outline: 'none' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Caption</label>
-              <input type="text" placeholder="First funded payout. The blueprint works." value={form.caption} onChange={e => setForm({ ...form, caption: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'Georgia, serif', fontSize: '13px', color: textPrimary, outline: 'none' }} />
+              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Caption</label>
+              <input type="text" placeholder="First funded payout. The blueprint works." value={form.caption} onChange={e => setForm({ ...form, caption: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }} />
             </div>
           </div>
 
           {/* Public / Private toggle */}
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Visibility</label>
+            <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Visibility</label>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setForm({ ...form, is_public: true })} style={{ padding: '10px 24px', background: form.is_public ? accent : inputBg, border: `0.5px solid ${form.is_public ? accent : inputBorder}`, borderRadius: '10px', color: form.is_public ? '#ffffff' : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '12px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => setForm({ ...form, is_public: true })} style={{ padding: '10px 24px', background: form.is_public ? accent : inputBg, border: `0.5px solid ${form.is_public ? accent : inputBorder}`, borderRadius: '10px', color: form.is_public ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 🌍 Post on Public Wall
               </button>
-              <button onClick={() => setForm({ ...form, is_public: false })} style={{ padding: '10px 24px', background: !form.is_public ? dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.08)' : inputBg, border: `0.5px solid ${!form.is_public ? (dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.2)') : inputBorder}`, borderRadius: '10px', color: !form.is_public ? textPrimary : textMuted, fontFamily: 'Arial, sans-serif', fontSize: '12px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button onClick={() => setForm({ ...form, is_public: false })} style={{ padding: '10px 24px', background: !form.is_public ? dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.08)' : inputBg, border: `0.5px solid ${!form.is_public ? (dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.2)') : inputBorder}`, borderRadius: '10px', color: !form.is_public ? textPrimary : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 🔒 Keep Private
               </button>
             </div>
           </div>
 
-          <button onClick={savePost} disabled={saving || !form.amount} style={{ background: accent, color: '#ffffff', fontFamily: 'Arial, sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', cursor: saving || !form.amount ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving || !form.amount ? 0.7 : 1 }}>
+          <button onClick={savePost} disabled={saving || !form.amount} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', cursor: saving || !form.amount ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving || !form.amount ? 0.7 : 1 }}>
             {saving ? 'Posting...' : 'Post Payout →'}
           </button>
         </div>
@@ -240,14 +240,14 @@ export default function TradingWall() {
 
       {/* Posts grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '80px', fontFamily: 'Georgia, serif', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '80px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
       ) : posts.length === 0 ? (
         <div style={{ ...card, padding: '80px', textAlign: 'center' }}>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>🏆</div>
-          <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '20px', color: textMuted, marginBottom: '8px' }}>
+          <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '20px', color: textMuted, marginBottom: '8px' }}>
             {tab === 'public' ? 'No payouts posted yet.' : 'You have not posted any payouts yet.'}
           </div>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', color: textMuted }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>
             {tab === 'public' ? 'Be the first to post your payout.' : 'Post your first payout and inspire the community.'}
           </div>
         </div>
@@ -271,7 +271,7 @@ export default function TradingWall() {
 
                 {/* Caption */}
                 {post.caption && (
-                  <p style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '13px', color: textPrimary, lineHeight: '1.6', marginBottom: '12px' }}>
+                  <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: textPrimary, lineHeight: '1.6', marginBottom: '12px' }}>
                     &ldquo;{post.caption}&rdquo;
                   </p>
                 )}
@@ -280,25 +280,25 @@ export default function TradingWall() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '24px', height: '24px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#ffffff', fontWeight: '700' }}>
+                      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#ffffff', fontWeight: '700' }}>
                         {(profileNames[post.user_id] || 'M')[0].toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: textPrimary, fontWeight: '600' }}>{profileNames[post.user_id] || 'Member'}</div>
-                      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted }}>{new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textPrimary, fontWeight: '600' }}>{profileNames[post.user_id] || 'Member'}</div>
+                      <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                     </div>
                   </div>
 
                   {/* Owner actions */}
                   {post.user_id === userId && (
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={() => togglePublic(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted, transition: 'all 0.2s' }}
+                      <button onClick={() => togglePublic(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, transition: 'all 0.2s' }}
                         title={post.is_public ? 'Make private' : 'Make public'}
                       >
                         {post.is_public ? '🌍' : '🔒'}
                       </button>
-                      <button onClick={() => deletePost(post.id)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontFamily: 'Arial, sans-serif', fontSize: '10px', color: textMuted, transition: 'all 0.2s' }}
+                      <button onClick={() => deletePost(post.id)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, transition: 'all 0.2s' }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
                       >✕</button>
@@ -307,7 +307,7 @@ export default function TradingWall() {
 
                   {/* Private badge */}
                   {!post.is_public && (
-                    <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '3px 8px', borderRadius: '4px' }}>🔒 Private</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '3px 8px', borderRadius: '4px' }}>🔒 Private</span>
                   )}
                 </div>
               </div>
