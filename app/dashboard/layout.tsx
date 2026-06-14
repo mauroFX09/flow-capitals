@@ -16,6 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const [user, setUser] = useState<any>(null)
   const [role, setRole] = useState<string>('standard')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [dark, setDark] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
@@ -39,8 +40,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push('/login'); return }
       setUser(session.user)
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('role, avatar_url').eq('id', session.user.id).single()
       if (profile?.role) setRole(profile.role)
+      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url)
       setLoading(false)
     })
   }, [router])
@@ -64,6 +66,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return (
     <div style={{ background: bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: muted }}>Loading...</div>
+    </div>
+  )
+
+  const AvatarCircle = ({ size = 30 }: { size?: number }) => (
+    <div style={{ width: `${size}px`, height: `${size}px`, background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+      {avatarUrl
+        ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        : <span style={{ fontFamily: 'var(--font-inter)', fontSize: `${size * 0.4}px`, color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
+      }
     </div>
   )
 
@@ -152,9 +163,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onMouseEnter={e => e.currentTarget.style.background = navHover}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <div style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
-                </div>
+                <AvatarCircle size={30} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: text, fontWeight: '500', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
@@ -176,8 +185,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '6px 0' }}>
                 {dark ? '🌙' : '☀️'}
               </button>
-              <a href="/dashboard/profile" style={{ width: '30px', height: '30px', background: '#2B5EA7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none' }} title={user?.email}>
-                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>{user?.email?.[0]?.toUpperCase()}</span>
+              <a href="/dashboard/profile" title={user?.email} style={{ textDecoration: 'none' }}>
+                <AvatarCircle size={30} />
               </a>
               <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, padding: '4px' }}
                 title="Sign out"
