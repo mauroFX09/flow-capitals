@@ -1,5 +1,6 @@
 'use client'
 import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 
 export default function Membership() {
   return (
@@ -158,6 +159,7 @@ export default function Membership() {
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

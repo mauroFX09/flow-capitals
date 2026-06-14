@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 
 const ROADMAP = [
   { num: '01', title: 'Market Foundations', sub: 'Understanding the world you are entering', points: ['How the global economy is structured and what drives it', 'The different markets — Forex, Indices, Commodities explained clearly', 'How central banks and institutions move price', 'Market sessions, liquidity windows, and timing', 'Price action fundamentals — reading charts without indicators', 'Market structure, order flow, and ICT core concepts', 'Premium: weekly 1-on-1 call to guide your foundation personally'] },
@@ -313,16 +314,7 @@ export default function Method() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: '#1a1a1a', padding: '36px 80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', letterSpacing: '1px', color: '#ffffff' }}>FLOW <span style={{ color: '#7aaee8' }}>CAPITALS</span></div>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', maxWidth: '500px', textAlign: 'center', lineHeight: '1.6', fontFamily: 'var(--font-inter)' }}>Educational purposes only. Does not constitute financial advice. Trading involves significant risk.</div>
-        <div style={{ display: 'flex', gap: '24px' }}>
-          {['Privacy Policy', 'Terms & Conditions'].map(link => (
-            <a key={link} href="#" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', fontFamily: 'var(--font-inter)' }}>{link}</a>
-          ))}
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
