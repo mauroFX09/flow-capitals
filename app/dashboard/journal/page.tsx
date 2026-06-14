@@ -14,16 +14,10 @@ type Trade = {
 }
 
 function PairIcon({ pair }: { pair: string }) {
-  const icons: Record<string, string> = {
-    'EUR': '🇪🇺', 'GBP': '🇬🇧', 'USD': '🇺🇸', 'JPY': '🇯🇵',
-    'CHF': '🇨🇭', 'AUD': '🇦🇺', 'CAD': '🇨🇦', 'NZD': '🇳🇿',
-    'XAU': '🥇', 'XAG': '🥈', 'NAS': '📈', 'US5': '📊',
-    'US3': '📊', 'DAX': '🇩🇪', 'BTC': '₿', 'ETH': '⟠', 'USO': '🛢️',
-  }
-  const base = pair.replace('/', '').substring(0, 3).toUpperCase()
+  const base = pair.replace('/', '').substring(0, 2).toUpperCase()
   return (
-    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(43,94,167,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
-      {icons[base] || '💱'}
+    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(43,94,167,0.08)', border: '0.5px solid rgba(43,94,167,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: '#2B5EA7', letterSpacing: '0.02em' }}>{base}</span>
     </div>
   )
 }
@@ -398,20 +392,20 @@ export default function JournalDashboard() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
-        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px', transition: 'all 0.4s ease' }}>
+        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderTop: `3px solid ${totalPnl > 0 ? '#22c55e' : totalPnl < 0 ? '#dc3232' : accent}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px', transition: 'all 0.4s ease' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total Net P&L</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '4px' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{total} trades</div>
         </div>
-        <div style={{ ...card, padding: '20px 24px' }}>
+        <div style={{ ...card, padding: '20px 24px', borderTop: `3px solid ${accent}` }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Total Trades</div>
           <ThreeArcGauge wins={wins.length} losses={losses.length} be={be.length} total={total} dark={dark} />
         </div>
-        <div style={{ ...card, padding: '20px 24px' }}>
+        <div style={{ ...card, padding: '20px 24px', borderTop: `3px solid ${winRate >= 50 ? '#22c55e' : '#dc3232'}` }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
           <WinRateGauge winRate={winRate} beRate={beRate} dark={dark} />
         </div>
-        <div style={{ ...card, padding: '20px 24px' }}>
+        <div style={{ ...card, padding: '20px 24px', borderTop: `3px solid ${avgWin > avgLoss ? '#22c55e' : '#dc3232'}` }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Avg Win / Loss</div>
           <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} accent={accent} />
         </div>
