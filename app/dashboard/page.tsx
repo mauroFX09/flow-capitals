@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 const CLOCKS = [
-  { city: 'London', offset: 1, session: 'EU' },
-  { city: 'New York', offset: -4, session: 'US' },
-  { city: 'Tokyo', offset: 9, session: 'AS' },
-  { city: 'Dubai', offset: 4, session: 'ME' },
-  { city: 'Sydney', offset: 10, session: 'AU' },
+  { city: 'LONDON', offset: 1 },
+  { city: 'NEW YORK', offset: -4 },
+  { city: 'TOKYO', offset: 9 },
+  { city: 'DUBAI', offset: 4 },
+  { city: 'SYDNEY', offset: 10 },
 ]
 
 function getTime(offset: number) {
@@ -17,15 +17,7 @@ function getTime(offset: number) {
   const h = Math.floor(t / 3600).toString().padStart(2, '0')
   const m = Math.floor((t % 3600) / 60).toString().padStart(2, '0')
   const s = (t % 60).toString().padStart(2, '0')
-  return { h, m, s, total: t }
-}
-
-function isMarketOpen(offset: number) {
-  const d = new Date()
-  const utc = d.getUTCHours() * 3600 + d.getUTCMinutes() * 60 + d.getUTCSeconds()
-  const t = (utc + offset * 3600 + 86400) % 86400
-  const hours = t / 3600
-  return hours >= 8 && hours <= 17
+  return `${h}:${m}:${s}`
 }
 
 const QUOTES = [
@@ -59,7 +51,7 @@ function CircleGauge({ value, max, color, label, dark }: { value: number; max: n
         <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeDasharray={`${fill} ${circumference}`} strokeLinecap="round" />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '12px', fontWeight: '700', color }}>{label}</span>
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '12px', fontWeight: '700', color: color }}>{label}</span>
       </div>
     </div>
   )
@@ -145,21 +137,21 @@ export default function DashboardHome() {
   const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
   const accent = dark ? '#7aaee8' : '#2B5EA7'
 
-  const sessionColors: Record<string, { bg: string; border: string; label: string; topBorder: string }> = {
-    live: { bg: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.04)', border: dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.15)', label: dark ? '#7aaee8' : '#2B5EA7', topBorder: '#2B5EA7' },
-    personal: { bg: dark ? 'rgba(180,120,0,0.15)' : 'rgba(180,120,0,0.04)', border: dark ? 'rgba(180,120,0,0.3)' : 'rgba(180,120,0,0.15)', label: dark ? '#fbbf24' : '#b47800', topBorder: '#b47800' },
-    psych: { bg: dark ? 'rgba(120,80,180,0.15)' : 'rgba(120,80,180,0.04)', border: dark ? 'rgba(120,80,180,0.3)' : 'rgba(120,80,180,0.15)', label: dark ? '#c4b5fd' : '#7850b4', topBorder: '#7850b4' },
-    rest: { bg: dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)', border: dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)', label: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0', topBorder: 'transparent' },
+  const sessionColors: Record<string, { bg: string; border: string; label: string }> = {
+    live: { bg: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.06)', border: dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.2)', label: dark ? '#7aaee8' : '#2B5EA7' },
+    personal: { bg: dark ? 'rgba(180,120,0,0.15)' : 'rgba(180,120,0,0.05)', border: dark ? 'rgba(180,120,0,0.3)' : 'rgba(180,120,0,0.2)', label: dark ? '#fbbf24' : '#b47800' },
+    psych: { bg: dark ? 'rgba(120,80,180,0.15)' : 'rgba(120,80,180,0.05)', border: dark ? 'rgba(120,80,180,0.3)' : 'rgba(120,80,180,0.2)', label: dark ? '#c4b5fd' : '#7850b4' },
+    rest: { bg: dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)', border: dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)', label: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0' },
   }
   const sc = sessionColors[todaySession.type]
   const pfColor = stats.profitFactor >= 2 ? '#22c55e' : stats.profitFactor >= 1 ? accent : stats.profitFactor === 0 ? textMuted : '#dc3232'
-  const pnlTopColor = stats.pnl > 0 ? '#22c55e' : stats.pnl < 0 ? '#dc3232' : accent
 
   const card = {
     background: cardBg, border: `0.5px solid ${cardBorder}`,
     borderRadius: '16px', boxShadow: cardShadow, padding: '22px 24px',
   }
 
+  // Week strip data
   const dayOfWeek = today.getDay()
   const monday = new Date(today)
   monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
@@ -177,62 +169,41 @@ export default function DashboardHome() {
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px', background: bg, minHeight: '100vh' }}>
 
-      {/* Welcome */}
-      <div style={{ marginBottom: '32px' }}>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '24px', height: '1px', background: accent }} />Member Dashboard
+      {/* Welcome + clocks */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '36px' }}>
+        <div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '24px', height: '1px', background: accent }} />Member Dashboard
+          </div>
+          <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>
+            Welcome back{firstName ? `, ${firstName}` : ''}.
+          </h1>
+          <p style={{ fontStyle: 'italic', fontSize: '14px', color: textMuted }}>{dateStr}</p>
         </div>
-        <h1 style={{ fontSize: '44px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1, marginBottom: '6px' }}>
-          Welcome back{firstName ? `, ${firstName}` : ''}.
-        </h1>
-        <p style={{ fontStyle: 'italic', fontSize: '14px', color: textMuted }}>{dateStr}</p>
-      </div>
-
-      {/* CLOCKS — premium card */}
-      <div style={{ background: '#0d1e36', borderRadius: '16px', padding: '20px 28px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 24px rgba(0,0,0,0.3)', position: 'relative', overflow: 'hidden' }}>
-        {/* Subtle glow */}
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% 50%, rgba(43,94,167,0.12) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        {/* Label */}
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', position: 'relative' }}>
-          Market Sessions
-        </div>
-        {/* Clocks */}
-        <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
-          {CLOCKS.map((c, i) => {
-            const t = times[i]
-            const open = isMarketOpen(c.offset)
-            return (
-              <div key={c.city} style={{ background: open ? 'rgba(43,94,167,0.2)' : 'rgba(255,255,255,0.04)', border: `0.5px solid ${open ? 'rgba(122,174,232,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: '10px', padding: '12px 16px', minWidth: '100px', textAlign: 'center' as const }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginBottom: '6px' }}>
-                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: open ? '#22c55e' : 'rgba(255,255,255,0.15)', boxShadow: open ? '0 0 6px rgba(34,197,94,0.6)' : 'none' }} />
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: open ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{c.city}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '1px' }}>
-                  <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '20px', fontWeight: '700', color: open ? '#ffffff' : 'rgba(255,255,255,0.3)', letterSpacing: '-0.5px', lineHeight: 1 }}>{t.h}:{t.m}</span>
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: open ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)', marginLeft: '1px' }}>{t.s}</span>
-                </div>
-                {open && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '7px', color: '#22c55e', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginTop: '4px' }}>Open</div>}
-              </div>
-            )
-          })}
+        <div style={{ display: 'flex', gap: '24px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '14px 20px' }}>
+          {CLOCKS.map((c, i) => (
+            <div key={c.city} style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: textMuted, letterSpacing: '0.1em', marginBottom: '3px' }}>{c.city}</div>
+              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', color: textPrimary }}>{times[i]}</div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: '12px', marginBottom: '20px' }}>
-
         {/* Net P&L */}
-        <div style={{ ...card, borderTop: `3px solid ${pnlTopColor}`, background: stats.pnl > 0 ? (dark ? 'linear-gradient(180deg, rgba(34,197,94,0.06) 0%, transparent 60%)' : 'linear-gradient(180deg, rgba(34,197,94,0.04) 0%, #ffffff 60%)') : stats.pnl < 0 ? (dark ? 'linear-gradient(180deg, rgba(220,50,50,0.06) 0%, transparent 60%)' : 'linear-gradient(180deg, rgba(220,50,50,0.04) 0%, #ffffff 60%)') : cardBg }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <div style={{ ...card }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Net P&L</div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '2px 8px', borderRadius: '10px' }}>{stats.total} trades</div>
           </div>
-          <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '34px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '4px' }}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</div>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>All time</div>
+          <div style={{ fontSize: '36px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '3px' }}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>All time</div>
         </div>
 
         {/* Profit Factor */}
-        <div style={{ ...card, borderTop: `3px solid ${pfColor}` }}>
+        <div style={{ ...card }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <CircleGauge value={stats.profitFactor} max={3} color={pfColor} label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)} dark={dark} />
@@ -245,7 +216,7 @@ export default function DashboardHome() {
         </div>
 
         {/* Win Rate */}
-        <div style={{ ...card, borderTop: `3px solid ${accent}` }}>
+        <div style={{ ...card }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <WinRateCircle winRate={stats.winRate} beRate={stats.beRate} dark={dark} />
@@ -258,7 +229,7 @@ export default function DashboardHome() {
         </div>
 
         {/* Today's Session */}
-        <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, borderColor: isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border, borderTopColor: sc.topBorder, borderTopWidth: '3px', opacity: isRest ? 0.6 : 1 }}>
+        <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, opacity: isRest ? 0.6 : 1 }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {!isRest && (
               <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}>
@@ -268,7 +239,7 @@ export default function DashboardHome() {
             )}
             {isRest ? '—' : 'Live today'}
           </div>
-          <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '6px', lineHeight: 1.2 }}>{todaySession.label}</div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>{todaySession.label}</div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession.desc}</div>
         </div>
       </div>
@@ -286,7 +257,7 @@ export default function DashboardHome() {
           >
             <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: dark ? 'rgba(122,174,232,0.06)' : 'rgba(43,94,167,0.05)', lineHeight: 1, position: 'absolute', top: '8px', right: '14px' }}>{c.num}</div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: accent, marginBottom: '6px' }}>Go to</div>
-            <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '15px', fontWeight: '600', color: textPrimary, marginBottom: '4px' }}>{c.label}</div>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: textPrimary, marginBottom: '4px' }}>{c.label}</div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{c.desc}</div>
           </a>
         ))}
@@ -302,13 +273,13 @@ export default function DashboardHome() {
           {weekDays.map(({ label, date, hasTrades, dayPnl, isToday }) => {
             const isProfit = hasTrades && dayPnl > 0
             const isLoss = hasTrades && dayPnl < 0
-            let bgColor = 'transparent'
+            let bg = 'transparent'
             let border = dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'
             let pnlColor = textMuted
-            if (isProfit) { bgColor = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.06)'; border = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
-            if (isLoss) { bgColor = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; border = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
+            if (isProfit) { bg = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.06)'; border = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
+            if (isLoss) { bg = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; border = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
             return (
-              <div key={label} style={{ background: bgColor, border: `0.5px solid ${isToday ? accent : border}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
+              <div key={label} style={{ background: bg, border: `0.5px solid ${isToday ? accent : border}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: isToday ? accent : textMuted, marginBottom: '3px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{date}</div>
                 {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</div>}
@@ -323,7 +294,7 @@ export default function DashboardHome() {
         <div style={{ width: '3px', height: '44px', background: '#2B5EA7', flexShrink: 0, borderRadius: '2px' }} />
         <div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '6px' }}>Daily reminder</div>
-          <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '17px', color: '#ffffff', lineHeight: '1.6', margin: 0 }}>&ldquo;{quote}&rdquo;</p>
+          <p style={{ fontStyle: 'italic', fontSize: '17px', color: '#ffffff', lineHeight: '1.6', margin: 0 }}>&ldquo;{quote}&rdquo;</p>
         </div>
       </div>
 
