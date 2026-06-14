@@ -1,6 +1,5 @@
 'use client'
 import Nav from '@/components/Nav'
-import Footer from '@/components/Footer'
 
 export default function Discovery() {
   return (
@@ -159,37 +158,61 @@ export default function Discovery() {
       </section>
 
       {/* WHAT IS FLOW CAPITALS */}
-      <section style={{ padding: '80px', background: '#ffffff' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '28px', height: '1px', background: '#2B5EA7' }} />What We Are
-          </div>
-          <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', marginBottom: '0', letterSpacing: '-1px', maxWidth: '700px', lineHeight: '1.1' }}>
-            The trading education<br /><span style={{ color: '#2B5EA7', fontStyle: 'italic' }}>I wish existed at 22.</span>
-          </h2>
-          <div style={{ width: '40px', height: '3px', background: '#2B5EA7', margin: '24px 0 48px' }} />
+<section style={{ padding: '80px', background: '#ffffff' }}>
+  <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ width: '28px', height: '1px', background: '#2B5EA7' }} />What We Are
+    </div>
+    <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', marginBottom: '0', letterSpacing: '-1px', maxWidth: '700px', lineHeight: '1.1' }}>
+      The trading education<br /><span style={{ color: '#2B5EA7', fontStyle: 'italic' }}>I wish existed at 22.</span>
+    </h2>
+    <div style={{ width: '40px', height: '3px', background: '#2B5EA7', margin: '24px 0 48px' }} />
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'rgba(26,26,26,0.06)' }}>
-            {[
-              { icon: '📐', title: 'Real methodology', desc: 'Built from years of live trading, not from a course someone else sold. Every concept is battle-tested in real markets with real money.' },
-              { icon: '🧠', title: 'Psychology first', desc: 'The strategy is 30% of the game. Psychology is 70%. We spend as much time on the mind as on the chart — because that is where trading is actually won or lost.' },
-              { icon: '📓', title: 'Journal-driven', desc: 'Every member tracks every trade. Performance is measured by data, not feelings. This is how you find your edge and keep it.' },
-              { icon: '🤝', title: 'Real mentorship', desc: 'Premium members get a real human being in their corner every week. Not a bot, not a pre-recorded course. A mentor who has done it and is still doing it.' },
-              { icon: '🏆', title: 'Proof, not promises', desc: '$100K+ in certified payouts from real members. Every payout posted publicly. We do not ask you to trust us — we show you the results.' },
-              { icon: '🌊', title: 'The flow state', desc: 'Flow Capitals is named for the state where performance becomes effortless. That is what we are building toward — not a winning trade, but a way of trading.' },
-            ].map((item) => (
-              <div key={item.title} style={{ padding: '36px 32px', background: '#F5F2EC', transition: 'background 0.2s', cursor: 'default' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#ffffff'}
-                onMouseLeave={e => e.currentTarget.style.background = '#F5F2EC'}
-              >
-                <div style={{ fontSize: '28px', marginBottom: '14px' }}>{item.icon}</div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '17px', fontWeight: '700', color: '#1a1a1a', marginBottom: '8px' }}>{item.title}</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#8a8070', lineHeight: '1.75' }}>{item.desc}</div>
-              </div>
-            ))}
-          </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '2px', background: 'rgba(26,26,26,0.06)' }}>
+      {[
+        { num: 'I', title: 'Real methodology', desc: 'Built from years of live trading, not from a course someone else sold. Every concept is battle-tested in real markets with real money.' },
+        { num: 'II', title: 'Psychology first', desc: 'The strategy is 30% of the game. Psychology is 70%. We spend as much time on the mind as on the chart — because that is where trading is won or lost.' },
+        { num: 'III', title: 'Journal-driven', desc: 'Every member tracks every trade. Performance is measured by data, not feelings. This is how you find your edge and keep it.' },
+        { num: 'IV', title: 'Real mentorship', desc: 'Premium members get a real human being in their corner every week. Not a bot, not a pre-recorded course. A mentor who has done it and is still doing it.' },
+        { num: 'V', title: 'Proof, not promises', desc: '$100K+ in certified payouts from real members. Every payout posted publicly. We do not ask you to trust us — we show you the results.' },
+        { num: 'VI', title: 'The flow state', desc: 'Flow Capitals is named for the state where performance becomes effortless. That is what we are building toward — not a winning trade, but a way of trading.' },
+      ].map((item) => (
+        <div key={item.title}
+          style={{ padding: '44px 36px', background: '#F5F2EC', position: 'relative', overflow: 'hidden', cursor: 'default', transition: 'background 0.25s' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#0d1e36'
+            const title = e.currentTarget.querySelector('.card-title') as HTMLElement
+            const desc = e.currentTarget.querySelector('.card-desc') as HTMLElement
+            const num = e.currentTarget.querySelector('.card-num') as HTMLElement
+            const line = e.currentTarget.querySelector('.card-line') as HTMLElement
+            if (title) title.style.color = '#ffffff'
+            if (desc) desc.style.color = 'rgba(255,255,255,0.55)'
+            if (num) num.style.color = 'rgba(122,174,232,0.12)'
+            if (line) line.style.background = '#7aaee8'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = '#F5F2EC'
+            const title = e.currentTarget.querySelector('.card-title') as HTMLElement
+            const desc = e.currentTarget.querySelector('.card-desc') as HTMLElement
+            const num = e.currentTarget.querySelector('.card-num') as HTMLElement
+            const line = e.currentTarget.querySelector('.card-line') as HTMLElement
+            if (title) title.style.color = '#1a1a1a'
+            if (desc) desc.style.color = '#8a8070'
+            if (num) num.style.color = 'rgba(43,94,167,0.06)'
+            if (line) line.style.background = '#2B5EA7'
+          }}
+        >
+          {/* Large faded Roman numeral */}
+          <div className="card-num" style={{ fontFamily: 'var(--font-playfair)', fontSize: '96px', fontWeight: '700', color: 'rgba(43,94,167,0.06)', lineHeight: 1, position: 'absolute', top: '12px', right: '20px', letterSpacing: '-2px', userSelect: 'none' as const, transition: 'color 0.25s', pointerEvents: 'none' }}>{item.num}</div>
+          {/* Blue accent line */}
+          <div className="card-line" style={{ width: '28px', height: '2px', background: '#2B5EA7', marginBottom: '20px', transition: 'background 0.25s' }} />
+          <div className="card-title" style={{ fontFamily: 'var(--font-playfair)', fontSize: '18px', fontWeight: '700', color: '#1a1a1a', marginBottom: '10px', transition: 'color 0.25s' }}>{item.title}</div>
+          <div className="card-desc" style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#8a8070', lineHeight: '1.75', transition: 'color 0.25s' }}>{item.desc}</div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* VALUES */}
       <section style={{ padding: '80px', background: '#1a2a4a' }}>
@@ -233,7 +256,7 @@ export default function Discovery() {
         </div>
       </section>
 
-      <Footer />
+      
     </div>
   )
 }
