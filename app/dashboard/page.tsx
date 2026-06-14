@@ -258,7 +258,7 @@ export default function DashboardHome() {
         </div>
 
         {/* Today's Session */}
-        <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, borderTop: `3px solid ${sc.topBorder}`, opacity: isRest ? 0.6 : 1 }}>
+        <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, borderColor: isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border, borderTopColor: sc.topBorder, borderTopWidth: '3px', opacity: isRest ? 0.6 : 1 }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {!isRest && (
               <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}>

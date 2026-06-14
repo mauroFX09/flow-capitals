@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { label: 'Journal', href: '/dashboard/journal', icon: '◫', access: 'all' },
   { label: 'Courses', href: '/dashboard/courses', icon: '▤', access: 'premium' },
   { label: 'Trading Wall', href: '/dashboard/wall', icon: '◈', access: 'all' },
-  { label: 'Q & A', href: '/dashboard/qa', icon: '◎', access: 'premium' },
+  { label: 'Q & A', href: '/dashboard/qa', icon: '◎', access: 'premium', soon: true },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -112,6 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {NAV_ITEMS.map(item => {
             const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
             const locked = item.access === 'premium' && !isPremium
+            const soon = (item as any).soon === true
             return (
               <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
                 title={collapsed ? item.label : undefined}
@@ -123,9 +124,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {!collapsed && (
                   <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : muted, fontWeight: active ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
                 )}
-                {!collapsed && locked && (
-                  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
-                )}
+                {!collapsed && locked && !soon && (
+  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
+)}
+{!collapsed && soon && (
+  <span style={{ fontSize: '9px', color: accent, background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.08)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)', border: `0.5px solid ${dark ? 'rgba(122,174,232,0.2)' : 'rgba(43,94,167,0.15)'}` }}>Soon</span>
+)}
               </a>
             )
           })}
