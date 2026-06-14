@@ -174,7 +174,93 @@ export default function Method() {
           )}
         </div>
       </section>
+{/* STANDARD VS PREMIUM */}
+<section style={{ padding: '80px', background: '#F5F2EC' }}>
+  <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#2B5EA7', letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ width: '28px', height: '1px', background: '#2B5EA7' }} />Your Membership
+    </div>
+    <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '44px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1px', marginBottom: '0', lineHeight: '1.1' }}>
+      Two ways to learn.<br /><span style={{ color: '#2B5EA7', fontStyle: 'italic' }}>One blueprint.</span>
+    </h2>
+    <div style={{ width: '40px', height: '3px', background: '#2B5EA7', margin: '24px 0 48px' }} />
 
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', background: 'rgba(26,26,26,0.06)' }}>
+
+      {/* Standard */}
+      <div style={{ background: '#ffffff', padding: '48px 44px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#8a8070', marginBottom: '8px' }}>Standard</div>
+        <h3 style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-0.5px', marginBottom: '20px' }}>The Self-Directed Path.</h3>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', color: '#6a6060', lineHeight: '1.85', marginBottom: '24px' }}>
+          As a Standard member you are the observer — and that is a position of strength. You move at your own pace, in a context where clarity grows without pressure. Every session, every analysis, every piece of content is available to you.
+        </p>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', color: '#6a6060', lineHeight: '1.85', marginBottom: '32px' }}>
+          You watch. You learn. You apply. You build your own rhythm. For the self-motivated trader who knows how to take information and work with it independently — this is your path.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', marginBottom: '32px' }}>
+          {[
+            'Pre-market analysis every session',
+            'Full trading journal access',
+            'Wall of payouts — community proof',
+            'Discord community — peer support',
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#2B5EA7', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#3a3530' }}>{item}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: '16px 20px', background: '#F5F2EC', borderLeft: '2px solid rgba(26,26,26,0.15)' }}>
+          <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: '#8a8070', lineHeight: '1.6', margin: 0 }}>
+            &ldquo;The right environment, the right tools, the right analysis — at your own pace.&rdquo;
+          </p>
+        </div>
+      </div>
+
+      {/* Premium */}
+      <div style={{ background: '#0d1e36', padding: '48px 44px' }}>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '8px' }}>Premium</div>
+        <h3 style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.5px', marginBottom: '20px' }}>Personal Guidance.</h3>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', color: 'rgba(255,255,255,0.65)', lineHeight: '1.85', marginBottom: '24px' }}>
+          As a Premium member you have a mentor in your corner every single week. Not a recording. Not a chatbot. A real trader who has walked this path — reviewing your trades, your journal, your psychology, and your progress.
+        </p>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', color: 'rgba(255,255,255,0.65)', lineHeight: '1.85', marginBottom: '32px' }}>
+          The weekly 1-on-1 call is the core of this membership. Every Friday you sit down with your mentor and go through exactly where you are — what is working, what is not, and what to focus on next. This is the support we never had. Now you have it.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px', marginBottom: '32px' }}>
+          {[
+            'Everything in Standard',
+            'Full course library — all 6 categories',
+            'Live sessions 5x per week',
+            'Weekly 1-on-1 personal call every Friday',
+            'Saturday psychology session',
+            'Direct access to your mentor',
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#7aaee8', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>{item}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: '16px 20px', background: 'rgba(122,174,232,0.08)', borderLeft: '2px solid #7aaee8' }}>
+          <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: '#7aaee8', lineHeight: '1.6', margin: 0 }}>
+            &ldquo;Every week, someone who has done this is in your corner. That changes everything.&rdquo;
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style={{ marginTop: '2px', background: '#1a1a1a', padding: '32px 44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '16px', color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: '1.6' }}>
+        &ldquo;Not everyone needs a mentor. But everyone who has one moves faster.&rdquo;
+      </p>
+      <a href="/membership" style={{ background: '#2B5EA7', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, padding: '14px 32px', textDecoration: 'none', fontWeight: '700', transition: 'all 0.2s', whiteSpace: 'nowrap' as const, flexShrink: 0, marginLeft: '40px' }}
+        onMouseEnter={e => e.currentTarget.style.background = '#1a4a8f'}
+        onMouseLeave={e => e.currentTarget.style.background = '#2B5EA7'}
+      >Choose your path →</a>
+    </div>
+  </div>
+</section>
       {/* PHILOSOPHY */}
       <section style={{ padding: '80px', background: '#F5F2EC' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
