@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useDarkMode } from '@/lib/hooks'
+import { getTheme } from '@/lib/styles'
 
 const CLOCKS = [
   { city: 'LONDON', offset: 1 },
@@ -51,7 +53,7 @@ function CircleGauge({ value, max, color, label, dark }: { value: number; max: n
         <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeDasharray={`${fill} ${circumference}`} strokeLinecap="round" />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '12px', fontWeight: '700', color: color }}>{label}</span>
+        <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '12px', fontWeight: '700', color }}>{label}</span>
       </div>
     </div>
   )
@@ -80,23 +82,11 @@ function WinRateCircle({ winRate, beRate, dark }: { winRate: number; beRate: num
 }
 
 export default function DashboardHome() {
-  const [dark, setDark] = useState(false)
+  const dark = useDarkMode()
   const [firstName, setFirstName] = useState('')
   const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
   const [allTrades, setAllTrades] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0, beRate: 0, profitFactor: 0, grossProfit: 0, grossLoss: 0 })
-
-  useEffect(() => {
-    const saved = localStorage.getItem('fc-dark-mode')
-    if (saved === 'true') setDark(true)
-    const handler = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
-    window.addEventListener('storage', handler)
-    window.addEventListener('fc-theme-change', handler)
-    return () => {
-      window.removeEventListener('storage', handler)
-      window.removeEventListener('fc-theme-change', handler)
-    }
-  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -129,13 +119,15 @@ export default function DashboardHome() {
   const dateStr = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const isRest = todaySession.type === 'rest'
 
-  const bg = dark ? '#080d14' : '#F5F2EC'
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
-  const cardShadow = dark ? '0 4px 20px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset' : '0 4px 20px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.9) inset'
-  const textPrimary = dark ? '#e0ecf8' : '#1a1a1a'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const accent = dark ? '#7aaee8' : '#2B5EA7'
+  const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent } = getTheme(dark)
+
+  const card = {
+    background: cardBg,
+    border: `0.5px solid ${cardBorder}`,
+    borderRadius: '16px',
+    boxShadow: cardShadow,
+    padding: '22px 24px',
+  }
 
   const sessionColors: Record<string, { bg: string; border: string; label: string }> = {
     live: { bg: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.06)', border: dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.2)', label: dark ? '#7aaee8' : '#2B5EA7' },
@@ -146,12 +138,6 @@ export default function DashboardHome() {
   const sc = sessionColors[todaySession.type]
   const pfColor = stats.profitFactor >= 2 ? '#22c55e' : stats.profitFactor >= 1 ? accent : stats.profitFactor === 0 ? textMuted : '#dc3232'
 
-  const card = {
-    background: cardBg, border: `0.5px solid ${cardBorder}`,
-    borderRadius: '16px', boxShadow: cardShadow, padding: '22px 24px',
-  }
-
-  // Week strip data
   const dayOfWeek = today.getDay()
   const monday = new Date(today)
   monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
@@ -192,7 +178,6 @@ export default function DashboardHome() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: '12px', marginBottom: '20px' }}>
-        {/* Net P&L */}
         <div style={{ ...card }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Net P&L</div>
@@ -202,7 +187,6 @@ export default function DashboardHome() {
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>All time</div>
         </div>
 
-        {/* Profit Factor */}
         <div style={{ ...card }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -215,7 +199,6 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Win Rate */}
         <div style={{ ...card }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -228,7 +211,6 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Today's Session */}
         <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, opacity: isRest ? 0.6 : 1 }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {!isRest && (
@@ -273,13 +255,13 @@ export default function DashboardHome() {
           {weekDays.map(({ label, date, hasTrades, dayPnl, isToday }) => {
             const isProfit = hasTrades && dayPnl > 0
             const isLoss = hasTrades && dayPnl < 0
-            let bg = 'transparent'
-            let border = dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'
+            let bgColor = 'transparent'
+            let borderColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'
             let pnlColor = textMuted
-            if (isProfit) { bg = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.06)'; border = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
-            if (isLoss) { bg = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; border = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
+            if (isProfit) { bgColor = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.06)'; borderColor = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
+            if (isLoss) { bgColor = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; borderColor = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
             return (
-              <div key={label} style={{ background: bg, border: `0.5px solid ${isToday ? accent : border}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
+              <div key={label} style={{ background: bgColor, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: isToday ? accent : textMuted, marginBottom: '3px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{date}</div>
                 {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</div>}

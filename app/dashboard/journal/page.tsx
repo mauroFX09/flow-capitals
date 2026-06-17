@@ -1,17 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useDarkMode } from '@/lib/hooks'
+import { getTheme, getCard } from '@/lib/styles'
+import type { Trade } from '@/lib/types'
 
-type Trade = {
-  id: string
-  pair: string
-  direction: string
-  pnl: number
-  rr: number
-  emotion: string
-  followed_plan: boolean | null
-  created_at: string
-}
+
 
 function PairIcon({ pair }: { pair: string }) {
   const base = pair.replace('/', '').substring(0, 2).toUpperCase()
@@ -315,19 +309,10 @@ const TABS = [
 ]
 
 export default function JournalDashboard() {
-  const [dark, setDark] = useState(false)
+  const dark = useDarkMode()
   const [trades, setTrades] = useState<Trade[]>([])
   const [chartMode, setChartMode] = useState('daily')
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('fc-dark-mode')
-    if (saved === 'true') setDark(true)
-    const handler = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
-    window.addEventListener('storage', handler)
-    window.addEventListener('fc-theme-change', handler)
-    return () => { window.removeEventListener('storage', handler); window.removeEventListener('fc-theme-change', handler) }
-  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -364,15 +349,9 @@ export default function JournalDashboard() {
   const chartData = getChartData()
   const recentTrades = [...trades].reverse().slice(0, 8)
 
-  const bg = dark ? '#080d14' : '#F5F2EC'
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
-  const cardShadow = dark ? '0 4px 20px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset' : '0 4px 20px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.9) inset'
-  const textPrimary = dark ? '#e0ecf8' : '#1a1a1a'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const accent = dark ? '#7aaee8' : '#2B5EA7'
-  const tableBorder = dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.06)'
-  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
+  const t = getTheme(dark)
+  const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder } = t
+  const card = getCard(dark)
   const pnlCardBg = totalPnl > 0 ? dark ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.06)' : totalPnl < 0 ? dark ? 'rgba(220,50,50,0.08)' : 'rgba(220,50,50,0.06)' : cardBg
   const pnlCardBorder = totalPnl > 0 ? 'rgba(34,197,94,0.25)' : totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder
 

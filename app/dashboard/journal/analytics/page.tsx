@@ -1,18 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useDarkMode } from '@/lib/hooks'
+import { getTheme, getCard } from '@/lib/styles'
+import type { Trade } from '@/lib/types'
 
-type Trade = {
-  id: string
-  pair: string
-  direction: string
-  pnl: number
-  rr: number
-  emotion: string
-  followed_plan: boolean | null
-  created_at: string
-  notes: string
-}
+
 
 const TABS = [
   { label: 'Overview', href: '/dashboard/journal', value: 'overview' },
@@ -267,15 +260,9 @@ One specific, actionable instruction based purely on their data. Not generic. Te
     setAnalysing(false)
   }
 
-  const bg = dark ? '#080d14' : '#F5F2EC'
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
-  const cardShadow = dark ? '0 4px 20px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset' : '0 4px 20px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.9) inset'
-  const textPrimary = dark ? '#e0ecf8' : '#1a1a1a'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const accent = dark ? '#7aaee8' : '#2B5EA7'
-  const tableBorder = dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.06)'
-  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
+  const t = getTheme(dark)
+  const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder } = t
+  const card = getCard(dark)
 
   const planColor = planScore >= PLAN_THRESHOLD ? '#22c55e' : planScore >= 60 ? '#f59e0b' : '#dc3232'
   const belowThreshold = planTrades.length > 0 && planScore < PLAN_THRESHOLD
