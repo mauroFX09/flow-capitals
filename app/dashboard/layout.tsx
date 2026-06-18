@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'Courses', href: '/dashboard/courses', icon: '▤', access: 'premium' },
   { label: 'Trading Wall', href: '/dashboard/wall', icon: '◈', access: 'all' },
   { label: 'Q & A', href: '/dashboard/qa', icon: '◎', access: 'premium', soon: true },
+  { label: 'Admin', href: '/dashboard/admin', icon: '⚙', access: 'admin' },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const isPremium = role === 'premium' || role === 'admin'
+  const isAdmin = role === 'admin'
   const bg = dark ? '#080d14' : '#F5F2EC'
   const sidebar = dark ? '#0c1220' : '#ffffff'
   const border = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
@@ -77,6 +79,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     </div>
   )
+
+  const visibleNav = NAV_ITEMS.filter(item => {
+    if (item.access === 'admin') return isAdmin
+    return true
+  })
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: bg, fontFamily: 'var(--font-playfair)' }}>
@@ -109,10 +116,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {!collapsed && (
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px', whiteSpace: 'nowrap' as const }}>Platform</div>
           )}
-          {NAV_ITEMS.map(item => {
+          {visibleNav.map(item => {
             const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
             const locked = item.access === 'premium' && !isPremium
             const soon = (item as any).soon === true
+            const adminItem = item.access === 'admin'
             return (
               <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
                 title={collapsed ? item.label : undefined}
@@ -120,16 +128,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = navHover }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
               >
-                <span style={{ fontSize: '18px', color: active ? '#2B5EA7' : muted, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
+                <span style={{ fontSize: '18px', color: active ? '#2B5EA7' : adminItem ? accent : muted, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
                 {!collapsed && (
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : muted, fontWeight: active ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : adminItem ? accent : muted, fontWeight: active ? '600' : adminItem ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
                 )}
                 {!collapsed && locked && !soon && (
-  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
-)}
-{!collapsed && soon && (
-  <span style={{ fontSize: '9px', color: accent, background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.08)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)', border: `0.5px solid ${dark ? 'rgba(122,174,232,0.2)' : 'rgba(43,94,167,0.15)'}` }}>Soon</span>
-)}
+                  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
+                )}
+                {!collapsed && soon && (
+                  <span style={{ fontSize: '9px', color: accent, background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.08)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)', border: `0.5px solid ${dark ? 'rgba(122,174,232,0.2)' : 'rgba(43,94,167,0.15)'}` }}>Soon</span>
+                )}
               </a>
             )
           })}
