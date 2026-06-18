@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 export default function Login() {
   const router = useRouter()
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [mode] = useState<'login'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -93,33 +93,18 @@ export default function Login() {
             Member Portal
           </div>
           <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '36px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1px', lineHeight: 1, marginBottom: '8px' }}>
-            {mode === 'login' ? 'Welcome back.' : 'Join the blueprint.'}
+            Welcome back.
           </h1>
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', color: '#8a8070', fontStyle: 'italic' }}>
-            {mode === 'login' ? 'Sign in to access your dashboard.' : 'Create your account to get started.'}
+            Sign in to access your dashboard.
           </p>
         </div>
 
-        {/* Mode toggle */}
-        <div style={{ display: 'flex', background: 'rgba(26,26,26,0.06)', borderRadius: '10px', padding: '3px', marginBottom: '28px' }}>
-          {(['login', 'register'] as const).map(m => (
-            <button key={m} onClick={() => { setMode(m); setError(''); setMessage('') }} style={{ flex: 1, padding: '8px', background: mode === m ? '#ffffff' : 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '12px', color: mode === m ? '#1a1a1a' : '#8a8070', fontWeight: mode === m ? '600' : '400', boxShadow: mode === m ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: 'all 0.2s' }}>
-              {m === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          ))}
-        </div>
+        
 
         {/* Form */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
-          {mode === 'register' && (
-            <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#8a8070', letterSpacing: '0.12em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Full Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Mauro Steenhoudt" style={{ width: '100%', background: '#ffffff', border: '0.5px solid rgba(26,26,26,0.12)', borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '14px', color: '#1a1a1a', outline: 'none', transition: 'border-color 0.2s' }}
-                onFocus={e => e.target.style.borderColor = '#2B5EA7'}
-                onBlur={e => e.target.style.borderColor = 'rgba(26,26,26,0.12)'}
-              />
-            </div>
-          )}
+          
           <div>
             <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#8a8070', letterSpacing: '0.12em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Email Address</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={{ width: '100%', background: '#ffffff', border: '0.5px solid rgba(26,26,26,0.12)', borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '14px', color: '#1a1a1a', outline: 'none', transition: 'border-color 0.2s' }}
@@ -153,7 +138,7 @@ export default function Login() {
           onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#1a4a8f' }}
           onMouseLeave={e => e.currentTarget.style.background = '#2B5EA7'}
         >
-          {loading ? 'Please wait...' : mode === 'login' ? 'Sign In →' : 'Create Account →'}
+          {loading ? 'Please wait...' : 'Sign In →'}
         </button>
 
         {/* Back to site */}
