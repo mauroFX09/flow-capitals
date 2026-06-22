@@ -32,15 +32,13 @@ const QUOTES = [
   'Consistency is the only strategy that compounds.',
 ]
 
-const SCHEDULE = [
-  { day: 0, label: 'Market Analysis', type: 'live', desc: 'Full weekly outlook — Gold, Nasdaq, EUR/USD, GBP/USD' },
-  { day: 1, label: 'Live Session', type: 'live', desc: 'Premium live session — deeper market analysis' },
-  { day: 2, label: 'Live Reading', type: 'live', desc: 'Live price action reading — key levels and structure' },
-  { day: 3, label: 'Live Session', type: 'live', desc: 'Premium live deep dive — setups and execution' },
-  { day: 4, label: 'Live Session + 1-on-1', type: 'personal', desc: 'Premium live session + personal weekly call' },
-  { day: 5, label: 'Psychology Call', type: 'psych', desc: 'Mindset and emotional control session' },
-  { day: 6, label: 'Rest & Review', type: 'rest', desc: 'Recovery, reflection, and preparation' },
-]
+type ScheduleRow = {
+  id: string
+  day: number
+  session_type: string
+  description: string
+  discord_url: string | null
+}
 
 function CircleGauge({ value, max, color, label, dark }: { value: number; max: number; color: string; label: string; dark: boolean }) {
   const size = 72; const strokeWidth = 7; const radius = (size - strokeWidth) / 2
@@ -87,6 +85,10 @@ export default function DashboardHome() {
   const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
   const [allTrades, setAllTrades] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0, beRate: 0, profitFactor: 0, grossProfit: 0, grossLoss: 0 })
+  const [todaySession, setTodaySession] = useState<ScheduleRow | null>(null)
+
+  const today = new Date()
+  const todayIndex = (today.getDay() + 6) % 7
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -106,6 +108,8 @@ export default function DashboardHome() {
         setStats({ total, pnl, winRate: Math.round((wins / total) * 100), beRate: Math.round((be / total) * 100), profitFactor, grossProfit, grossLoss })
       }
     })
+
+    supabase.from('weekly_schedule').select('*').eq('day', todayIndex).single().then(({ data }) => { if (data) setTodaySession(data) })
   }, [])
 
   useEffect(() => {
@@ -113,29 +117,26 @@ export default function DashboardHome() {
     return () => clearInterval(interval)
   }, [])
 
-  const today = new Date()
-  const todaySession = SCHEDULE[today.getDay()]
   const quote = QUOTES[today.getDate() % QUOTES.length]
   const dateStr = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  const isRest = todaySession.type === 'rest'
+
+  const sessionType = todaySession?.session_type?.toLowerCase() || 'rest'
+  const isRest = sessionType.includes('rest')
+  const hasJoinLink = !!todaySession?.discord_url
 
   const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent } = getTheme(dark)
 
-  const card = {
-    background: cardBg,
-    border: `0.5px solid ${cardBorder}`,
-    borderRadius: '16px',
-    boxShadow: cardShadow,
-    padding: '22px 24px',
+  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '22px 24px' }
+
+  function getSessionStyle(type: string) {
+    const t = type.toLowerCase()
+    if (t.includes('rest')) return { bg: dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)', border: dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)', label: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0' }
+    if (t.includes('psychology') || t.includes('mindset')) return { bg: dark ? 'rgba(120,80,180,0.15)' : 'rgba(120,80,180,0.05)', border: dark ? 'rgba(120,80,180,0.3)' : 'rgba(120,80,180,0.2)', label: dark ? '#c4b5fd' : '#7850b4' }
+    if (t.includes('review') || t.includes('personal')) return { bg: dark ? 'rgba(180,120,0,0.15)' : 'rgba(180,120,0,0.05)', border: dark ? 'rgba(180,120,0,0.3)' : 'rgba(180,120,0,0.2)', label: dark ? '#fbbf24' : '#b47800' }
+    return { bg: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.06)', border: dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.2)', label: dark ? '#7aaee8' : '#2B5EA7' }
   }
 
-  const sessionColors: Record<string, { bg: string; border: string; label: string }> = {
-    live: { bg: dark ? 'rgba(43,94,167,0.15)' : 'rgba(43,94,167,0.06)', border: dark ? 'rgba(43,94,167,0.3)' : 'rgba(43,94,167,0.2)', label: dark ? '#7aaee8' : '#2B5EA7' },
-    personal: { bg: dark ? 'rgba(180,120,0,0.15)' : 'rgba(180,120,0,0.05)', border: dark ? 'rgba(180,120,0,0.3)' : 'rgba(180,120,0,0.2)', label: dark ? '#fbbf24' : '#b47800' },
-    psych: { bg: dark ? 'rgba(120,80,180,0.15)' : 'rgba(120,80,180,0.05)', border: dark ? 'rgba(120,80,180,0.3)' : 'rgba(120,80,180,0.2)', label: dark ? '#c4b5fd' : '#7850b4' },
-    rest: { bg: dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)', border: dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)', label: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0' },
-  }
-  const sc = sessionColors[todaySession.type]
+  const sc = getSessionStyle(todaySession?.session_type || 'rest')
   const pfColor = stats.profitFactor >= 2 ? '#22c55e' : stats.profitFactor >= 1 ? accent : stats.profitFactor === 0 ? textMuted : '#dc3232'
 
   const dayOfWeek = today.getDay()
@@ -155,7 +156,6 @@ export default function DashboardHome() {
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px', background: bg, minHeight: '100vh' }}>
 
-      {/* Welcome + clocks */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '36px' }}>
         <div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -176,7 +176,6 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.4fr', gap: '12px', marginBottom: '20px' }}>
         <div style={{ ...card }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -211,22 +210,32 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, opacity: isRest ? 0.6 : 1 }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {!isRest && (
-              <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}>
-                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} />
-                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label }} />
-              </div>
-            )}
-            {isRest ? '—' : 'Live today'}
+        <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, opacity: isRest ? 0.6 : 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {!isRest && (
+                <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}>
+                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} />
+                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label }} />
+                </div>
+              )}
+              {isRest ? '—' : 'Live today'}
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>
+              {todaySession?.session_type || 'Rest & Review'}
+            </div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>
+              {todaySession?.description || 'Recovery, reflection, and preparation'}
+            </div>
           </div>
-          <div style={{ fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>{todaySession.label}</div>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession.desc}</div>
+          {hasJoinLink && (
+            <a href={todaySession!.discord_url!} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '14px', padding: '8px 16px', background: sc.label, color: '#ffffff', borderRadius: '8px', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em', textDecoration: 'none', alignSelf: 'flex-start' as const }}>
+              Join Now →
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Quick links */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
         {[
           { label: 'Trading Journal', desc: 'Log trades, track emotions, analyse performance', href: '/dashboard/journal', num: 'I' },
@@ -245,7 +254,6 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      {/* This week strip */}
       <div style={{ ...card, marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>This Week</div>
@@ -271,7 +279,6 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Daily quote */}
       <div style={{ background: '#0d1e36', padding: '28px 36px', display: 'flex', alignItems: 'center', gap: '28px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
         <div style={{ width: '3px', height: '44px', background: '#2B5EA7', flexShrink: 0, borderRadius: '2px' }} />
         <div>

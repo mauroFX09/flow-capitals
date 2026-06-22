@@ -7,6 +7,8 @@ import { getTheme } from '@/lib/styles'
 
 const ADMIN_EMAIL = 'mauro.steenhoudt@gmail.com'
 
+const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 type Member = {
   id: string
   full_name: string
@@ -42,6 +44,14 @@ type WallPost = {
   created_at: string
 }
 
+type ScheduleRow = {
+  id: string
+  day: number
+  session_type: string
+  description: string
+  discord_url: string | null
+}
+
 type CreatedMember = {
   full_name: string
   email: string
@@ -61,7 +71,7 @@ export default function AdminPage() {
   const router = useRouter()
   const dark = useDarkMode()
   const [authorized, setAuthorized] = useState(false)
-  const [activeTab, setActiveTab] = useState<'members' | 'content' | 'wall'>('members')
+  const [activeTab, setActiveTab] = useState<'members' | 'content' | 'wall' | 'schedule'>('members')
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [members, setMembers] = useState<Member[]>([])
@@ -89,6 +99,11 @@ export default function AdminPage() {
   const [wallFilter, setWallFilter] = useState('')
   const [profileNames, setProfileNames] = useState<Record<string, string>>({})
 
+  const [schedule, setSchedule] = useState<ScheduleRow[]>([])
+  const [scheduleLoading, setScheduleLoading] = useState(true)
+  const [scheduleSaving, setScheduleSaving] = useState<number | null>(null)
+  const [scheduleEdits, setScheduleEdits] = useState<Record<number, Partial<ScheduleRow>>>({})
+
   const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, inputBg, inputBorder, tableBorder } = getTheme(dark)
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
@@ -100,6 +115,7 @@ export default function AdminPage() {
       loadContent()
       loadStats()
       loadWall()
+      loadSchedule()
     })
   }, [])
 
@@ -164,6 +180,41 @@ export default function AdminPage() {
       }
     }
     setWallLoading(false)
+  }
+
+  async function loadSchedule() {
+    setScheduleLoading(true)
+    const { data } = await supabase.from('weekly_schedule').select('*').order('day')
+    if (data) setSchedule(data)
+    setScheduleLoading(false)
+  }
+
+  function getScheduleValue(row: ScheduleRow, field: keyof ScheduleRow): string {
+    const edit = scheduleEdits[row.day]
+    if (edit && field in edit) return (edit as any)[field] ?? ''
+    return (row as any)[field] ?? ''
+  }
+
+  function updateScheduleEdit(day: number, field: keyof ScheduleRow, value: string) {
+    setScheduleEdits(prev => ({ ...prev, [day]: { ...prev[day], [field]: value } }))
+  }
+
+  async function saveScheduleRow(row: ScheduleRow) {
+    const edits = scheduleEdits[row.day] || {}
+    const updated = {
+      session_type: edits.session_type ?? row.session_type,
+      description: edits.description ?? row.description,
+      discord_url: edits.discord_url !== undefined ? (edits.discord_url || null) : row.discord_url,
+    }
+    setScheduleSaving(row.day)
+    await supabase.from('weekly_schedule').update(updated).eq('id', row.id)
+    setScheduleEdits(prev => { const next = { ...prev }; delete next[row.day]; return next })
+    await loadSchedule()
+    setScheduleSaving(null)
+  }
+
+  function clearDiscordLink(row: ScheduleRow) {
+    updateScheduleEdit(row.day, 'discord_url', '')
   }
 
   async function changeRole(memberId: string, newRole: string) {
@@ -264,11 +315,7 @@ export default function AdminPage() {
     const ext = file.name.split('.').pop()
     const path = `${Date.now()}.${ext}`
     const { error } = await supabaseAdmin.storage.from('course-videos').upload(path, file, { upsert: false })
-    if (error) {
-      console.error('Upload error:', error.message)
-      setUploading(false)
-      return
-    }
+    if (error) { console.error('Upload error:', error.message); setUploading(false); return }
     const { data } = supabaseAdmin.storage.from('course-videos').getPublicUrl(path)
     setForm(f => ({ ...f, video_url: data.publicUrl }))
     setUploading(false)
@@ -331,6 +378,8 @@ export default function AdminPage() {
     ? wallPosts.filter(p => (profileNames[p.user_id] || '').toLowerCase().includes(wallFilter.toLowerCase()))
     : wallPosts
 
+  const todayIndex = (new Date().getDay() + 6) % 7
+
   return (
     <div style={{ padding: '40px 48px', background: bg, minHeight: '100vh' }}>
 
@@ -362,6 +411,7 @@ export default function AdminPage() {
         <button style={TAB_STYLE(activeTab === 'members')} onClick={() => setActiveTab('members')}>Members</button>
         <button style={TAB_STYLE(activeTab === 'content')} onClick={() => setActiveTab('content')}>Content</button>
         <button style={TAB_STYLE(activeTab === 'wall')} onClick={() => setActiveTab('wall')}>Wall</button>
+        <button style={TAB_STYLE(activeTab === 'schedule')} onClick={() => setActiveTab('schedule')}>Schedule</button>
       </div>
 
       {/* ── MEMBERS TAB ── */}
@@ -589,13 +639,7 @@ export default function AdminPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{wallPosts.length} posts total · {wallPosts.filter(p => p.is_public).length} public · {wallPosts.filter(p => !p.is_public).length} hidden</div>
-            <input
-              type="text"
-              placeholder="Filter by member name..."
-              value={wallFilter}
-              onChange={e => setWallFilter(e.target.value)}
-              style={{ background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '8px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', width: '220px' }}
-            />
+            <input type="text" placeholder="Filter by member name..." value={wallFilter} onChange={e => setWallFilter(e.target.value)} style={{ background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '8px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', width: '220px' }} />
           </div>
 
           <div style={{ ...card, overflow: 'hidden' }}>
@@ -604,46 +648,28 @@ export default function AdminPage() {
                 <div key={h} style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{h}</div>
               ))}
             </div>
-
             {wallLoading ? (
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading posts...</div>
             ) : filteredWall.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>No posts found</div>
             ) : filteredWall.map((post, idx) => (
               <div key={post.id} style={{ padding: '12px 24px', borderBottom: idx < filteredWall.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '80px 1.5fr 2fr 100px 110px 120px', gap: '12px', alignItems: 'center', opacity: post.is_public ? 1 : 0.5 }}>
-                {/* Screenshot thumbnail */}
                 <div style={{ width: '64px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', flexShrink: 0 }}>
-                  {post.screenshot_url ? (
-                    <img src={post.screenshot_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📸</div>
-                  )}
+                  {post.screenshot_url ? <img src={post.screenshot_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📸</div>}
                 </div>
-
-                {/* Member */}
                 <div>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '600', color: textPrimary }}>{profileNames[post.user_id] || 'Member'}</div>
                   {!post.is_public && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#f59e0b', marginTop: '2px' }}>Hidden from wall</div>}
                 </div>
-
-                {/* Caption */}
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
-                  {post.caption || '—'}
-                </div>
-
-                {/* Amount */}
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{post.caption || '—'}</div>
                 <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color: '#22c55e' }}>+{post.amount.toFixed(0)}€</div>
-
-                {/* Date */}
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{formatDate(post.created_at)}</div>
-
-                {/* Actions */}
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <button onClick={() => toggleWallPost(post)} title={post.is_public ? 'Hide post' : 'Show post'} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted, whiteSpace: 'nowrap' as const }}
+                  <button onClick={() => toggleWallPost(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted, whiteSpace: 'nowrap' as const }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
                   >{post.is_public ? 'Hide' : 'Show'}</button>
-                  <button onClick={() => deleteWallPost(post.id)} title="Delete" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
+                  <button onClick={() => deleteWallPost(post.id)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
                   >✕</button>
@@ -651,6 +677,71 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── SCHEDULE TAB ── */}
+      {activeTab === 'schedule' && (
+        <div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, marginBottom: '20px' }}>
+            Edit each day's session. Paste a Discord link to activate the Join Now button for members — clear it to hide it.
+          </div>
+
+          {scheduleLoading ? (
+            <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading schedule...</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
+              {schedule.map(row => {
+                const isToday = row.day === todayIndex
+                const hasEdits = !!scheduleEdits[row.day]
+                const isSaving = scheduleSaving === row.day
+                const discordVal = getScheduleValue(row, 'discord_url')
+                const hasLink = !!discordVal
+
+                return (
+                  <div key={row.id} style={{ ...card, padding: '20px 24px', border: isToday ? `1px solid ${accent}` : `0.5px solid ${cardBorder}`, boxShadow: isToday ? `0 0 0 1px ${accent}20` : cardShadow }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
+                      <div style={{ width: '100px', flexShrink: 0, paddingTop: '8px' }}>
+                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: isToday ? accent : textPrimary, letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>{DAY_LABELS[row.day]}</div>
+                        {isToday && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: accent, marginTop: '2px' }}>Today</div>}
+                      </div>
+
+                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '12px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '5px' }}>Session Type</label>
+                          <input type="text" value={getScheduleValue(row, 'session_type')} onChange={e => updateScheduleEdit(row.day, 'session_type', e.target.value)} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '8px', padding: '8px 11px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '5px' }}>Description</label>
+                          <input type="text" value={getScheduleValue(row, 'description')} onChange={e => updateScheduleEdit(row.day, 'description', e.target.value)} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '8px', padding: '8px 11px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '5px' }}>
+                            Discord Link {hasLink && <span style={{ marginLeft: '8px', color: '#22c55e' }}>● Join Now button active</span>}
+                          </label>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <input type="url" placeholder="Paste Discord invite link to enable Join Now button…" value={discordVal} onChange={e => updateScheduleEdit(row.day, 'discord_url', e.target.value)} style={{ flex: 1, background: inputBg, border: `0.5px solid ${hasLink ? 'rgba(34,197,94,0.4)' : inputBorder}`, borderRadius: '8px', padding: '8px 11px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none' }} />
+                            {hasLink && (
+                              <button onClick={() => clearDiscordLink(row)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', color: textMuted, fontSize: '11px', flexShrink: 0, fontFamily: 'var(--font-inter)' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                              >✕ Clear</button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ flexShrink: 0, paddingTop: '22px' }}>
+                        <button onClick={() => saveScheduleRow(row)} disabled={isSaving || !hasEdits} style={{ background: hasEdits ? accent : 'transparent', color: hasEdits ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em', padding: '8px 18px', border: `1px solid ${hasEdits ? accent : cardBorder}`, borderRadius: '8px', cursor: hasEdits ? 'pointer' : 'default', opacity: isSaving ? 0.6 : 1, transition: 'all 0.15s', whiteSpace: 'nowrap' as const }}>
+                          {isSaving ? 'Saving…' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
