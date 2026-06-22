@@ -709,7 +709,13 @@ export default function AdminPage() {
                       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '12px' }}>
                         <div>
                           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '5px' }}>Session Type</label>
-                          <input type="text" value={getScheduleValue(row, 'session_type')} onChange={e => updateScheduleEdit(row.day, 'session_type', e.target.value)} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '8px', padding: '8px 11px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
+                          <select value={getScheduleValue(row, 'session_type')} onChange={e => updateScheduleEdit(row.day, 'session_type', e.target.value)} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '8px', padding: '8px 11px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const, cursor: 'pointer' }}>
+                            <option value="General Group Call">General Group Call</option>
+                            <option value="Live Price Action Reading">Live Price Action Reading</option>
+                            <option value="Weekly Review">Weekly Review</option>
+                            <option value="Sunday Market Breakdown">Sunday Market Breakdown</option>
+                            <option value="Rest & Review">Rest & Review</option>
+                          </select>
                         </div>
                         <div>
                           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '5px' }}>Description</label>
