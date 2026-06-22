@@ -263,11 +263,14 @@ export default function AdminPage() {
     setUploading(true)
     const ext = file.name.split('.').pop()
     const path = `${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('course-videos').upload(path, file, { upsert: false })
-    if (!error) {
-      const { data } = supabase.storage.from('course-videos').getPublicUrl(path)
-      setForm(f => ({ ...f, video_url: data.publicUrl }))
+    const { error } = await supabaseAdmin.storage.from('course-videos').upload(path, file, { upsert: false })
+    if (error) {
+      console.error('Upload error:', error.message)
+      setUploading(false)
+      return
     }
+    const { data } = supabaseAdmin.storage.from('course-videos').getPublicUrl(path)
+    setForm(f => ({ ...f, video_url: data.publicUrl }))
     setUploading(false)
   }
 
