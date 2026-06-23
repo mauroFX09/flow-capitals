@@ -5,8 +5,6 @@ import { useDarkMode } from '@/lib/hooks'
 import { getTheme, getCard } from '@/lib/styles'
 import type { Trade } from '@/lib/types'
 
-
-
 function PairIcon({ pair }: { pair: string }) {
   const base = pair.replace('/', '').substring(0, 2).toUpperCase()
   return (
@@ -16,8 +14,8 @@ function PairIcon({ pair }: { pair: string }) {
   )
 }
 
-function ThreeArcGauge({ wins, losses, be, total, dark }: { wins: number; losses: number; be: number; total: number; dark: boolean }) {
-  const size = 80; const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
+function ThreeArcGauge({ wins, losses, be, total, dark, size = 80 }: { wins: number; losses: number; be: number; total: number; dark: boolean; size?: number }) {
+  const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
   const winDash = total > 0 ? (wins / total) * circ : 0
   const beDash = total > 0 ? (be / total) * circ : 0
   const lossDash = total > 0 ? (losses / total) * circ : 0
@@ -31,10 +29,10 @@ function ThreeArcGauge({ wins, losses, be, total, dark }: { wins: number; losses
           {losses > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#dc3232" strokeWidth={sw} strokeDasharray={`${lossDash} ${circ - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{total}</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: size < 70 ? '13px' : '16px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{total}</span>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />{wins}W</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />{losses}L</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />{be}BE</div>
@@ -43,8 +41,8 @@ function ThreeArcGauge({ wins, losses, be, total, dark }: { wins: number; losses
   )
 }
 
-function WinRateGauge({ winRate, beRate, dark }: { winRate: number; beRate: number; dark: boolean }) {
-  const size = 80; const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
+function WinRateGauge({ winRate, beRate, dark, size = 80 }: { winRate: number; beRate: number; dark: boolean; size?: number }) {
+  const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
   const lossRate = Math.max(0, 100 - winRate - beRate)
   const winDash = (winRate / 100) * circ; const beDash = (beRate / 100) * circ; const lossDash = (lossRate / 100) * circ
   return (
@@ -57,10 +55,10 @@ function WinRateGauge({ winRate, beRate, dark }: { winRate: number; beRate: numb
           {lossRate > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#dc3232" strokeWidth={sw} strokeDasharray={`${lossDash} ${circ - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: size < 70 ? '12px' : '14px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
@@ -69,8 +67,8 @@ function WinRateGauge({ winRate, beRate, dark }: { winRate: number; beRate: numb
   )
 }
 
-function AvgWinLossGauge({ avgWin, avgLoss, dark, accent }: { avgWin: number; avgLoss: number; dark: boolean; accent: string }) {
-  const size = 80; const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
+function AvgWinLossGauge({ avgWin, avgLoss, dark, accent, size = 80 }: { avgWin: number; avgLoss: number; dark: boolean; accent: string; size?: number }) {
+  const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
   const ratio = avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? 3 : 0
   const fill = (Math.min(ratio, 3) / 3) * circ
   const color = ratio >= 2 ? '#22c55e' : ratio >= 1 ? accent : ratio === 0 ? (dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0') : '#dc3232'
@@ -82,10 +80,10 @@ function AvgWinLossGauge({ avgWin, avgLoss, dark, accent }: { avgWin: number; av
           {fill > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={`${fill} ${circ - fill}`} strokeLinecap="round" />}
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color }}>{avgLoss > 0 ? ratio.toFixed(2) : avgWin > 0 ? '∞' : '—'}</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: size < 70 ? '11px' : '13px', fontWeight: '700', color }}>{avgLoss > 0 ? ratio.toFixed(2) : avgWin > 0 ? '∞' : '—'}</span>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e' }}>+{avgWin.toFixed(0)}€</div>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}>-{avgLoss.toFixed(0)}€</div>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: dark ? 'rgba(255,255,255,0.3)' : '#8a8070' }}>{ratio >= 2 ? 'Excellent' : ratio >= 1 ? 'Profitable' : ratio === 0 ? 'No data' : 'Needs work'}</div>
@@ -183,16 +181,14 @@ function SegmentedControl({ options, value, onChange, dark }: { options: { label
   )
 }
 
-function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder }: {
-  trades: Trade[]; dark: boolean; cardBg: string; cardBorder: string; cardShadow: string; textPrimary: string; textMuted: string; accent: string; tableBorder: string
+function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder, isMobile }: {
+  trades: Trade[]; dark: boolean; cardBg: string; cardBorder: string; cardShadow: string; textPrimary: string; textMuted: string; accent: string; tableBorder: string; isMobile: boolean
 }) {
   const today = new Date()
   const [calYear, setCalYear] = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
-
   const isCurrentMonth = calYear === today.getFullYear() && calMonth === today.getMonth()
 
-  // Build day PnL map
   const dayMap: Record<string, number> = {}
   trades.forEach(t => {
     const d = new Date(t.created_at)
@@ -204,7 +200,6 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
 
   const firstDay = new Date(calYear, calMonth, 1)
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
-  // Start from Monday (0=Mon, 6=Sun)
   let startOffset = firstDay.getDay() - 1
   if (startOffset < 0) startOffset = 6
 
@@ -220,7 +215,7 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
   }
 
   const monthName = new Date(calYear, calMonth).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const dayLabels = isMobile ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
   function prevMonth() {
     if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11) } else setCalMonth(m => m - 1)
@@ -231,28 +226,25 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
   }
 
   return (
-    <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '24px', marginTop: '12px' }}>
-      {/* Header */}
+    <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: isMobile ? '16px' : '24px', marginTop: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Trading Calendar</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={prevMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: 'pointer', color: textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '600', color: textPrimary, minWidth: '120px', textAlign: 'center' as const }}>{monthName}</span>
+          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '12px' : '14px', fontWeight: '600', color: textPrimary, minWidth: isMobile ? '100px' : '120px', textAlign: 'center' as const }}>{monthName}</span>
           <button onClick={nextMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: isCurrentMonth ? 'not-allowed' : 'pointer', color: isCurrentMonth ? (dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.15)') : textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isCurrentMonth ? 0.3 : 1 }}>→</button>
         </div>
       </div>
 
-      {/* Day labels */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', marginBottom: '4px' }}>
-        {dayLabels.map(d => (
-          <div key={d} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', padding: '4px 0' }}>{d}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px', marginBottom: isMobile ? '3px' : '4px' }}>
+        {dayLabels.map((d, i) => (
+          <div key={i} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', padding: '4px 0' }}>{d}</div>
         ))}
       </div>
 
-      {/* Calendar grid */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: isMobile ? '3px' : '4px' }}>
         {weeks.map((week, wi) => (
-          <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+          <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px' }}>
             {week.map((day, di) => {
               if (!day) return <div key={di} />
               const pnl = dayMap[day.toString()]
@@ -271,12 +263,15 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
               if (isBe) { bg = dark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.06)'; borderColor = 'rgba(148,163,184,0.2)'; pnlColor = '#94a3b8' }
 
               return (
-                <div key={di} style={{ background: bg, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: '8px', padding: '6px 8px', minHeight: '48px', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: '2px' }}>{day}</div>
-                  {hasTrades && (
+                <div key={di} style={{ background: bg, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: isMobile ? '6px' : '8px', padding: isMobile ? '5px 3px' : '6px 8px', minHeight: isMobile ? '38px' : '48px', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '9px' : '10px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: '2px', textAlign: isMobile ? 'center' as const : 'left' as const }}>{day}</div>
+                  {hasTrades && !isMobile && (
                     <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor, lineHeight: 1 }}>
                       {pnl > 0 ? '+' : ''}{pnl.toFixed(0)}€
                     </div>
+                  )}
+                  {hasTrades && isMobile && (
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: pnlColor, margin: '0 auto' }} />
                   )}
                 </div>
               )
@@ -285,8 +280,7 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
         ))}
       </div>
 
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: '16px', marginTop: '12px', paddingTop: '12px', borderTop: `0.5px solid ${tableBorder}` }}>
+      <div style={{ display: 'flex', gap: '16px', marginTop: '12px', paddingTop: '12px', borderTop: `0.5px solid ${tableBorder}`, flexWrap: 'wrap' as const }}>
         {[
           { color: '#22c55e', label: 'Profitable day' },
           { color: '#dc3232', label: 'Loss day' },
@@ -313,6 +307,14 @@ export default function JournalDashboard() {
   const [trades, setTrades] = useState<Trade[]>([])
   const [chartMode, setChartMode] = useState('daily')
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -355,10 +357,109 @@ export default function JournalDashboard() {
   const pnlCardBg = totalPnl > 0 ? dark ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.06)' : totalPnl < 0 ? dark ? 'rgba(220,50,50,0.08)' : 'rgba(220,50,50,0.06)' : cardBg
   const pnlCardBorder = totalPnl > 0 ? 'rgba(34,197,94,0.25)' : totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder
 
+  // ── MOBILE ──
+  if (isMobile) {
+    return (
+      <div style={{ padding: '20px 16px', background: bg, minHeight: '100vh' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '16px', height: '1px', background: accent }} />Trading Journal
+          </div>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1, marginBottom: '12px' }}>Overview.</h1>
+          <SegmentedControl
+            options={TABS.map(tab => ({ label: tab.label, value: tab.value }))}
+            value="overview"
+            onChange={v => { const tab = TABS.find(tb => tb.value === v); if (tab) window.location.href = tab.href }}
+            dark={dark}
+          />
+        </div>
+
+        {/* P&L hero */}
+        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '16px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Total Net P&L</div>
+            <div style={{ fontSize: '36px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1 }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
+          </div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '6px 12px', borderRadius: '20px' }}>
+            {total} trades
+          </div>
+        </div>
+
+        {/* Win Rate + Trades side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+          <div style={{ ...card, padding: '14px' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Win Rate</div>
+            <WinRateGauge winRate={winRate} beRate={beRate} dark={dark} size={60} />
+          </div>
+          <div style={{ ...card, padding: '14px' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Trades</div>
+            <ThreeArcGauge wins={wins.length} losses={losses.length} be={be.length} total={total} dark={dark} size={60} />
+          </div>
+        </div>
+
+        {/* Avg W/L full width */}
+        <div style={{ ...card, padding: '14px', marginBottom: '10px' }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Avg Win / Loss Ratio</div>
+          <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} accent={accent} size={60} />
+        </div>
+
+        {/* Chart */}
+        <div style={{ ...card, padding: '16px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '3px' }}>Cumulative P&L</div>
+              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '20px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
+            </div>
+            <SegmentedControl
+              options={[{ label: 'Day', value: 'daily' }, { label: 'Wk', value: 'weekly' }, { label: 'Mo', value: 'monthly' }]}
+              value={chartMode}
+              onChange={setChartMode}
+              dark={dark}
+            />
+          </div>
+          <div style={{ height: '160px' }}>
+            <PnlChart data={chartData} trades={trades} dark={dark} />
+          </div>
+        </div>
+
+        {/* Recent trades */}
+        <div style={{ ...card, overflow: 'hidden', marginBottom: '10px' }}>
+          <div style={{ padding: '14px 14px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
+            <a href="/dashboard/journal/trades" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>All →</a>
+          </div>
+          {loading ? (
+            <div style={{ padding: '24px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+          ) : recentTrades.length === 0 ? (
+            <div style={{ padding: '24px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, fontSize: '13px' }}>No trades yet</div>
+          ) : recentTrades.map(trade => (
+            <div key={trade.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderTop: `0.5px solid ${tableBorder}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <PairIcon pair={trade.pair} />
+                <div>
+                  <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '600', color: textPrimary }}>{trade.pair}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{trade.direction}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' as const }}>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar */}
+        <MonthCalendar trades={trades} dark={dark} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} textPrimary={textPrimary} textMuted={textMuted} accent={accent} tableBorder={tableBorder} isMobile={true} />
+      </div>
+    )
+  }
+
+  // ── DESKTOP ──
   return (
     <div style={{ padding: '40px 48px', background: bg, minHeight: '100vh' }}>
-
-      {/* Header */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
@@ -369,7 +470,6 @@ export default function JournalDashboard() {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
         <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px', transition: 'all 0.4s ease' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total Net P&L</div>
@@ -390,7 +490,6 @@ export default function JournalDashboard() {
         </div>
       </div>
 
-      {/* Chart + recent */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '12px', marginBottom: '12px' }}>
         <div style={{ ...card, padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -405,16 +504,16 @@ export default function JournalDashboard() {
           </div>
         </div>
 
-        <div style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column' as const }}>
           <div style={{ padding: '20px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
             <a href="/dashboard/journal/trades" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>View all →</a>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' as const }}>
             {loading ? (
-              <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
+              <div style={{ padding: '32px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
             ) : recentTrades.length === 0 ? (
-              <div style={{ padding: '32px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, fontSize: '14px' }}>No trades yet</div>
+              <div style={{ padding: '32px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, fontSize: '14px' }}>No trades yet</div>
             ) : recentTrades.map(trade => (
               <div key={trade.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', borderTop: `0.5px solid ${tableBorder}`, transition: 'background 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(43,94,167,0.03)'}
@@ -430,7 +529,7 @@ export default function JournalDashboard() {
                     {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
                   </span>
                 </div>
-                <div style={{ textAlign: 'right' }}>
+                <div style={{ textAlign: 'right' as const }}>
                   <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</div>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</div>
                 </div>
@@ -440,18 +539,7 @@ export default function JournalDashboard() {
         </div>
       </div>
 
-      {/* Monthly Calendar */}
-      <MonthCalendar
-        trades={trades}
-        dark={dark}
-        cardBg={cardBg}
-        cardBorder={cardBorder}
-        cardShadow={cardShadow}
-        textPrimary={textPrimary}
-        textMuted={textMuted}
-        accent={accent}
-        tableBorder={tableBorder}
-      />
+      <MonthCalendar trades={trades} dark={dark} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} textPrimary={textPrimary} textMuted={textMuted} accent={accent} tableBorder={tableBorder} isMobile={false} />
     </div>
   )
 }

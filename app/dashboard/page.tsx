@@ -86,9 +86,17 @@ export default function DashboardHome() {
   const [allTrades, setAllTrades] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0, beRate: 0, profitFactor: 0, grossProfit: 0, grossLoss: 0 })
   const [todaySession, setTodaySession] = useState<ScheduleRow | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   const today = new Date()
   const todayIndex = (today.getDay() + 6) % 7
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -108,7 +116,6 @@ export default function DashboardHome() {
         setStats({ total, pnl, winRate: Math.round((wins / total) * 100), beRate: Math.round((be / total) * 100), profitFactor, grossProfit, grossLoss })
       }
     })
-
     supabase.from('weekly_schedule').select('*').eq('day', todayIndex).single().then(({ data }) => { if (data) setTodaySession(data) })
   }, [])
 
@@ -125,7 +132,6 @@ export default function DashboardHome() {
   const hasJoinLink = !!todaySession?.discord_url
 
   const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent } = getTheme(dark)
-
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '22px 24px' }
 
   function getSessionStyle(type: string) {
@@ -153,9 +159,141 @@ export default function DashboardHome() {
     return { label, date: date.getDate(), hasTrades, dayPnl, isToday }
   })
 
+  if (isMobile) {
+    return (
+      <div style={{ padding: '20px 16px', background: bg, minHeight: '100vh' }}>
+
+        {/* Mobile greeting */}
+        <div style={{ marginBottom: '20px' }}>
+          <p style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{dateStr}</p>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1.1 }}>
+            {firstName ? `Hey, ${firstName}.` : 'Welcome back.'}
+          </h1>
+        </div>
+
+        {/* Today's session — prominent on mobile */}
+        <div style={{ ...card, background: isRest ? cardBg : sc.bg, border: `0.5px solid ${isRest ? cardBorder : sc.border}`, marginBottom: '12px', opacity: isRest ? 0.7 : 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {!isRest && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} />}
+                {isRest ? 'Today' : 'Live today'}
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '3px' }}>
+                {todaySession?.session_type || 'Rest & Review'}
+              </div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>
+                {todaySession?.description || 'Recovery and reflection'}
+              </div>
+            </div>
+            {hasJoinLink && (
+              <a href={todaySession!.discord_url!} target="_blank" rel="noopener noreferrer"
+                style={{ marginLeft: '16px', padding: '10px 16px', background: sc.label, color: '#ffffff', borderRadius: '10px', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', textDecoration: 'none', flexShrink: 0 }}>
+                Join →
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* P&L — full width hero stat */}
+        <div style={{ ...card, marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '6px' }}>Net P&L · All time</div>
+            <div style={{ fontSize: '40px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1 }}>
+              {stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€
+            </div>
+          </div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '6px 12px', borderRadius: '20px' }}>
+            {stats.total} trades
+          </div>
+        </div>
+
+        {/* Win Rate + Profit Factor side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+          <div style={{ ...card }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <WinRateCircle winRate={stats.winRate} beRate={stats.beRate} dark={dark} />
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '3px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
+              </div>
+            </div>
+          </div>
+          <div style={{ ...card }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <CircleGauge value={stats.profitFactor} max={3} color={pfColor} label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)} dark={dark} />
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '3px' }}>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#22c55e' }}>+{stats.grossProfit.toFixed(0)}€</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#dc3232' }}>-{stats.grossLoss.toFixed(0)}€</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* This week */}
+        <div style={{ ...card, marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>This Week</div>
+            <a href="/dashboard/journal" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>Journal →</a>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+            {weekDays.map(({ label, date, hasTrades, dayPnl, isToday }) => {
+              const isProfit = hasTrades && dayPnl > 0
+              const isLoss = hasTrades && dayPnl < 0
+              let bgColor = 'transparent'
+              let borderColor = dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'
+              let pnlColor = textMuted
+              if (isProfit) { bgColor = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.06)'; borderColor = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
+              if (isLoss) { bgColor = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)'; borderColor = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
+              return (
+                <div key={label} style={{ background: bgColor, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: '8px', padding: '8px 4px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: isToday ? accent : textMuted, marginBottom: '2px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, marginBottom: '3px' }}>{date}</div>
+                  {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}</div>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Quick nav — horizontal scroll */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '4px' }}>
+          {[
+            { label: 'Journal', desc: 'Log trades', href: '/dashboard/journal', icon: '◫' },
+            { label: 'Courses', desc: 'Learn', href: '/dashboard/courses', icon: '▤' },
+            { label: 'Wall', desc: 'Community', href: '/dashboard/wall', icon: '◈' },
+          ].map(c => (
+            <a key={c.label} href={c.href} style={{ ...card, textDecoration: 'none', display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-start', minWidth: '120px', padding: '16px', flexShrink: 0 }}>
+              <span style={{ fontSize: '20px', color: accent, marginBottom: '8px' }}>{c.icon}</span>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', color: textPrimary, marginBottom: '2px' }}>{c.label}</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{c.desc}</div>
+            </a>
+          ))}
+        </div>
+
+        {/* Quote */}
+        <div style={{ background: '#0d1e36', padding: '20px', borderRadius: '16px' }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '8px' }}>Daily reminder</div>
+          <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#ffffff', lineHeight: '1.6', margin: 0 }}>&ldquo;{quote}&rdquo;</p>
+        </div>
+
+        <style>{`
+          @keyframes sessionPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(2.5); opacity: 0; }
+          }
+        `}</style>
+      </div>
+    )
+  }
+
+  // ── DESKTOP ──
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px', background: bg, minHeight: '100vh' }}>
-
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '36px' }}>
         <div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -185,7 +323,6 @@ export default function DashboardHome() {
           <div style={{ fontSize: '36px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '3px' }}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>All time</div>
         </div>
-
         <div style={{ ...card }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Profit Factor</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -197,7 +334,6 @@ export default function DashboardHome() {
             </div>
           </div>
         </div>
-
         <div style={{ ...card }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -209,29 +345,17 @@ export default function DashboardHome() {
             </div>
           </div>
         </div>
-
         <div style={{ ...card, background: isRest ? (dark ? 'rgba(255,255,255,0.02)' : 'rgba(26,26,26,0.02)') : sc.bg, border: `0.5px solid ${isRest ? (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)') : sc.border}`, opacity: isRest ? 0.6 : 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: sc.label, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {!isRest && (
-                <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}>
-                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} />
-                  <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label }} />
-                </div>
-              )}
+              {!isRest && <div style={{ position: 'relative', width: '8px', height: '8px', flexShrink: 0 }}><div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} /><div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: sc.label }} /></div>}
               {isRest ? '—' : 'Live today'}
             </div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>
-              {todaySession?.session_type || 'Rest & Review'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>
-              {todaySession?.description || 'Recovery, reflection, and preparation'}
-            </div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '4px', lineHeight: 1.2 }}>{todaySession?.session_type || 'Rest & Review'}</div>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession?.description || 'Recovery, reflection, and preparation'}</div>
           </div>
           {hasJoinLink && (
-            <a href={todaySession!.discord_url!} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '14px', padding: '8px 16px', background: sc.label, color: '#ffffff', borderRadius: '8px', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em', textDecoration: 'none', alignSelf: 'flex-start' as const }}>
-              Join Now →
-            </a>
+            <a href={todaySession!.discord_url!} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '14px', padding: '8px 16px', background: sc.label, color: '#ffffff', borderRadius: '8px', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em', textDecoration: 'none', alignSelf: 'flex-start' as const }}>Join Now →</a>
           )}
         </div>
       </div>
