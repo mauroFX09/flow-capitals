@@ -1,12 +1,24 @@
+'use client'
+import { useEffect, useState } from 'react'
+
 export default function Footer() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   return (
     <footer style={{ background: '#0d1e36', fontFamily: 'var(--font-inter)' }}>
 
       {/* Main footer grid */}
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 80px 48px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '60px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '48px 24px 32px' : '72px 80px 48px', display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '2fr 1fr 1fr 1fr', gap: isMobile ? '36px' : '60px' }}>
 
-        {/* Brand */}
-        <div>
+        {/* Brand — full width on mobile */}
+        <div style={{ gridColumn: isMobile ? '1 / -1' : 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <div style={{ width: '28px', height: '28px', border: '1.5px solid #7aaee8', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ width: '7px', height: '7px', background: '#7aaee8', borderRadius: '2px' }} />
@@ -15,17 +27,15 @@ export default function Footer() {
               FLOW <span style={{ color: '#7aaee8' }}>CAPITALS</span>
             </div>
           </div>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: '1.8', marginBottom: '24px', maxWidth: '240px' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: '1.8', marginBottom: '16px', maxWidth: '240px' }}>
             Trading education built from years of failure. The blueprint. Now it is yours.
           </p>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>
-            hello@flowcapitals.com
-          </div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>hello@flowcapitals.com</div>
         </div>
 
         {/* Platform */}
         <div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', marginBottom: '20px' }}>Platform</div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', marginBottom: '16px' }}>Platform</div>
           {[
             { label: 'Home', href: '/' },
             { label: 'Our Method', href: '/method' },
@@ -42,7 +52,7 @@ export default function Footer() {
 
         {/* Socials */}
         <div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', marginBottom: '20px' }}>Socials</div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', marginBottom: '16px' }}>Socials</div>
           {[
             { label: 'Instagram', href: '#' },
             { label: 'Facebook', href: '#' },
@@ -58,7 +68,7 @@ export default function Footer() {
 
         {/* Legal */}
         <div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', marginBottom: '20px' }}>Legal</div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.25)', marginBottom: '16px' }}>Legal</div>
           {[
             { label: 'Privacy Policy', href: '#' },
             { label: 'Terms & Conditions', href: '#' },
@@ -73,7 +83,7 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', maxWidth: '1100px', margin: '0 auto', padding: '20px 80px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '20px 24px' : '20px 80px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'center', justifyContent: 'space-between', gap: isMobile ? '10px' : '0', textAlign: isMobile ? 'center' : 'left' as const }}>
         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>© 2026 Flow Capitals. All rights reserved.</div>
         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', maxWidth: '400px', textAlign: 'center' as const, lineHeight: '1.6' }}>
           Educational purposes only. Does not constitute financial advice. Trading involves significant risk.

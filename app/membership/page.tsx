@@ -1,32 +1,44 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export default function Membership() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const p = isMobile ? '0 24px' : '0 24px'
+
   return (
     <div style={{ background: '#F5F2EC', minHeight: '100vh', fontFamily: 'var(--font-playfair)' }}>
       <Nav />
 
       {/* Hero */}
-      <div style={{ paddingTop: '140px', paddingBottom: '80px', textAlign: 'center', maxWidth: '720px', margin: '0 auto', padding: '140px 24px 80px' }}>
+      <div style={{ paddingTop: isMobile ? '120px' : '140px', paddingBottom: '60px', textAlign: 'center', maxWidth: '720px', margin: '0 auto', padding: isMobile ? '120px 24px 60px' : '140px 24px 80px' }}>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
           <div style={{ width: '32px', height: '1px', background: '#2B5EA7' }} />
           Membership
           <div style={{ width: '32px', height: '1px', background: '#2B5EA7' }} />
         </div>
-        <h1 style={{ fontSize: '52px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-2px', lineHeight: '1.05', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: isMobile ? '36px' : '52px', fontWeight: '700', color: '#1a1a1a', letterSpacing: isMobile ? '-1px' : '-2px', lineHeight: '1.05', marginBottom: '20px' }}>
           Choose your path.
         </h1>
-        <p style={{ fontStyle: 'italic', fontSize: '17px', color: '#8a8070', lineHeight: '1.7' }}>
+        <p style={{ fontStyle: 'italic', fontSize: isMobile ? '15px' : '17px', color: '#8a8070', lineHeight: '1.7' }}>
           Two ways to join Flow Capitals. One built for independence. One built for transformation.
         </p>
       </div>
 
       {/* Is this for you */}
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px 80px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: isMobile ? '0 0 60px' : '0 24px 80px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '2px' }}>
           {/* For you */}
-          <div style={{ background: '#ffffff', padding: '40px 44px' }}>
+          <div style={{ background: '#ffffff', padding: isMobile ? '32px 24px' : '40px 44px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#2B5EA7' }} />
               This is for you
@@ -48,7 +60,7 @@ export default function Membership() {
           </div>
 
           {/* Not for you */}
-          <div style={{ background: '#0d1e36', padding: '40px 44px' }}>
+          <div style={{ background: '#0d1e36', padding: isMobile ? '32px 24px' : '40px 44px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#7aaee8' }} />
               This is not for you
@@ -72,21 +84,21 @@ export default function Membership() {
       </div>
 
       {/* Packages */}
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px 120px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: isMobile ? '0 0 80px' : '0 24px 120px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px', padding: '0 24px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#2B5EA7', marginBottom: '16px' }}>The packages</div>
-          <h2 style={{ fontSize: '38px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px' }}>Two ways in.</h2>
+          <h2 style={{ fontSize: isMobile ? '30px' : '38px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1.5px' }}>Two ways in.</h2>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '2px' }}>
 
           {/* Standard */}
-          <div style={{ background: '#ffffff', padding: '48px 44px' }}>
+          <div style={{ background: '#ffffff', padding: isMobile ? '32px 24px' : '48px 44px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#8a8070', marginBottom: '8px' }}>Standard</div>
             <h3 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', letterSpacing: '-1px', marginBottom: '4px' }}>Self-Directed</h3>
-            <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#8a8070', marginBottom: '32px', lineHeight: '1.6' }}>Everything you need to learn the strategy independently.</p>
+            <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#8a8070', marginBottom: '28px', lineHeight: '1.6' }}>Everything you need to learn the strategy independently.</p>
 
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '28px' }}>
               {[
                 'Pre-market analysis every session',
                 'Full trading journal access',
@@ -101,7 +113,6 @@ export default function Membership() {
             </div>
 
             <div style={{ borderTop: '0.5px solid rgba(26,26,26,0.08)', paddingTop: '28px' }}>
-              {/* Stripe-ready button — placeholder for now */}
               <button
                 onClick={() => alert('Payment coming soon — Stripe integration in progress.')}
                 style={{ width: '100%', background: '#2B5EA7', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '16px', border: 'none', cursor: 'pointer', fontWeight: '700', transition: 'opacity 0.2s' }}
@@ -115,15 +126,15 @@ export default function Membership() {
           </div>
 
           {/* Premium */}
-          <div style={{ background: '#0d1e36', padding: '48px 44px', position: 'relative' as const }}>
+          <div style={{ background: '#0d1e36', padding: isMobile ? '32px 24px' : '48px 44px', position: 'relative' as const }}>
             <div style={{ position: 'absolute' as const, top: '20px', right: '20px', fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#7aaee8', background: 'rgba(122,174,232,0.1)', border: '0.5px solid rgba(122,174,232,0.2)', padding: '4px 12px' }}>
               By application
             </div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '8px' }}>Premium</div>
             <h3 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', letterSpacing: '-1px', marginBottom: '4px' }}>Personal Guidance</h3>
-            <p style={{ fontStyle: 'italic', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '32px', lineHeight: '1.6' }}>Full access. Direct mentorship. Built for serious traders only.</p>
+            <p style={{ fontStyle: 'italic', fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '28px', lineHeight: '1.6' }}>Full access. Direct mentorship. Built for serious traders only.</p>
 
-            <div style={{ marginBottom: '32px' }}>
+            <div style={{ marginBottom: '28px' }}>
               {[
                 'Everything in Standard',
                 'Full course library — all categories',
@@ -152,13 +163,14 @@ export default function Membership() {
         </div>
 
         {/* Bottom quote */}
-        <div style={{ marginTop: '2px', background: '#1a1a1a', padding: '36px 44px', display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <div style={{ marginTop: '2px', background: '#1a1a1a', padding: isMobile ? '28px 24px' : '36px 44px', display: 'flex', alignItems: 'center', gap: '24px' }}>
           <div style={{ width: '3px', height: '40px', background: '#2B5EA7', flexShrink: 0 }} />
-          <p style={{ fontStyle: 'italic', fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.65', margin: 0 }}>
+          <p style={{ fontStyle: 'italic', fontSize: isMobile ? '14px' : '16px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.65', margin: 0 }}>
             "You are not buying a course. You are buying your freedom. The difference is in how seriously you treat what you are given."
           </p>
         </div>
       </div>
+
       <Footer />
     </div>
   )
