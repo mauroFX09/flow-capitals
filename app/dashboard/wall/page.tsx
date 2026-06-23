@@ -37,6 +37,98 @@ function SegmentedControl({ options, value, onChange, dark }: {
   )
 }
 
+type FormState = { amount: string; caption: string; is_public: boolean }
+
+function PostForm({ form, setForm, screenshotUrl, setScreenshotUrl, uploading, saving, isMobile, dark, cardBg, cardBorder, textPrimary, textMuted, accent, inputBg, inputBorder, fileRef, onUpload, onSave, onClose }: {
+  form: FormState
+  setForm: (f: FormState) => void
+  screenshotUrl: string
+  setScreenshotUrl: (u: string) => void
+  uploading: boolean
+  saving: boolean
+  isMobile: boolean
+  dark: boolean
+  cardBg: string
+  cardBorder: string
+  textPrimary: string
+  textMuted: string
+  accent: string
+  inputBg: string
+  inputBorder: string
+  fileRef: React.RefObject<HTMLInputElement | null>
+  onUpload: (file: File) => void
+  onSave: () => void
+  onClose: () => void
+}) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: isMobile ? 'column' : 'row' as const }} onClick={onClose}>
+      {!isMobile && <div style={{ flex: 1 }} />}
+      {isMobile && <div style={{ flex: 1, background: 'rgba(0,0,0,0.5)' }} />}
+      <div
+        style={{ width: isMobile ? '100%' : '440px', height: isMobile ? 'auto' : '100vh', maxHeight: isMobile ? '92vh' : '100vh', background: cardBg, boxShadow: isMobile ? '0 -4px 40px rgba(0,0,0,0.3)' : '-4px 0 40px rgba(0,0,0,0.3)', padding: isMobile ? '20px 20px calc(20px + env(safe-area-inset-bottom))' : '40px 36px', overflowY: 'auto' as const, display: 'flex', flexDirection: 'column' as const, gap: '18px', borderRadius: isMobile ? '20px 20px 0 0' : '0' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {isMobile && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '-6px', marginTop: '-4px' }}>
+            <div style={{ width: '36px', height: '4px', background: dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.12)', borderRadius: '2px' }} />
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '20px' : '22px', fontWeight: '700', color: textPrimary }}>Post Payout</div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '20px' }}>✕</button>
+        </div>
+
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, lineHeight: '1.6', padding: '12px 16px', background: dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '10px' }}>
+          Share your payout with the community. Every post is proof that the blueprint works.
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Screenshot</label>
+          {screenshotUrl ? (
+            <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '12px', overflow: 'hidden', border: `0.5px solid ${cardBorder}` }}>
+              <img src={screenshotUrl} alt="payout" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <button onClick={() => setScreenshotUrl('')} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#ffffff', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+          ) : (
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '100%', height: '130px', background: inputBg, border: `1.5px dashed ${inputBorder}`, borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '10px', color: textMuted }}>
+              <span style={{ fontSize: '28px' }}>{uploading ? '⏳' : '📸'}</span>
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px' }}>{uploading ? 'Uploading...' : 'Upload payout screenshot'}</span>
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const file = e.target.files?.[0]; if (file) onUpload(file) }} />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Payout Amount (€)</label>
+          <input type="number" step="any" placeholder="1,250" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '20px', color: parseFloat(form.amount) > 0 ? '#22c55e' : textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Caption <span style={{ opacity: 0.5 }}>(optional)</span></label>
+          <textarea value={form.caption} onChange={e => setForm({ ...form, caption: e.target.value })} rows={3} placeholder="First funded payout. The blueprint works." style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '14px', color: textPrimary, outline: 'none', resize: 'none' as const, boxSizing: 'border-box' as const }} />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Visibility</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setForm({ ...form, is_public: true })} style={{ flex: 1, padding: '12px', background: form.is_public ? accent : inputBg, border: `0.5px solid ${form.is_public ? accent : inputBorder}`, borderRadius: '10px', color: form.is_public ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              🌍 Public
+            </button>
+            <button onClick={() => setForm({ ...form, is_public: false })} style={{ flex: 1, padding: '12px', background: !form.is_public ? (dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.06)') : inputBg, border: `0.5px solid ${!form.is_public ? (dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)') : inputBorder}`, borderRadius: '10px', color: !form.is_public ? textPrimary : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              🔒 Private
+            </button>
+          </div>
+        </div>
+
+        <button onClick={onSave} disabled={saving || !form.amount} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: 'none', cursor: saving || !form.amount ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving || !form.amount ? 0.7 : 1, marginTop: 'auto' }}>
+          {saving ? 'Posting...' : 'Post to Wall →'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function TradingWall() {
   const [dark, setDark] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -50,7 +142,7 @@ export default function TradingWall() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [screenshotUrl, setScreenshotUrl] = useState('')
-  const [form, setForm] = useState({ amount: '', caption: '', is_public: true })
+  const [form, setForm] = useState<FormState>({ amount: '', caption: '', is_public: true })
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -154,96 +246,32 @@ export default function TradingWall() {
   const biggestPayout = allPublic.length > 0 ? Math.max(...allPublic.map(p => p.amount)) : 0
   const maxAmount = posts.length > 0 ? Math.max(...posts.map(p => p.amount)) : 1
 
-  // Form panel — side panel on desktop, bottom sheet on mobile
-  const FormPanel = () => (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: isMobile ? 'column' : 'row' as const }} onClick={() => setShowForm(false)}>
-      {!isMobile && <div style={{ flex: 1 }} />}
-      {isMobile && <div style={{ flex: 1, background: 'rgba(0,0,0,0.5)' }} />}
-      <div
-        style={{
-          width: isMobile ? '100%' : '440px',
-          height: isMobile ? 'auto' : '100vh',
-          maxHeight: isMobile ? '92vh' : '100vh',
-          background: cardBg,
-          boxShadow: isMobile ? '0 -4px 40px rgba(0,0,0,0.3)' : '-4px 0 40px rgba(0,0,0,0.3)',
-          padding: isMobile ? '20px 20px calc(20px + env(safe-area-inset-bottom))' : '40px 36px',
-          overflowY: 'auto' as const,
-          display: 'flex',
-          flexDirection: 'column' as const,
-          gap: '18px',
-          borderRadius: isMobile ? '20px 20px 0 0' : '0',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Drag handle on mobile */}
-        {isMobile && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '-6px', marginTop: '-4px' }}>
-            <div style={{ width: '36px', height: '4px', background: dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.12)', borderRadius: '2px' }} />
-          </div>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '20px' : '22px', fontWeight: '700', color: textPrimary }}>Post Payout</div>
-          <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '20px' }}>✕</button>
-        </div>
-
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, lineHeight: '1.6', padding: '12px 16px', background: dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '10px' }}>
-          Share your payout with the community. Every post is proof that the blueprint works.
-        </div>
-
-        {/* Screenshot */}
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Screenshot</label>
-          {screenshotUrl ? (
-            <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '12px', overflow: 'hidden', border: `0.5px solid ${cardBorder}` }}>
-              <img src={screenshotUrl} alt="payout" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <button onClick={() => setScreenshotUrl('')} style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#ffffff', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-            </div>
-          ) : (
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '100%', height: '130px', background: inputBg, border: `1.5px dashed ${inputBorder}`, borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '10px', color: textMuted }}>
-              <span style={{ fontSize: '28px' }}>{uploading ? '⏳' : '📸'}</span>
-              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px' }}>{uploading ? 'Uploading...' : 'Upload payout screenshot'}</span>
-            </button>
-          )}
-          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => { const file = e.target.files?.[0]; if (file) await uploadScreenshot(file) }} />
-        </div>
-
-        {/* Amount */}
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Payout Amount (€)</label>
-          <input type="number" step="any" placeholder="1,250" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '20px', color: parseFloat(form.amount) > 0 ? '#22c55e' : textPrimary, outline: 'none' }} />
-        </div>
-
-        {/* Caption */}
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Caption <span style={{ opacity: 0.5 }}>(optional)</span></label>
-          <textarea value={form.caption} onChange={e => setForm({ ...form, caption: e.target.value })} rows={3} placeholder="First funded payout. The blueprint works." style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '14px', color: textPrimary, outline: 'none', resize: 'none' as const }} />
-        </div>
-
-        {/* Visibility */}
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Visibility</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => setForm({ ...form, is_public: true })} style={{ flex: 1, padding: '12px', background: form.is_public ? accent : inputBg, border: `0.5px solid ${form.is_public ? accent : inputBorder}`, borderRadius: '10px', color: form.is_public ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              🌍 Public
-            </button>
-            <button onClick={() => setForm({ ...form, is_public: false })} style={{ flex: 1, padding: '12px', background: !form.is_public ? (dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.06)') : inputBg, border: `0.5px solid ${!form.is_public ? (dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)') : inputBorder}`, borderRadius: '10px', color: !form.is_public ? textPrimary : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              🔒 Private
-            </button>
-          </div>
-        </div>
-
-        <button onClick={savePost} disabled={saving || !form.amount} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: 'none', cursor: saving || !form.amount ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving || !form.amount ? 0.7 : 1, marginTop: 'auto' }}>
-          {saving ? 'Posting...' : 'Post to Wall →'}
-        </button>
-      </div>
-    </div>
-  )
-
   return (
     <div style={{ padding: isMobile ? '20px 16px' : '40px 48px', background: bg, minHeight: '100vh' }}>
 
-      {showForm && <FormPanel />}
+      {showForm && (
+        <PostForm
+          form={form}
+          setForm={setForm}
+          screenshotUrl={screenshotUrl}
+          setScreenshotUrl={setScreenshotUrl}
+          uploading={uploading}
+          saving={saving}
+          isMobile={isMobile}
+          dark={dark}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          accent={accent}
+          inputBg={inputBg}
+          inputBorder={inputBorder}
+          fileRef={fileRef}
+          onUpload={uploadScreenshot}
+          onSave={savePost}
+          onClose={() => setShowForm(false)}
+        />
+      )}
 
       {/* Header */}
       <div style={{ marginBottom: isMobile ? '16px' : '24px' }}>
@@ -333,7 +361,6 @@ export default function TradingWall() {
             const name = profileNames[post.user_id] || 'Member'
             return (
               <div key={post.id} style={{ ...card, marginBottom: isMobile ? '0' : '14px', breakInside: 'avoid', display: 'inline-block', width: '100%', overflow: 'hidden', borderTop: '3px solid #22c55e' }}>
-                {/* Amount hero */}
                 <div style={{ padding: isMobile ? '16px 16px 12px' : '20px 20px 14px', background: dark ? 'rgba(34,197,94,0.04)' : 'rgba(34,197,94,0.02)' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div>
@@ -347,29 +374,24 @@ export default function TradingWall() {
                         <button onClick={() => togglePublic(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }} title={post.is_public ? 'Make private' : 'Make public'}>
                           {post.is_public ? '🌍' : '🔒'}
                         </button>
-                        <button onClick={() => deletePost(post.id)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}>
-                          ✕
-                        </button>
+                        <button onClick={() => deletePost(post.id)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}>✕</button>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Screenshot */}
                 {post.screenshot_url && (
                   <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
                     <img src={post.screenshot_url} alt="payout" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 )}
 
-                {/* Content */}
                 <div style={{ padding: isMobile ? '14px 16px' : '16px 20px' }}>
                   {post.caption && (
                     <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: textPrimary, lineHeight: '1.6', marginBottom: '14px' }}>
                       &ldquo;{post.caption}&rdquo;
                     </p>
                   )}
-
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #2B5EA7, #7aaee8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -384,7 +406,6 @@ export default function TradingWall() {
                       <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '3px 8px', borderRadius: '4px' }}>🔒 Private</span>
                     )}
                   </div>
-
                   <div style={{ height: '3px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${barWidth}%`, background: 'linear-gradient(90deg, #22c55e, #7aaee8)', borderRadius: '2px', transition: 'width 0.6s ease' }} />
                   </div>
