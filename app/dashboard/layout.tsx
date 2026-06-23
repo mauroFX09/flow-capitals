@@ -28,6 +28,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true)
   const [dark, setDark] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(1)
@@ -46,10 +48,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (saved === 'true') setDark(true)
     const savedCollapsed = localStorage.getItem('fc-sidebar-collapsed')
     if (savedCollapsed === 'true') setCollapsed(true)
+
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   useEffect(() => { localStorage.setItem('fc-dark-mode', dark.toString()) }, [dark])
   useEffect(() => { localStorage.setItem('fc-sidebar-collapsed', collapsed.toString()) }, [collapsed])
+
+  // Close mobile menu on route change
+  useEffect(() => { setMobileMenuOpen(false) }, [pathname])
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -171,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // ── ONBOARDING MODAL ──
   const OnboardingModal = () => (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(8,13,20,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(8,13,20,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
       <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '520px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.3)' }}>
         <div style={{ height: '3px', background: '#f0ede8' }}>
           <div style={{ height: '100%', background: '#2B5EA7', width: `${(onboardingStep / 4) * 100}%`, transition: 'width 0.4s ease', borderRadius: '0 2px 2px 0' }} />
@@ -274,8 +284,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const ArrivalOverlay = () => (
     <div style={{ position: 'fixed', inset: 0, zIndex: 999, background: '#0d1e36', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ maxWidth: '560px', width: '100%', padding: '0 32px', textAlign: 'center' as const }}>
-
-        {/* Logo mark */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '48px' }}>
           <div style={{ width: '32px', height: '32px', border: '1.5px solid rgba(122,174,232,0.4)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: '8px', height: '8px', background: '#7aaee8', borderRadius: '2px' }} />
@@ -284,19 +292,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             FLOW <span style={{ color: '#7aaee8' }}>CAPITALS</span>
           </div>
         </div>
-
-        {/* Headline */}
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#7aaee8', letterSpacing: '0.2em', textTransform: 'uppercase' as const, marginBottom: '16px' }}>
           You're in{firstName ? `, ${firstName}` : ''}.
         </div>
-        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '48px', fontWeight: '700', color: '#ffffff', lineHeight: 1.05, letterSpacing: '-1.5px', marginBottom: '28px' }}>
+        <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: 'clamp(32px, 8vw, 48px)', fontWeight: '700', color: '#ffffff', lineHeight: 1.05, letterSpacing: '-1.5px', marginBottom: '28px' }}>
           Welcome to<br />Flow Capitals.
         </h1>
-
-        {/* Divider */}
         <div style={{ width: '40px', height: '2px', background: '#2B5EA7', margin: '0 auto 28px', borderRadius: '1px' }} />
-
-        {/* Body */}
         <p style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', color: 'rgba(255,255,255,0.65)', lineHeight: '1.8', marginBottom: '20px' }}>
           This is where your trading journey becomes serious.<br />
           You've learned the tools, you understand the market —<br />
@@ -306,21 +308,102 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           Flow Capitals was built for one purpose: to help you reach<br />
           <span style={{ color: '#ffffff', fontWeight: '600' }}>consistent profitability</span>, whether on live capital or through a prop firm.
         </p>
-
-        {/* Quote */}
         <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '16px', color: '#7aaee8', marginBottom: '48px', lineHeight: '1.6' }}>
           "The edge is here. The community is here.<br />The structure is here. Now it's your turn."
         </p>
-
-        {/* CTA */}
-        <button onClick={dismissArrival} style={{ background: '#2B5EA7', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.12em', textTransform: 'uppercase' as const, padding: '16px 48px', border: 'none', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.background = '#3a6db5'}
-          onMouseLeave={e => e.currentTarget.style.background = '#2B5EA7'}
-        >
+        <button onClick={dismissArrival} style={{ background: '#2B5EA7', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.12em', textTransform: 'uppercase' as const, padding: '16px 48px', border: 'none', borderRadius: '12px', cursor: 'pointer' }}>
           Enter the platform →
         </button>
       </div>
     </div>
+  )
+
+  // ── MOBILE TOP BAR ──
+  const MobileTopBar = () => (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60, height: '56px', background: sidebar, borderBottom: `0.5px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ width: '24px', height: '24px', border: '1.5px solid #2B5EA7', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '6px', height: '6px', background: '#2B5EA7', borderRadius: '2px' }} />
+        </div>
+        <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', color: text }}>
+          FLOW <span style={{ color: '#2B5EA7' }}>CAPITALS</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <button onClick={() => { const n = !dark; setDark(n); localStorage.setItem('fc-dark-mode', n.toString()); window.dispatchEvent(new Event('fc-theme-change')) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px' }}>{dark ? '🌙' : '☀️'}</button>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: `0.5px solid ${border}`, borderRadius: '6px', cursor: 'pointer', color: muted, width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── MOBILE MENU OVERLAY ──
+  const MobileMenu = () => (
+    <>
+      {/* Backdrop */}
+      <div onClick={() => setMobileMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 65, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} />
+      {/* Drawer */}
+      <div style={{ position: 'fixed', top: '56px', left: 0, bottom: 0, zIndex: 70, width: '280px', background: sidebar, borderRight: `0.5px solid ${border}`, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        <div style={{ padding: '16px 12px', flex: 1 }}>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px' }}>Platform</div>
+          {visibleNav.map(item => {
+            const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
+            const locked = item.access === 'premium' && !isPremium
+            const soon = (item as any).soon === true
+            const adminItem = item.access === 'admin'
+            return (
+              <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 10px', borderRadius: '8px', textDecoration: 'none', marginBottom: '2px', background: active ? navActive : 'transparent', borderLeft: active ? '2px solid #2B5EA7' : '2px solid transparent', opacity: locked ? 0.5 : 1 }}
+              >
+                <span style={{ fontSize: '18px', color: active ? '#2B5EA7' : adminItem ? accent : muted, flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: active ? accent : adminItem ? accent : muted, fontWeight: active ? '600' : adminItem ? '600' : '400', flex: 1 }}>{item.label}</span>
+                {locked && !soon && <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>}
+                {soon && <span style={{ fontSize: '9px', color: accent, background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.08)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>Soon</span>}
+              </a>
+            )
+          })}
+
+          {!allDone && (
+            <div style={{ marginTop: '20px', padding: '14px', background: dark ? 'rgba(43,94,167,0.08)' : 'rgba(43,94,167,0.04)', border: `0.5px solid ${dark ? 'rgba(43,94,167,0.25)' : 'rgba(43,94,167,0.15)'}`, borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: accent, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>Get Started</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted }}>{doneCount}/4</div>
+              </div>
+              <div style={{ height: '3px', background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)', borderRadius: '2px', marginBottom: '12px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: accent, width: `${(doneCount / 4) * 100}%`, borderRadius: '2px' }} />
+              </div>
+              {CHECKLIST_ITEMS.map(item => {
+                const done = checklist[item.key as keyof typeof checklist]
+                return (
+                  <a key={item.key} href={done ? '#' : item.href} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', textDecoration: 'none' }}>
+                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `1.5px solid ${done ? accent : dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.2)'}`, background: done ? accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {done && <span style={{ color: '#fff', fontSize: '9px', fontWeight: '700' }}>✓</span>}
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: done ? muted : text, textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.6 : 1 }}>{item.label}</span>
+                  </a>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding: '14px', borderTop: `0.5px solid ${border}` }}>
+          <div style={{ marginBottom: '12px', padding: '6px 10px', background: isPremium ? 'rgba(43,94,167,0.08)' : 'rgba(245,158,11,0.08)', border: `0.5px solid ${isPremium ? 'rgba(43,94,167,0.2)' : 'rgba(245,158,11,0.2)'}`, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPremium ? accent : '#f59e0b' }} />
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isPremium ? accent : '#f59e0b', fontWeight: '600' }}>{isPremium ? 'Premium' : 'Standard'}</span>
+          </div>
+          <a href="/dashboard/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', textDecoration: 'none' }}>
+            <AvatarCircle size={30} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: text, fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{user?.email}</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
+            </div>
+          </a>
+          <button onClick={handleLogout} style={{ width: '100%', background: 'none', border: `0.5px solid ${border}`, color: muted, fontFamily: 'var(--font-inter)', fontSize: '10px', textTransform: 'uppercase' as const, padding: '9px', cursor: 'pointer', borderRadius: '6px' }}>Sign out</button>
+        </div>
+      </div>
+    </>
   )
 
   return (
@@ -329,128 +412,142 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {showOnboarding && <OnboardingModal />}
       {!showOnboarding && showArrival && <ArrivalOverlay />}
 
-      {/* SIDEBAR */}
-      <div style={{ width: sidebarWidth, flexShrink: 0, background: sidebar, borderRight: `0.5px solid ${border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 50, transition: 'width 0.25s ease', overflow: 'hidden' }}>
+      {/* DESKTOP SIDEBAR */}
+      {!isMobile && (
+        <div style={{ width: sidebarWidth, flexShrink: 0, background: sidebar, borderRight: `0.5px solid ${border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 50, transition: 'width 0.25s ease', overflow: 'hidden' }}>
 
-        <div style={{ padding: collapsed ? '20px 0' : '20px 16px', borderBottom: `0.5px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', transition: 'padding 0.25s ease' }}>
-          {!collapsed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '28px', height: '28px', border: '1.5px solid #2B5EA7', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <div style={{ width: '7px', height: '7px', background: '#2B5EA7', borderRadius: '2px' }} />
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px', color: text, whiteSpace: 'nowrap' as const }}>
-                FLOW <span style={{ color: '#2B5EA7' }}>CAPITALS</span>
-              </div>
-            </div>
-          )}
-          <button onClick={() => setCollapsed(!collapsed)} style={{ width: '28px', height: '28px', background: 'none', border: `0.5px solid ${border}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: muted, fontSize: '12px', flexShrink: 0, transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
-          >
-            {collapsed ? '›' : '‹'}
-          </button>
-        </div>
-
-        <div style={{ padding: collapsed ? '12px 8px' : '16px 10px', flex: 1, overflowY: 'auto' as const }}>
-          {!collapsed && (
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px', whiteSpace: 'nowrap' as const }}>Platform</div>
-          )}
-          {visibleNav.map(item => {
-            const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
-            const locked = item.access === 'premium' && !isPremium
-            const soon = (item as any).soon === true
-            const adminItem = item.access === 'admin'
-            return (
-              <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
-                title={collapsed ? item.label : undefined}
-                style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '12px', padding: collapsed ? '10px 0' : '10px 10px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: '8px', textDecoration: 'none', marginBottom: '2px', background: active ? navActive : 'transparent', borderLeft: collapsed ? 'none' : active ? '2px solid #2B5EA7' : '2px solid transparent', transition: 'all 0.15s', opacity: locked ? 0.5 : 1 }}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.background = navHover }}
-                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
-              >
-                <span style={{ fontSize: '18px', color: active ? '#2B5EA7' : adminItem ? accent : muted, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
-                {!collapsed && (
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : adminItem ? accent : muted, fontWeight: active ? '600' : adminItem ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
-                )}
-                {!collapsed && locked && !soon && (
-                  <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
-                )}
-                {!collapsed && soon && (
-                  <span style={{ fontSize: '9px', color: accent, background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.08)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)', border: `0.5px solid ${dark ? 'rgba(122,174,232,0.2)' : 'rgba(43,94,167,0.15)'}` }}>Soon</span>
-                )}
-              </a>
-            )
-          })}
-
-          {!collapsed && !allDone && (
-            <div style={{ marginTop: '20px', padding: '14px', background: dark ? 'rgba(43,94,167,0.08)' : 'rgba(43,94,167,0.04)', border: `0.5px solid ${dark ? 'rgba(43,94,167,0.25)' : 'rgba(43,94,167,0.15)'}`, borderRadius: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: accent, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>Get Started</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted }}>{doneCount}/4</div>
-              </div>
-              <div style={{ height: '3px', background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)', borderRadius: '2px', marginBottom: '12px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: accent, width: `${(doneCount / 4) * 100}%`, borderRadius: '2px', transition: 'width 0.4s ease' }} />
-              </div>
-              {CHECKLIST_ITEMS.map(item => {
-                const done = checklist[item.key as keyof typeof checklist]
-                return (
-                  <a key={item.key} href={done ? '#' : item.href} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', textDecoration: 'none', cursor: done ? 'default' : 'pointer' }}>
-                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `1.5px solid ${done ? accent : dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.2)'}`, background: done ? accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
-                      {done && <span style={{ color: '#fff', fontSize: '9px', fontWeight: '700' }}>✓</span>}
-                    </div>
-                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: done ? muted : text, textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.6 : 1, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
-                  </a>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        <div style={{ padding: collapsed ? '12px 8px' : '14px', borderTop: `0.5px solid ${border}` }}>
-          {!collapsed ? (
-            <>
-              <div style={{ marginBottom: '12px', padding: '6px 10px', background: isPremium ? 'rgba(43,94,167,0.08)' : 'rgba(245,158,11,0.08)', border: `0.5px solid ${isPremium ? 'rgba(43,94,167,0.2)' : 'rgba(245,158,11,0.2)'}`, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPremium ? accent : '#f59e0b' }} />
-                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isPremium ? accent : '#f59e0b', fontWeight: '600' }}>{isPremium ? 'Premium' : 'Standard'}</span>
-                {!isPremium && <a href="/membership" style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#f59e0b', textDecoration: 'none', marginLeft: 'auto', opacity: 0.7 }}>Upgrade →</a>}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', padding: '0 2px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '13px' }}>{dark ? '🌙' : '☀️'}</span>
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: muted, whiteSpace: 'nowrap' as const }}>{dark ? 'Dark mode' : 'Light mode'}</span>
+          <div style={{ padding: collapsed ? '20px 0' : '20px 16px', borderBottom: `0.5px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', transition: 'padding 0.25s ease' }}>
+            {!collapsed && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '28px', height: '28px', border: '1.5px solid #2B5EA7', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: '7px', height: '7px', background: '#2B5EA7', borderRadius: '2px' }} />
                 </div>
-                <button onClick={() => { const n = !dark; setDark(n); localStorage.setItem('fc-dark-mode', n.toString()); window.dispatchEvent(new Event('fc-theme-change')) }} style={{ width: '40px', height: '22px', background: dark ? '#2B5EA7' : 'rgba(26,26,26,0.12)', borderRadius: '11px', border: 'none', cursor: 'pointer', position: 'relative', padding: 0, flexShrink: 0 }}>
-                  <div style={{ width: '16px', height: '16px', background: '#ffffff', borderRadius: '50%', position: 'absolute', top: '3px', left: dark ? '21px' : '3px', transition: 'left 0.25s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
-                </button>
-              </div>
-              <a href="/dashboard/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', textDecoration: 'none', padding: '6px 4px', borderRadius: '8px', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.background = navHover}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <AvatarCircle size={30} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: text, fontWeight: '500', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
+                <div style={{ fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px', color: text, whiteSpace: 'nowrap' as const }}>
+                  FLOW <span style={{ color: '#2B5EA7' }}>CAPITALS</span>
                 </div>
-              </a>
-              <button onClick={handleLogout} style={{ width: '100%', background: 'none', border: `0.5px solid ${border}`, color: muted, fontFamily: 'var(--font-inter)', fontSize: '10px', textTransform: 'uppercase' as const, padding: '7px', cursor: 'pointer', borderRadius: '6px' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
-              >Sign out</button>
-            </>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <button onClick={() => { const n = !dark; setDark(n); localStorage.setItem('fc-dark-mode', n.toString()); window.dispatchEvent(new Event('fc-theme-change')) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '6px 0' }}>{dark ? '🌙' : '☀️'}</button>
-              <a href="/dashboard/profile" title={user?.email} style={{ textDecoration: 'none' }}><AvatarCircle size={30} /></a>
-              <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, padding: '4px' }} title="Sign out"
-                onMouseEnter={e => e.currentTarget.style.color = '#dc3232'}
-                onMouseLeave={e => e.currentTarget.style.color = muted}
-              >⏻</button>
-            </div>
-          )}
-        </div>
-      </div>
+              </div>
+            )}
+            <button onClick={() => setCollapsed(!collapsed)} style={{ width: '28px', height: '28px', background: 'none', border: `0.5px solid ${border}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: muted, fontSize: '12px', flexShrink: 0, transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
+            >
+              {collapsed ? '›' : '‹'}
+            </button>
+          </div>
 
-      <div style={{ marginLeft: sidebarWidth, flex: 1, minHeight: '100vh', background: bg, transition: 'margin-left 0.25s ease' }}>
+          <div style={{ padding: collapsed ? '12px 8px' : '16px 10px', flex: 1, overflowY: 'auto' as const }}>
+            {!collapsed && (
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: muted, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '0 10px', marginBottom: '8px', whiteSpace: 'nowrap' as const }}>Platform</div>
+            )}
+            {visibleNav.map(item => {
+              const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
+              const locked = item.access === 'premium' && !isPremium
+              const soon = (item as any).soon === true
+              const adminItem = item.access === 'admin'
+              return (
+                <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
+                  title={collapsed ? item.label : undefined}
+                  style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '12px', padding: collapsed ? '10px 0' : '10px 10px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: '8px', textDecoration: 'none', marginBottom: '2px', background: active ? navActive : 'transparent', borderLeft: collapsed ? 'none' : active ? '2px solid #2B5EA7' : '2px solid transparent', transition: 'all 0.15s', opacity: locked ? 0.5 : 1 }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = navHover }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+                >
+                  <span style={{ fontSize: '18px', color: active ? '#2B5EA7' : adminItem ? accent : muted, flexShrink: 0, lineHeight: 1 }}>{item.icon}</span>
+                  {!collapsed && (
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : adminItem ? accent : muted, fontWeight: active ? '600' : adminItem ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>
+                  )}
+                  {!collapsed && locked && !soon && (
+                    <span style={{ fontSize: '9px', color: '#f59e0b', background: 'rgba(245,158,11,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)' }}>PRO</span>
+                  )}
+                  {!collapsed && soon && (
+                    <span style={{ fontSize: '9px', color: accent, background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.08)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-inter)', border: `0.5px solid ${dark ? 'rgba(122,174,232,0.2)' : 'rgba(43,94,167,0.15)'}` }}>Soon</span>
+                  )}
+                </a>
+              )
+            })}
+
+            {!collapsed && !allDone && (
+              <div style={{ marginTop: '20px', padding: '14px', background: dark ? 'rgba(43,94,167,0.08)' : 'rgba(43,94,167,0.04)', border: `0.5px solid ${dark ? 'rgba(43,94,167,0.25)' : 'rgba(43,94,167,0.15)'}`, borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: accent, letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>Get Started</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted }}>{doneCount}/4</div>
+                </div>
+                <div style={{ height: '3px', background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)', borderRadius: '2px', marginBottom: '12px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: accent, width: `${(doneCount / 4) * 100}%`, borderRadius: '2px', transition: 'width 0.4s ease' }} />
+                </div>
+                {CHECKLIST_ITEMS.map(item => {
+                  const done = checklist[item.key as keyof typeof checklist]
+                  return (
+                    <a key={item.key} href={done ? '#' : item.href} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0', textDecoration: 'none', cursor: done ? 'default' : 'pointer' }}>
+                      <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `1.5px solid ${done ? accent : dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.2)'}`, background: done ? accent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s' }}>
+                        {done && <span style={{ color: '#fff', fontSize: '9px', fontWeight: '700' }}>✓</span>}
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: done ? muted : text, textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.6 : 1, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                    </a>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={{ padding: collapsed ? '12px 8px' : '14px', borderTop: `0.5px solid ${border}` }}>
+            {!collapsed ? (
+              <>
+                <div style={{ marginBottom: '12px', padding: '6px 10px', background: isPremium ? 'rgba(43,94,167,0.08)' : 'rgba(245,158,11,0.08)', border: `0.5px solid ${isPremium ? 'rgba(43,94,167,0.2)' : 'rgba(245,158,11,0.2)'}`, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPremium ? accent : '#f59e0b' }} />
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isPremium ? accent : '#f59e0b', fontWeight: '600' }}>{isPremium ? 'Premium' : 'Standard'}</span>
+                  {!isPremium && <a href="/membership" style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#f59e0b', textDecoration: 'none', marginLeft: 'auto', opacity: 0.7 }}>Upgrade →</a>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', padding: '0 2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px' }}>{dark ? '🌙' : '☀️'}</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: muted, whiteSpace: 'nowrap' as const }}>{dark ? 'Dark mode' : 'Light mode'}</span>
+                  </div>
+                  <button onClick={() => { const n = !dark; setDark(n); localStorage.setItem('fc-dark-mode', n.toString()); window.dispatchEvent(new Event('fc-theme-change')) }} style={{ width: '40px', height: '22px', background: dark ? '#2B5EA7' : 'rgba(26,26,26,0.12)', borderRadius: '11px', border: 'none', cursor: 'pointer', position: 'relative', padding: 0, flexShrink: 0 }}>
+                    <div style={{ width: '16px', height: '16px', background: '#ffffff', borderRadius: '50%', position: 'absolute', top: '3px', left: dark ? '21px' : '3px', transition: 'left 0.25s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+                  </button>
+                </div>
+                <a href="/dashboard/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', textDecoration: 'none', padding: '6px 4px', borderRadius: '8px', transition: 'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = navHover}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <AvatarCircle size={30} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: text, fontWeight: '500', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</div>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: muted, textTransform: 'uppercase' as const }}>{role}</div>
+                  </div>
+                </a>
+                <button onClick={handleLogout} style={{ width: '100%', background: 'none', border: `0.5px solid ${border}`, color: muted, fontFamily: 'var(--font-inter)', fontSize: '10px', textTransform: 'uppercase' as const, padding: '7px', cursor: 'pointer', borderRadius: '6px' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = border; e.currentTarget.style.color = muted }}
+                >Sign out</button>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <button onClick={() => { const n = !dark; setDark(n); localStorage.setItem('fc-dark-mode', n.toString()); window.dispatchEvent(new Event('fc-theme-change')) }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '6px 0' }}>{dark ? '🌙' : '☀️'}</button>
+                <a href="/dashboard/profile" title={user?.email} style={{ textDecoration: 'none' }}><AvatarCircle size={30} /></a>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted, padding: '4px' }} title="Sign out"
+                  onMouseEnter={e => e.currentTarget.style.color = '#dc3232'}
+                  onMouseLeave={e => e.currentTarget.style.color = muted}
+                >⏻</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MOBILE TOP BAR + MENU */}
+      {isMobile && <MobileTopBar />}
+      {isMobile && mobileMenuOpen && <MobileMenu />}
+
+      {/* MAIN CONTENT */}
+      <div style={{
+        marginLeft: isMobile ? '0' : sidebarWidth,
+        flex: 1,
+        minHeight: '100vh',
+        background: bg,
+        transition: 'margin-left 0.25s ease',
+        paddingTop: isMobile ? '56px' : '0',
+      }}>
         {children}
       </div>
     </div>
