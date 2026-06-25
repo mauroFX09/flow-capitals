@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useDarkMode } from '@/lib/hooks'
 import { getTheme, getCard } from '@/lib/styles'
@@ -235,13 +235,11 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
           <button onClick={nextMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: isCurrentMonth ? 'not-allowed' : 'pointer', color: isCurrentMonth ? (dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.15)') : textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isCurrentMonth ? 0.3 : 1 }}>→</button>
         </div>
       </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px', marginBottom: isMobile ? '3px' : '4px' }}>
         {dayLabels.map((d, i) => (
           <div key={i} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', padding: '4px 0' }}>{d}</div>
         ))}
       </div>
-
       <div style={{ display: 'flex', flexDirection: 'column' as const, gap: isMobile ? '3px' : '4px' }}>
         {weeks.map((week, wi) => (
           <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px' }}>
@@ -253,44 +251,218 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
               const isProfit = hasTrades && pnl > 0
               const isLoss = hasTrades && pnl < 0
               const isBe = hasTrades && pnl === 0
-
               let bg = 'transparent'
               let borderColor = dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)'
               let pnlColor = textMuted
-
               if (isProfit) { bg = dark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)'; borderColor = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
               if (isLoss) { bg = dark ? 'rgba(220,50,50,0.12)' : 'rgba(220,50,50,0.08)'; borderColor = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
               if (isBe) { bg = dark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.06)'; borderColor = 'rgba(148,163,184,0.2)'; pnlColor = '#94a3b8' }
-
               return (
                 <div key={di} style={{ background: bg, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: isMobile ? '6px' : '8px', padding: isMobile ? '5px 3px' : '6px 8px', minHeight: isMobile ? '38px' : '48px', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '9px' : '10px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: '2px', textAlign: isMobile ? 'center' as const : 'left' as const }}>{day}</div>
-                  {hasTrades && !isMobile && (
-                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor, lineHeight: 1 }}>
-                      {pnl > 0 ? '+' : ''}{pnl.toFixed(0)}€
-                    </div>
-                  )}
-                  {hasTrades && isMobile && (
-                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: pnlColor, margin: '0 auto' }} />
-                  )}
+                  {hasTrades && !isMobile && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor, lineHeight: 1 }}>{pnl > 0 ? '+' : ''}{pnl.toFixed(0)}€</div>}
+                  {hasTrades && isMobile && <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: pnlColor, margin: '0 auto' }} />}
                 </div>
               )
             })}
           </div>
         ))}
       </div>
-
       <div style={{ display: 'flex', gap: '16px', marginTop: '12px', paddingTop: '12px', borderTop: `0.5px solid ${tableBorder}`, flexWrap: 'wrap' as const }}>
-        {[
-          { color: '#22c55e', label: 'Profitable day' },
-          { color: '#dc3232', label: 'Loss day' },
-          { color: '#94a3b8', label: 'Breakeven' },
-        ].map(item => (
+        {[{ color: '#22c55e', label: 'Profitable day' }, { color: '#dc3232', label: 'Loss day' }, { color: '#94a3b8', label: 'Breakeven' }].map(item => (
           <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: item.color, opacity: 0.7 }} />
             {item.label}
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// ── MONTHLY RECAP CARD ──
+function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallPosts, firstName }: {
+  cardRef: React.RefObject<HTMLDivElement | null>
+  monthLabel: string
+  pnl: number
+  winRate: number
+  tradeCount: number
+  wallPosts: number
+  firstName?: string
+}) {
+  const quotes = [
+    "The market rewards discipline, not intelligence.",
+    "Consistency is the edge.",
+    "Every trade is a lesson. Every month is a chapter.",
+    "Process over outcome. Always.",
+    "Small gains compound. Stay the course.",
+    "The blueprint works. Trust the process.",
+  ]
+  const quote = quotes[new Date().getMonth() % quotes.length]
+  const isPositive = pnl >= 0
+
+  return (
+    <div ref={cardRef} style={{ width: '390px', height: '694px', background: 'linear-gradient(145deg, #0d1e36 0%, #0a1628 50%, #061020 100%)', borderRadius: '24px', padding: '40px 36px', display: 'flex', flexDirection: 'column' as const, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      {/* Grid pattern */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '36px 36px', pointerEvents: 'none' }} />
+      {/* Glow */}
+      <div style={{ position: 'absolute', top: '160px', left: '50%', transform: 'translateX(-50%)', width: '320px', height: '320px', background: isPositive ? 'radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(220,50,50,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '44px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '22px', height: '22px', border: '1.5px solid #7aaee8', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '6px', height: '6px', background: '#7aaee8', borderRadius: '1.5px' }} />
+          </div>
+          <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', letterSpacing: '1.2px', color: 'rgba(255,255,255,0.85)' }}>FLOW <span style={{ color: '#7aaee8' }}>CAPITALS</span></span>
+        </div>
+        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>{monthLabel}</span>
+      </div>
+
+      {/* Recap label */}
+      <div style={{ position: 'relative', marginBottom: '10px' }}>
+        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#7aaee8', letterSpacing: '0.2em', textTransform: 'uppercase' as const }}>
+          {firstName ? `${firstName}'s` : 'My'} Monthly Recap
+        </span>
+      </div>
+
+      {/* P&L Hero */}
+      <div style={{ position: 'relative', marginBottom: '6px' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: '68px', fontWeight: '700', color: isPositive ? '#22c55e' : '#dc3232', lineHeight: 1, letterSpacing: '-2px', textShadow: isPositive ? '0 0 48px rgba(34,197,94,0.45)' : '0 0 48px rgba(220,50,50,0.45)' }}>
+          {isPositive ? '+' : ''}{pnl.toFixed(0)}€
+        </div>
+      </div>
+      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '40px', position: 'relative' }}>Net profit this month</div>
+
+      {/* Stats */}
+      <div style={{ display: 'flex', gap: '0', marginBottom: '36px', position: 'relative' }}>
+        {[
+          { label: 'Win Rate', value: `${winRate}%`, color: winRate >= 60 ? '#22c55e' : winRate >= 40 ? '#7aaee8' : '#dc3232' },
+          { label: 'Trades', value: String(tradeCount), color: '#e0ecf8' },
+          { label: 'Wall Posts', value: String(wallPosts), color: '#22c55e' },
+        ].map((stat, i) => (
+          <div key={i} style={{ flex: 1, borderLeft: i > 0 ? '0.5px solid rgba(255,255,255,0.08)' : 'none', paddingLeft: i > 0 ? '20px' : '0' }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '30px', fontWeight: '700', color: stat.color, lineHeight: 1, marginBottom: '5px' }}>{stat.value}</div>
+            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', marginBottom: '28px', position: 'relative' }} />
+
+      {/* Quote + footer */}
+      <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-end' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: '1.75', marginBottom: '32px' }}>
+          "{quote}"
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.1em' }}>FLOWCAPITALS.BE</div>
+          <div style={{ background: isPositive ? 'rgba(34,197,94,0.12)' : 'rgba(220,50,50,0.12)', border: `0.5px solid ${isPositive ? 'rgba(34,197,94,0.3)' : 'rgba(220,50,50,0.3)'}`, borderRadius: '20px', padding: '5px 14px', fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', color: isPositive ? '#22c55e' : '#dc3232', letterSpacing: '0.04em' }}>
+            {isPositive ? '▲ Profitable Month' : '▼ Keep Going'}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── RECAP MODAL ──
+function RecapModal({ onClose, trades, dark, firstName, userId }: {
+  onClose: () => void
+  trades: Trade[]
+  dark: boolean
+  firstName?: string
+  userId: string | null
+}) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [downloading, setDownloading] = useState(false)
+  const [wallPosts, setWallPosts] = useState(0)
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+
+  const [year, month] = selectedMonth.split('-').map(Number)
+
+  const monthTrades = trades.filter(t => {
+    const d = new Date(t.created_at)
+    return d.getFullYear() === year && d.getMonth() === month - 1
+  })
+  const pnl = monthTrades.reduce((s, t) => s + (t.pnl || 0), 0)
+  const wins = monthTrades.filter(t => t.pnl > 0).length
+  const winRate = monthTrades.length > 0 ? Math.round((wins / monthTrades.length) * 100) : 0
+  const monthLabel = new Date(year, month - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
+
+  const monthOptions = Array.from(new Set(trades.map(t => {
+    const d = new Date(t.created_at)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  }))).sort().reverse()
+
+  // Also include current month even if no trades
+  const now = new Date()
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  if (!monthOptions.includes(currentMonthKey)) monthOptions.unshift(currentMonthKey)
+
+  useEffect(() => {
+    if (!userId) return
+    const start = new Date(year, month - 1, 1).toISOString()
+    const end = new Date(year, month, 1).toISOString()
+    supabase.from('wall_posts').select('*', { count: 'exact', head: true })
+      .eq('user_id', userId).gte('created_at', start).lt('created_at', end)
+      .then(({ count }) => setWallPosts(count || 0))
+  }, [selectedMonth, userId])
+
+  async function download() {
+    if (!cardRef.current) return
+    setDownloading(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(cardRef.current, { scale: 2.5, backgroundColor: null, logging: false, useCORS: true })
+      const link = document.createElement('a')
+      link.download = `flow-recap-${selectedMonth}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (e) {
+      console.error(e)
+    }
+    setDownloading(false)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', overflowY: 'auto' as const }} onClick={onClose}>
+      <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '20px' }} onClick={e => e.stopPropagation()}>
+
+        {/* Month selector */}
+        <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ background: '#0f1825', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 20px', color: '#e0ecf8', fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', outline: 'none' }}>
+          {monthOptions.map(m => {
+            const [y, mo] = m.split('-').map(Number)
+            return <option key={m} value={m}>{new Date(y, mo - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</option>
+          })}
+        </select>
+
+        {/* Card */}
+        <MonthlyRecapCard
+          cardRef={cardRef}
+          monthLabel={monthLabel}
+          pnl={pnl}
+          winRate={winRate}
+          tradeCount={monthTrades.length}
+          wallPosts={wallPosts}
+          firstName={firstName}
+        />
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={download} disabled={downloading} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', borderRadius: '10px', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}>
+            {downloading ? 'Generating...' : '↓ Download Card'}
+          </button>
+          <button onClick={onClose} style={{ background: 'none', border: '0.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-inter)', fontSize: '12px', padding: '13px 24px', borderRadius: '10px', cursor: 'pointer' }}>
+            Close
+          </button>
+        </div>
+
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' as const }}>Share on Instagram · TikTok · WhatsApp stories</p>
       </div>
     </div>
   )
@@ -308,6 +480,9 @@ export default function JournalDashboard() {
   const [chartMode, setChartMode] = useState('daily')
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [showRecap, setShowRecap] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [firstName, setFirstName] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -319,8 +494,11 @@ export default function JournalDashboard() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return
+      setUserId(session.user.id)
       const { data } = await supabase.from('trades').select('*').eq('user_id', session.user.id).order('created_at', { ascending: true })
       if (data) setTrades(data)
+      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single()
+      if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
       setLoading(false)
     })
   }, [])
@@ -357,17 +535,27 @@ export default function JournalDashboard() {
   const pnlCardBg = totalPnl > 0 ? dark ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.06)' : totalPnl < 0 ? dark ? 'rgba(220,50,50,0.08)' : 'rgba(220,50,50,0.06)' : cardBg
   const pnlCardBorder = totalPnl > 0 ? 'rgba(34,197,94,0.25)' : totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder
 
+  // ── RECAP BUTTON (reusable) ──
+  const RecapButton = () => (
+    <button onClick={() => setShowRecap(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #0d1e36, #1a3a6b)', color: '#7aaee8', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '10px 18px', border: '0.5px solid rgba(122,174,232,0.3)', borderRadius: '10px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}>
+      <span>✦</span> Monthly Recap
+    </button>
+  )
+
   // ── MOBILE ──
   if (isMobile) {
     return (
       <div style={{ padding: '20px 16px', background: bg, minHeight: '100vh' }}>
+        {showRecap && <RecapModal onClose={() => setShowRecap(false)} trades={trades} dark={dark} firstName={firstName} userId={userId} />}
 
-        {/* Header */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{ width: '16px', height: '1px', background: accent }} />Trading Journal
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1, marginBottom: '12px' }}>Overview.</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1 }}>Overview.</h1>
+            <RecapButton />
+          </div>
           <SegmentedControl
             options={TABS.map(tab => ({ label: tab.label, value: tab.value }))}
             value="overview"
@@ -376,18 +564,14 @@ export default function JournalDashboard() {
           />
         </div>
 
-        {/* P&L hero */}
         <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '16px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Total Net P&L</div>
             <div style={{ fontSize: '36px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1 }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
           </div>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '6px 12px', borderRadius: '20px' }}>
-            {total} trades
-          </div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '6px 12px', borderRadius: '20px' }}>{total} trades</div>
         </div>
 
-        {/* Win Rate + Trades side by side */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
           <div style={{ ...card, padding: '14px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Win Rate</div>
@@ -399,32 +583,22 @@ export default function JournalDashboard() {
           </div>
         </div>
 
-        {/* Avg W/L full width */}
         <div style={{ ...card, padding: '14px', marginBottom: '10px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Avg Win / Loss Ratio</div>
           <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} accent={accent} size={60} />
         </div>
 
-        {/* Chart */}
         <div style={{ ...card, padding: '16px', marginBottom: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '3px' }}>Cumulative P&L</div>
               <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '20px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
             </div>
-            <SegmentedControl
-              options={[{ label: 'Day', value: 'daily' }, { label: 'Wk', value: 'weekly' }, { label: 'Mo', value: 'monthly' }]}
-              value={chartMode}
-              onChange={setChartMode}
-              dark={dark}
-            />
+            <SegmentedControl options={[{ label: 'Day', value: 'daily' }, { label: 'Wk', value: 'weekly' }, { label: 'Mo', value: 'monthly' }]} value={chartMode} onChange={setChartMode} dark={dark} />
           </div>
-          <div style={{ height: '160px' }}>
-            <PnlChart data={chartData} trades={trades} dark={dark} />
-          </div>
+          <div style={{ height: '160px' }}><PnlChart data={chartData} trades={trades} dark={dark} /></div>
         </div>
 
-        {/* Recent trades */}
         <div style={{ ...card, overflow: 'hidden', marginBottom: '10px' }}>
           <div style={{ padding: '14px 14px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
@@ -451,7 +625,6 @@ export default function JournalDashboard() {
           ))}
         </div>
 
-        {/* Calendar */}
         <MonthCalendar trades={trades} dark={dark} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} textPrimary={textPrimary} textMuted={textMuted} accent={accent} tableBorder={tableBorder} isMobile={true} />
       </div>
     )
@@ -460,18 +633,23 @@ export default function JournalDashboard() {
   // ── DESKTOP ──
   return (
     <div style={{ padding: '40px 48px', background: bg, minHeight: '100vh' }}>
+      {showRecap && <RecapModal onClose={() => setShowRecap(false)} trades={trades} dark={dark} firstName={firstName} userId={userId} />}
+
       <div style={{ marginBottom: '28px' }}>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <h1 style={{ fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Overview.</h1>
-          <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="overview" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <RecapButton />
+            <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="overview" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
+          </div>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
-        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px', transition: 'all 0.4s ease' }}>
+        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total Net P&L</div>
           <div style={{ fontSize: '32px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '4px' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{total} trades</div>
@@ -499,9 +677,7 @@ export default function JournalDashboard() {
             </div>
             <SegmentedControl options={[{ label: 'Daily', value: 'daily' }, { label: 'Weekly', value: 'weekly' }, { label: 'Monthly', value: 'monthly' }]} value={chartMode} onChange={setChartMode} dark={dark} />
           </div>
-          <div style={{ height: '200px' }}>
-            <PnlChart data={chartData} trades={trades} dark={dark} />
-          </div>
+          <div style={{ height: '200px' }}><PnlChart data={chartData} trades={trades} dark={dark} /></div>
         </div>
 
         <div style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column' as const }}>
