@@ -281,7 +281,7 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
 }
 
 // ── MONTHLY RECAP CARD ──
-function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallPosts, firstName }: {
+function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallPosts, firstName, pairs, planAdherence }: {
   cardRef: React.RefObject<HTMLDivElement | null>
   monthLabel: string
   pnl: number
@@ -289,6 +289,8 @@ function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallP
   tradeCount: number
   wallPosts: number
   firstName?: string
+  pairs: string[]
+  planAdherence: number
 }) {
   const quotes = [
     "The market rewards discipline, not intelligence.",
@@ -302,14 +304,14 @@ function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallP
   const isPositive = pnl >= 0
 
   return (
-    <div ref={cardRef} style={{ width: '390px', height: '694px', background: 'linear-gradient(145deg, #0d1e36 0%, #0a1628 50%, #061020 100%)', borderRadius: '24px', padding: '40px 36px', display: 'flex', flexDirection: 'column' as const, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+    <div ref={cardRef} style={{ width: '390px', height: '760px', background: 'linear-gradient(145deg, #0d1e36 0%, #0a1628 50%, #061020 100%)', borderRadius: '24px', padding: '36px 36px', display: 'flex', flexDirection: 'column' as const, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
       {/* Grid pattern */}
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '36px 36px', pointerEvents: 'none' }} />
       {/* Glow */}
-      <div style={{ position: 'absolute', top: '160px', left: '50%', transform: 'translateX(-50%)', width: '320px', height: '320px', background: isPositive ? 'radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(220,50,50,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '140px', left: '50%', transform: 'translateX(-50%)', width: '320px', height: '320px', background: isPositive ? 'radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(220,50,50,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-      {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '44px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '36px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '22px', height: '22px', border: '1.5px solid #7aaee8', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: '6px', height: '6px', background: '#7aaee8', borderRadius: '1.5px' }} />
@@ -320,40 +322,69 @@ function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallP
       </div>
 
       {/* Recap label */}
-      <div style={{ position: 'relative', marginBottom: '10px' }}>
+      <div style={{ position: 'relative', marginBottom: '8px' }}>
         <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#7aaee8', letterSpacing: '0.2em', textTransform: 'uppercase' as const }}>
           {firstName ? `${firstName}'s` : 'My'} Monthly Recap
         </span>
       </div>
 
       {/* P&L Hero */}
-      <div style={{ position: 'relative', marginBottom: '6px' }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: '68px', fontWeight: '700', color: isPositive ? '#22c55e' : '#dc3232', lineHeight: 1, letterSpacing: '-2px', textShadow: isPositive ? '0 0 48px rgba(34,197,94,0.45)' : '0 0 48px rgba(220,50,50,0.45)' }}>
+      <div style={{ position: 'relative', marginBottom: '4px' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: '64px', fontWeight: '700', color: isPositive ? '#22c55e' : '#dc3232', lineHeight: 1, letterSpacing: '-2px', textShadow: isPositive ? '0 0 48px rgba(34,197,94,0.45)' : '0 0 48px rgba(220,50,50,0.45)' }}>
           {isPositive ? '+' : ''}{pnl.toFixed(0)}€
         </div>
       </div>
-      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '40px', position: 'relative' }}>Net profit this month</div>
+      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '28px', position: 'relative' }}>Net profit this month</div>
 
-      {/* Stats */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '36px', position: 'relative' }}>
+      {/* Stats row */}
+      <div style={{ display: 'flex', gap: '0', marginBottom: '24px', position: 'relative' }}>
         {[
           { label: 'Win Rate', value: `${winRate}%`, color: winRate >= 60 ? '#22c55e' : winRate >= 40 ? '#7aaee8' : '#dc3232' },
           { label: 'Trades', value: String(tradeCount), color: '#e0ecf8' },
           { label: 'Wall Posts', value: String(wallPosts), color: '#22c55e' },
+          { label: 'Plan', value: `${planAdherence}%`, color: planAdherence >= 70 ? '#22c55e' : planAdherence >= 40 ? '#7aaee8' : '#dc3232' },
         ].map((stat, i) => (
-          <div key={i} style={{ flex: 1, borderLeft: i > 0 ? '0.5px solid rgba(255,255,255,0.08)' : 'none', paddingLeft: i > 0 ? '20px' : '0' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: '30px', fontWeight: '700', color: stat.color, lineHeight: 1, marginBottom: '5px' }}>{stat.value}</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{stat.label}</div>
+          <div key={i} style={{ flex: 1, borderLeft: i > 0 ? '0.5px solid rgba(255,255,255,0.08)' : 'none', paddingLeft: i > 0 ? '14px' : '0' }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '700', color: stat.color, lineHeight: 1, marginBottom: '5px' }}>{stat.value}</div>
+            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Divider */}
-      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', marginBottom: '28px', position: 'relative' }} />
+      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', marginBottom: '20px', position: 'relative' }} />
+
+      {/* Pairs traded */}
+      {pairs.length > 0 && (
+        <div style={{ position: 'relative', marginBottom: '20px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Pairs Traded</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '6px' }}>
+            {pairs.map(pair => (
+              <div key={pair} style={{ background: 'rgba(122,174,232,0.1)', border: '0.5px solid rgba(122,174,232,0.25)', borderRadius: '6px', padding: '4px 10px', fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', color: '#7aaee8', letterSpacing: '0.05em' }}>
+                {pair}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Plan adherence bar */}
+      <div style={{ position: 'relative', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase' as const }}>Plan Adherence</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontWeight: '700', color: planAdherence >= 70 ? '#22c55e' : planAdherence >= 40 ? '#7aaee8' : '#dc3232' }}>{planAdherence}%</div>
+        </div>
+        <div style={{ height: '4px', background: 'rgba(255,255,255,0.07)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${planAdherence}%`, background: planAdherence >= 70 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : planAdherence >= 40 ? 'linear-gradient(90deg, #2b5ea7, #7aaee8)' : 'linear-gradient(90deg, #991b1b, #dc3232)', borderRadius: '2px' }} />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', marginBottom: '20px', position: 'relative' }} />
 
       {/* Quote + footer */}
       <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-end' }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: '1.75', marginBottom: '32px' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: '1.75', marginBottom: '24px' }}>
           "{quote}"
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -394,14 +425,20 @@ function RecapModal({ onClose, trades, dark, firstName, userId }: {
   const winRate = monthTrades.length > 0 ? Math.round((wins / monthTrades.length) * 100) : 0
   const monthLabel = new Date(year, month - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
 
+  // Unique pairs traded this month
+  const pairs = Array.from(new Set(monthTrades.map(t => t.pair))).filter(Boolean).slice(0, 8)
+
+  // Plan adherence — uses followed_plan boolean field; adjust if your field name differs
+  const tradesWithPlan = monthTrades.filter(t => t.followed_plan !== null)
+const planAdherence = tradesWithPlan.length > 0
+  ? Math.round((tradesWithPlan.filter(t => t.followed_plan === true).length / tradesWithPlan.length) * 100)
+  : 0
+
   const monthOptions = Array.from(new Set(trades.map(t => {
     const d = new Date(t.created_at)
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
   }))).sort().reverse()
-
-  // Also include current month even if no trades
-  const now = new Date()
-  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
   if (!monthOptions.includes(currentMonthKey)) monthOptions.unshift(currentMonthKey)
 
   useEffect(() => {
@@ -433,7 +470,6 @@ function RecapModal({ onClose, trades, dark, firstName, userId }: {
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', overflowY: 'auto' as const }} onClick={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '20px' }} onClick={e => e.stopPropagation()}>
 
-        {/* Month selector */}
         <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ background: '#0f1825', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 20px', color: '#e0ecf8', fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', outline: 'none' }}>
           {monthOptions.map(m => {
             const [y, mo] = m.split('-').map(Number)
@@ -441,7 +477,6 @@ function RecapModal({ onClose, trades, dark, firstName, userId }: {
           })}
         </select>
 
-        {/* Card */}
         <MonthlyRecapCard
           cardRef={cardRef}
           monthLabel={monthLabel}
@@ -450,9 +485,10 @@ function RecapModal({ onClose, trades, dark, firstName, userId }: {
           tradeCount={monthTrades.length}
           wallPosts={wallPosts}
           firstName={firstName}
+          pairs={pairs}
+          planAdherence={planAdherence}
         />
 
-        {/* Buttons */}
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={download} disabled={downloading} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', borderRadius: '10px', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}>
             {downloading ? 'Generating...' : '↓ Download Card'}
@@ -535,7 +571,6 @@ export default function JournalDashboard() {
   const pnlCardBg = totalPnl > 0 ? dark ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.06)' : totalPnl < 0 ? dark ? 'rgba(220,50,50,0.08)' : 'rgba(220,50,50,0.06)' : cardBg
   const pnlCardBorder = totalPnl > 0 ? 'rgba(34,197,94,0.25)' : totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder
 
-  // ── RECAP BUTTON (reusable) ──
   const RecapButton = () => (
     <button onClick={() => setShowRecap(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #0d1e36, #1a3a6b)', color: '#7aaee8', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '10px 18px', border: '0.5px solid rgba(122,174,232,0.3)', borderRadius: '10px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}>
       <span>✦</span> Monthly Recap
