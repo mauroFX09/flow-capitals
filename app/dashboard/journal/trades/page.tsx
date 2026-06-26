@@ -1,4 +1,5 @@
 'use client'
+import * as XLSX from 'xlsx'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -16,6 +17,7 @@ type Trade = {
   notes: string
   followed_plan: boolean | null
   screenshot_urls: string[]
+  session: string | null
   created_at: string
 }
 
@@ -39,6 +41,8 @@ const EMOTIONS = [
   { label: 'Greedy', emoji: '🤑' },
   { label: 'Bored', emoji: '😑' },
 ]
+
+const SESSIONS = ['Asia Killzone', 'London Killzone', 'New York Killzone', 'Other']
 
 const TABS = [
   { label: 'Overview', href: '/dashboard/journal', value: 'overview' },
@@ -149,9 +153,42 @@ type FormState = {
   take_profit: string
   lot_size: string
   pnl: string
+  rr: string
+  session: string
   emotion: string
   notes: string
   followed_plan: boolean | null
+}
+
+// ── EXPORT CSV ──
+function exportToCSV(trades: Trade[]) {
+  const wb = XLSX.utils.book_new()
+
+  const rows = [
+    ['Flow Capitals — Trade Log'],
+    [`Exported: ${new Date().toLocaleDateString('en-GB')}`],
+    [],
+    ['#', 'Date', 'Pair', 'Bias', 'Session', 'Result', 'P&L (€)', 'R:R'],
+    ...trades.map((t, i) => [
+      i + 1,
+      new Date(t.created_at).toLocaleDateString('en-GB'),
+      t.pair,
+      t.direction,
+      t.session || '',
+      t.pnl > 0 ? 'Win' : t.pnl < 0 ? 'Loss' : 'BE',
+      t.pnl,
+      t.rr || '',
+    ]),
+  ]
+
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  ws['!cols'] = [
+    { wch: 5 }, { wch: 14 }, { wch: 12 }, { wch: 10 },
+    { wch: 22 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
+  ]
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Trade Log')
+  XLSX.writeFile(wb, `flow-capitals-tradelog-${new Date().toISOString().split('T')[0]}.xlsx`)
 }
 
 // ── DETAIL POPUP ──
@@ -163,6 +200,7 @@ function DetailPopup({ trade, onClose, onEdit, onDelete, isMobile, theme }: {
   isMobile: boolean
   theme: Theme
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const { dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder } = theme
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
@@ -192,6 +230,11 @@ function DetailPopup({ trade, onClose, onEdit, onDelete, isMobile, theme }: {
           <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: trade.direction === 'Long' ? '#22c55e' : '#dc3232', background: trade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
             {trade.direction === 'Long' ? '↑ Long' : '↓ Short'}
           </span>
+          {trade.session && (
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', padding: '4px 12px', borderRadius: '6px' }}>
+              🕐 {trade.session}
+            </span>
+          )}
           {trade.followed_plan !== null && (
             <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: trade.followed_plan ? '#22c55e' : '#dc3232', background: trade.followed_plan ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
               {trade.followed_plan ? '✓ Followed Plan' : '✕ Broke Plan'}
@@ -242,9 +285,17 @@ function DetailPopup({ trade, onClose, onEdit, onDelete, isMobile, theme }: {
           <button onClick={() => onEdit(trade)} style={{ flex: 1, padding: '11px', background: accent, border: 'none', borderRadius: '10px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
             ✎ Edit
           </button>
-          <button onClick={() => onDelete(trade.id)} style={{ padding: '11px 20px', background: 'none', border: `0.5px solid rgba(220,50,50,0.3)`, borderRadius: '10px', color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
-            Delete
-          </button>
+          {confirmDelete ? (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>Are you sure?</span>
+              <button onClick={() => onDelete(trade.id)} style={{ padding: '11px 16px', background: '#dc3232', border: 'none', borderRadius: '10px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>Yes, delete</button>
+              <button onClick={() => setConfirmDelete(false)} style={{ padding: '11px 16px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '10px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer' }}>Cancel</button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmDelete(true)} style={{ padding: '11px 20px', background: 'none', border: `0.5px solid rgba(220,50,50,0.3)`, borderRadius: '10px', color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
+              Delete
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -318,6 +369,22 @@ function TradeForm({ form, setForm, isMobile, editingId, saving, uploading, scre
           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>P&L (€)</label>
           <input type="number" step="any" placeholder="+120.00" value={form.pnl} onChange={e => setForm({ ...form, pnl: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: parseFloat(form.pnl) > 0 ? '#22c55e' : parseFloat(form.pnl) < 0 ? '#dc3232' : textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
         </div>
+        <div>
+          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>R:R <span style={{ opacity: 0.5 }}>(optional)</span></label>
+          <input type="number" step="any" placeholder="auto-calc or enter manually" value={form.rr} onChange={e => setForm({ ...form, rr: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
+        </div>
+      </div>
+
+      {/* Session */}
+      <div style={{ marginBottom: '14px' }}>
+        <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Session</label>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
+          {SESSIONS.map(s => (
+            <button key={s} onClick={() => setForm({ ...form, session: form.session === s ? '' : s })} style={{ padding: isMobile ? '6px 10px' : '7px 14px', background: form.session === s ? accent : inputBg, border: `0.5px solid ${form.session === s ? accent : inputBorder}`, borderRadius: '20px', color: form.session === s ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: isMobile ? '11px' : '12px', cursor: 'pointer' }}>
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div style={{ marginBottom: '14px' }}>
@@ -376,8 +443,8 @@ function TradeForm({ form, setForm, isMobile, editingId, saving, uploading, scre
 const emptyForm = (): FormState => ({
   trade_date: new Date().toISOString().split('T')[0],
   pair: 'EUR/USD', direction: 'Long', entry_price: '',
-  stop_loss: '', take_profit: '', lot_size: '', pnl: '',
-  emotion: 'Calm', notes: '', followed_plan: null,
+  stop_loss: '', take_profit: '', lot_size: '', pnl: '', rr: '',
+  session: '', emotion: 'Calm', notes: '', followed_plan: null,
 })
 
 export default function TradeLog() {
@@ -393,6 +460,7 @@ export default function TradeLog() {
   const [screenshots, setScreenshots] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [detailTrade, setDetailTrade] = useState<Trade | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
 
@@ -450,6 +518,8 @@ export default function TradeLog() {
       take_profit: trade.take_profit?.toString() || '',
       lot_size: trade.lot_size?.toString() || '',
       pnl: trade.pnl?.toString() || '',
+      rr: trade.rr?.toString() || '',
+      session: trade.session || '',
       emotion: trade.emotion || 'Calm',
       notes: trade.notes || '',
       followed_plan: trade.followed_plan,
@@ -473,12 +543,14 @@ export default function TradeLog() {
     const entry = parseFloat(form.entry_price)
     const sl = parseFloat(form.stop_loss)
     const tp = parseFloat(form.take_profit)
-    const rr = sl && tp && entry ? Math.abs(tp - entry) / Math.abs(entry - sl) : 0
+    const autoRr = sl && tp && entry ? Math.abs(tp - entry) / Math.abs(entry - sl) : 0
+    const rr = parseFloat(form.rr) || parseFloat(autoRr.toFixed(2))
     const payload = {
       pair: form.pair, direction: form.direction,
       entry_price: entry || null, stop_loss: sl || null,
       take_profit: tp || null, lot_size: parseFloat(form.lot_size) || null,
-      pnl: parseFloat(form.pnl) || 0, rr: parseFloat(rr.toFixed(2)),
+      pnl: parseFloat(form.pnl) || 0, rr: rr,
+      session: form.session || null,
       emotion: form.emotion, notes: form.notes,
       followed_plan: form.followed_plan, screenshot_urls: screenshots,
       created_at: new Date(form.trade_date).toISOString(),
@@ -500,6 +572,7 @@ export default function TradeLog() {
     await supabase.from('trades').delete().eq('id', id)
     if (userId) loadTrades(userId)
     setDetailTrade(null)
+    setConfirmDeleteId(null)
   }
 
   const totalPages = Math.ceil(trades.length / PER_PAGE)
@@ -541,7 +614,7 @@ export default function TradeLog() {
         {isMobile ? (
           <>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1, marginBottom: '12px' }}>Trade Log.</h1>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
               <div style={{ flex: 1 }}>
                 <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="trades" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
               </div>
@@ -549,11 +622,20 @@ export default function TradeLog() {
                 + Log
               </button>
             </div>
+            <button onClick={() => exportToCSV(trades)} style={{ width: '100%', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '10px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer' }}>
+              ↓ Export to Spreadsheet
+            </button>
           </>
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Trade Log.</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button onClick={() => exportToCSV(trades)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '10px 16px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}
+                onMouseEnter={e => e.currentTarget.style.color = textPrimary}
+                onMouseLeave={e => e.currentTarget.style.color = textMuted}
+              >
+                ↓ Export to Spreadsheet
+              </button>
               <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="trades" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
               <button onClick={openNew} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
                 + Log Trade
@@ -624,6 +706,7 @@ export default function TradeLog() {
                   {trade.emotion && (
                     <div style={{ marginTop: '8px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>
                       {EMOTIONS.find(e => e.label === trade.emotion)?.emoji} {trade.emotion}
+                      {trade.session && <span style={{ marginLeft: '8px' }}>· {trade.session}</span>}
                       {trade.followed_plan !== null && <span style={{ marginLeft: '8px', color: trade.followed_plan ? '#22c55e' : '#dc3232' }}>{trade.followed_plan ? '· ✓ Plan' : '· ✕ Plan'}</span>}
                     </div>
                   )}
@@ -658,7 +741,7 @@ export default function TradeLog() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' as const }}>
                   <thead>
                     <tr style={{ borderBottom: `0.5px solid ${tableBorder}` }}>
-                      {['Date', 'Pair', 'Direction', 'Result', 'Entry', 'R:R', 'P&L', 'Emotion', 'Plan', 'Charts', ''].map(h => (
+                      {['Date', 'Pair', 'Direction', 'Session', 'Result', 'Entry', 'R:R', 'P&L', 'Emotion', 'Plan', 'Charts', ''].map(h => (
                         <th key={h} style={{ padding: '10px 14px', textAlign: 'left' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: textMuted, fontWeight: '400', whiteSpace: 'nowrap' as const }}>{h}</th>
                       ))}
                     </tr>
@@ -682,6 +765,7 @@ export default function TradeLog() {
                             {trade.direction === 'Long' ? '↑ Long' : '↓ Short'}
                           </span>
                         </td>
+                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, whiteSpace: 'nowrap' as const }}>{trade.session || '—'}</td>
                         <td style={{ padding: '12px 14px' }}>
                           <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
                             {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
@@ -717,10 +801,17 @@ export default function TradeLog() {
                             onMouseEnter={e => e.currentTarget.style.opacity = '1'}
                             onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
                           >✎</button>
-                          <button onClick={() => deleteTrade(trade.id)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px', opacity: 0.5 }}
-                            onMouseEnter={e => { e.currentTarget.style.color = '#dc3232'; e.currentTarget.style.opacity = '1' }}
-                            onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.opacity = '0.5' }}
-                          >✕</button>
+                          {confirmDeleteId === trade.id ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <button onClick={() => deleteTrade(trade.id)} style={{ background: '#dc3232', border: 'none', borderRadius: '4px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', padding: '3px 7px', cursor: 'pointer' }}>Yes</button>
+                              <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '4px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '9px', padding: '3px 7px', cursor: 'pointer' }}>No</button>
+                            </span>
+                          ) : (
+                            <button onClick={() => setConfirmDeleteId(trade.id)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px', opacity: 0.5 }}
+                              onMouseEnter={e => { e.currentTarget.style.color = '#dc3232'; e.currentTarget.style.opacity = '1' }}
+                              onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.opacity = '0.5' }}
+                            >✕</button>
+                          )}
                         </td>
                       </tr>
                     ))}
