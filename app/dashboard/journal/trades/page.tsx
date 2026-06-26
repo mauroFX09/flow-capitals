@@ -1,5 +1,5 @@
 'use client'
-import * as XLSX from 'xlsx'
+import XLSXStyle from 'xlsx-js-style'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -162,33 +162,54 @@ type FormState = {
 
 // ── EXPORT CSV ──
 function exportToCSV(trades: Trade[]) {
-  const wb = XLSX.utils.book_new()
+  const headerStyle = {
+    fill: { fgColor: { rgb: '0f1825' } },
+    font: { bold: true, color: { rgb: 'e0ecf8' }, sz: 10 },
+    alignment: { horizontal: 'center' as const, vertical: 'center' as const },
+  }
+  const titleStyle = { font: { bold: true, sz: 13, color: { rgb: '0B1F3A' } } }
+  const subStyle = { font: { sz: 9, color: { rgb: '8a8070' } } }
 
-  const rows = [
-    ['Flow Capitals — Trade Log'],
-    [`Exported: ${new Date().toLocaleDateString('en-GB')}`],
+  const aoa = [
+    [{ v: 'Flow Capitals — Trade Log', s: titleStyle }],
+    [{ v: `Exported: ${new Date().toLocaleDateString('en-GB')}`, s: subStyle }],
     [],
-    ['#', 'Date', 'Pair', 'Bias', 'Session', 'Result', 'P&L (€)', 'R:R'],
-    ...trades.map((t, i) => [
-      i + 1,
-      new Date(t.created_at).toLocaleDateString('en-GB'),
-      t.pair,
-      t.direction,
-      t.session || '',
-      t.pnl > 0 ? 'Win' : t.pnl < 0 ? 'Loss' : 'BE',
-      t.pnl,
-      t.rr || '',
-    ]),
+    ['#', 'Date', 'Pair', 'Bias', 'Session', 'Result', 'P&L (€)', 'R:R'].map(h => ({ v: h, s: headerStyle })),
+    ...trades.map((t, i) => {
+      const isWin = t.pnl > 0
+      const isLoss = t.pnl < 0
+      const resultStyle = isWin
+        ? { fill: { fgColor: { rgb: 'dcfce7' } }, font: { bold: true, color: { rgb: '16a34a' } } }
+        : isLoss
+        ? { fill: { fgColor: { rgb: 'fee2e2' } }, font: { bold: true, color: { rgb: 'dc2626' } } }
+        : {}
+      const pnlStyle = isWin
+        ? { font: { bold: true, color: { rgb: '16a34a' } } }
+        : isLoss
+        ? { font: { bold: true, color: { rgb: 'dc2626' } } }
+        : {}
+      return [
+        { v: i + 1, s: {} },
+        { v: new Date(t.created_at).toLocaleDateString('en-GB'), s: {} },
+        { v: t.pair, s: { font: { bold: true } } },
+        { v: t.direction, s: {} },
+        { v: t.session || '', s: {} },
+        { v: isWin ? 'Win' : isLoss ? 'Loss' : 'BE', s: resultStyle },
+        { v: t.pnl, s: pnlStyle },
+        { v: t.rr || '', s: {} },
+      ]
+    }),
   ]
 
-  const ws = XLSX.utils.aoa_to_sheet(rows)
+  const ws = XLSXStyle.utils.aoa_to_sheet(aoa)
   ws['!cols'] = [
     { wch: 5 }, { wch: 14 }, { wch: 12 }, { wch: 10 },
-    { wch: 22 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
+    { wch: 24 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
   ]
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Trade Log')
-  XLSX.writeFile(wb, `flow-capitals-tradelog-${new Date().toISOString().split('T')[0]}.xlsx`)
+  XLSXStyle.utils.book_append_sheet(XLSXStyle.utils.book_new(), ws, 'Trade Log')
+  const wb = XLSXStyle.utils.book_new()
+  XLSXStyle.utils.book_append_sheet(wb, ws, 'Trade Log')
+  XLSXStyle.writeFile(wb, `flow-capitals-tradelog-${new Date().toISOString().split('T')[0]}.xlsx`)
 }
 
 // ── DETAIL POPUP ──
