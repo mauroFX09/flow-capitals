@@ -1,5 +1,4 @@
 'use client'
-import XLSXStyle from 'xlsx-js-style'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -162,54 +161,73 @@ type FormState = {
 
 // ── EXPORT CSV ──
 function exportToCSV(trades: Trade[]) {
-  const headerStyle = {
-    fill: { fgColor: { rgb: '0f1825' } },
-    font: { bold: true, color: { rgb: 'e0ecf8' }, sz: 10 },
-    alignment: { horizontal: 'center' as const, vertical: 'center' as const },
-  }
-  const titleStyle = { font: { bold: true, sz: 13, color: { rgb: '0B1F3A' } } }
-  const subStyle = { font: { sz: 9, color: { rgb: '8a8070' } } }
+  const totalPnl = trades.reduce((sum, t) => sum + t.pnl, 0)
+  const wins = trades.filter(t => t.pnl > 0).length
+  const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0
 
-  const aoa = [
-    [{ v: 'Flow Capitals — Trade Log', s: titleStyle }],
-    [{ v: `Exported: ${new Date().toLocaleDateString('en-GB')}`, s: subStyle }],
-    [],
-    ['#', 'Date', 'Pair', 'Bias', 'Session', 'Result', 'P&L (€)', 'R:R'].map(h => ({ v: h, s: headerStyle })),
-    ...trades.map((t, i) => {
-      const isWin = t.pnl > 0
-      const isLoss = t.pnl < 0
-      const resultStyle = isWin
-        ? { fill: { fgColor: { rgb: 'dcfce7' } }, font: { bold: true, color: { rgb: '16a34a' } } }
-        : isLoss
-        ? { fill: { fgColor: { rgb: 'fee2e2' } }, font: { bold: true, color: { rgb: 'dc2626' } } }
-        : {}
-      const pnlStyle = isWin
-        ? { font: { bold: true, color: { rgb: '16a34a' } } }
-        : isLoss
-        ? { font: { bold: true, color: { rgb: 'dc2626' } } }
-        : {}
-      return [
-        { v: i + 1, s: {} },
-        { v: new Date(t.created_at).toLocaleDateString('en-GB'), s: {} },
-        { v: t.pair, s: { font: { bold: true } } },
-        { v: t.direction, s: {} },
-        { v: t.session || '', s: {} },
-        { v: isWin ? 'Win' : isLoss ? 'Loss' : 'BE', s: resultStyle },
-        { v: t.pnl, s: pnlStyle },
-        { v: t.rr || '', s: {} },
-      ]
-    }),
-  ]
+  const rows = trades.map((t, i) => {
+    const isWin = t.pnl > 0
+    const isLoss = t.pnl < 0
+    const result = isWin ? 'WIN' : isLoss ? 'LOSS' : 'BE'
+    const pnlStr = isWin ? `+€${t.pnl.toFixed(0)}` : isLoss ? `-€${Math.abs(t.pnl).toFixed(0)}` : '€0'
+    const resultColor = isWin ? '#22c55e' : isLoss ? '#ef4444' : '#94a3b8'
+    const resultBg = isWin ? 'rgba(34,197,94,0.12)' : isLoss ? 'rgba(239,68,68,0.12)' : 'rgba(148,163,184,0.1)'
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:13px 16px;color:rgba(255,255,255,0.3);font-size:12px;">${i + 1}</td>
+      <td style="padding:13px 16px;color:rgba(255,255,255,0.6);font-size:13px;">${new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+      <td style="padding:13px 16px;color:#fff;font-weight:700;font-size:13px;">${t.pair}</td>
+      <td style="padding:13px 16px;color:${t.direction === 'Long' ? '#22c55e' : '#ef4444'};font-size:13px;">${t.direction}</td>
+      <td style="padding:13px 16px;color:rgba(255,255,255,0.55);font-size:13px;">${t.session || '—'}</td>
+      <td style="padding:13px 16px;"><span style="color:${resultColor};font-weight:700;font-size:11px;background:${resultBg};padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">${result}</span></td>
+      <td style="padding:13px 16px;color:${resultColor};font-weight:700;font-size:14px;">${pnlStr}</td>
+      <td style="padding:13px 16px;color:rgba(255,255,255,0.45);font-size:13px;">${t.rr ? `1:${t.rr}` : '—'}</td>
+    </tr>`
+  }).join('')
 
-  const ws = XLSXStyle.utils.aoa_to_sheet(aoa)
-  ws['!cols'] = [
-    { wch: 5 }, { wch: 14 }, { wch: 12 }, { wch: 10 },
-    { wch: 24 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
-  ]
-  XLSXStyle.utils.book_append_sheet(XLSXStyle.utils.book_new(), ws, 'Trade Log')
-  const wb = XLSXStyle.utils.book_new()
-  XLSXStyle.utils.book_append_sheet(wb, ws, 'Trade Log')
-  XLSXStyle.writeFile(wb, `flow-capitals-tradelog-${new Date().toISOString().split('T')[0]}.xlsx`)
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Flow Capitals — Trade Record</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{background:#080d14;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;color:#fff;}</style>
+  </head><body>
+  <div style="background:#0d1929;border-bottom:1px solid rgba(255,255,255,0.08);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:30px;height:30px;border:2px solid #7aaee8;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+        <div style="width:10px;height:10px;background:#7aaee8;border-radius:2px;"></div>
+      </div>
+      <span style="font-size:15px;font-weight:700;letter-spacing:0.05em;"><span style="color:#fff;">FLOW</span> <span style="color:#7aaee8;">CAPITALS</span> — Trade Record</span>
+    </div>
+    <span style="color:rgba(255,255,255,0.25);font-size:12px;">flowcapitals.be</span>
+  </div>
+  <div style="padding:22px 40px;background:#0a1018;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:48px;">
+    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Exported</div><div style="font-size:14px;color:rgba(255,255,255,0.8);">${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div></div>
+    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Total Trades</div><div style="font-size:14px;color:rgba(255,255,255,0.8);">${trades.length}</div></div>
+    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Win Rate</div><div style="font-size:14px;color:rgba(255,255,255,0.8);">${winRate}%</div></div>
+    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Net P&amp;L</div><div style="font-size:18px;font-weight:700;color:${totalPnl >= 0 ? '#22c55e' : '#ef4444'};">${totalPnl >= 0 ? '+' : ''}€${Math.abs(totalPnl).toFixed(0)}</div></div>
+  </div>
+  <div style="padding:0 40px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+        ${['#','DATE','PAIR','BIAS','SESSION','RESULT','P&L (€)','R:R'].map(h => `<th style="padding:13px 16px;text-align:left;font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.3);font-weight:500;">${h}</th>`).join('')}
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>
+  <div style="margin:0 40px;padding:16px 16px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.4);">TOTAL</span>
+    <span style="font-size:16px;font-weight:700;color:${totalPnl >= 0 ? '#22c55e' : '#ef4444'};">${totalPnl >= 0 ? '+' : ''}€${Math.abs(totalPnl).toFixed(0)}</span>
+  </div>
+  <div style="padding:24px 40px;margin-top:8px;border-top:1px solid rgba(255,255,255,0.05);">
+    <p style="font-size:11px;color:rgba(255,255,255,0.18);text-align:center;">Generated by Flow Capitals · flowcapitals.be · Confidential track record</p>
+  </div>
+  <div style="position:fixed;bottom:24px;right:24px;">
+    <button onclick="window.print()" style="background:#7aaee8;color:#080d14;border:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.05em;">↓ Save as PDF</button>
+  </div>
+  <style>@media print{button{display:none!important;}}</style>
+  </body></html>`
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `flow-capitals-tradelog-${new Date().toISOString().split('T')[0]}.html`
+  link.click()
 }
 
 // ── DETAIL POPUP ──
