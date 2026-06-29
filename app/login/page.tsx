@@ -21,14 +21,35 @@ export default function Login() {
   }, [])
 
   async function handleSubmit() {
-    setLoading(true)
-    setError('')
-    setMessage('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError(error.message); setLoading(false); return }
-    router.push('/dashboard')
-    setLoading(false)
+  setLoading(true)
+  setError('')
+  setMessage('')
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) { setError(error.message); setLoading(false); return }
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) {
+    const { data: profile } = await supabase.from('profiles').select('active_session_token').eq('id', session.user.id).single()
+    const storedToken = localStorage.getItem('fc-session-token')
+
+    if (profile?.active_session_token && profile.active_session_token !== storedToken) {
+      // Already logged in on another device — block this login
+      await supabase.auth.signOut()
+      setError('This account is already active on another device. Contact Mauro to get access on this device.')
+      setLoading(false)
+      return
+    }
+
+    // First login or same device — issue/reuse token
+    const token = profile?.active_session_token || crypto.randomUUID()
+    localStorage.setItem('fc-session-token', token)
+    await supabase.from('profiles').update({ active_session_token: token }).eq('id', session.user.id)
   }
+
+  router.push('/dashboard')
+  setLoading(false)
+}
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--font-inter)', flexDirection: isMobile ? 'column' : 'row' }}>

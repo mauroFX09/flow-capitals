@@ -29,6 +29,13 @@ export default function ProfilePage() {
     created_at: '',
   })
 
+  // Password change state
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [passwordSaved, setPasswordSaved] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+
   useEffect(() => {
     const savedDark = localStorage.getItem('fc-dark-mode')
     if (savedDark === 'true') setDark(true)
@@ -99,6 +106,20 @@ export default function ProfilePage() {
     setTimeout(() => setSaved(false), 3000)
   }
 
+  async function changePassword() {
+    setPasswordError('')
+    if (newPassword.length < 8) { setPasswordError('Password must be at least 8 characters.'); return }
+    if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match.'); return }
+    setSavingPassword(true)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) { setPasswordError(error.message); setSavingPassword(false); return }
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordSaved(true)
+    setSavingPassword(false)
+    setTimeout(() => setPasswordSaved(false), 3000)
+  }
+
   function togglePair(pair: string) {
     setProfile(p => ({
       ...p,
@@ -119,7 +140,7 @@ export default function ProfilePage() {
   const inputBorder = dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.12)'
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
-  const inputStyle = { width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none' }
+  const inputStyle = { width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }
   const labelStyle = { display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }
 
   if (loading) return (
@@ -153,7 +174,6 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Layout: side-by-side on desktop, stacked on mobile */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '280px 1fr', gap: '12px', alignItems: 'start' }}>
 
         {/* Left column */}
@@ -186,7 +206,6 @@ export default function ProfilePage() {
           <div style={{ ...card, padding: '20px 24px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '14px' }}>Account Info</div>
             {isMobile ? (
-              // Horizontal 3-col grid on mobile to save space
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 {[
                   { label: 'Email', value: profile.email, colSpan: '1 / -1' },
@@ -212,6 +231,51 @@ export default function ProfilePage() {
               ))
             )}
           </div>
+
+          {/* Security — password change */}
+          <div style={{ ...card, padding: '20px 24px' }}>
+            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>Security</div>
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '10px' }}>
+              <div>
+                <label style={labelStyle}>New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Min. 8 characters"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new password"
+                  onKeyDown={e => e.key === 'Enter' && changePassword()}
+                  style={inputStyle}
+                />
+              </div>
+              {passwordError && (
+                <div style={{ padding: '8px 12px', background: 'rgba(220,50,50,0.06)', border: '0.5px solid rgba(220,50,50,0.2)', borderRadius: '8px' }}>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: '#dc3232', margin: 0 }}>{passwordError}</p>
+                </div>
+              )}
+              {passwordSaved && (
+                <div style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.06)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '8px' }}>
+                  <p style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: '#22c55e', margin: 0 }}>✓ Password updated successfully.</p>
+                </div>
+              )}
+              <button
+                onClick={changePassword}
+                disabled={savingPassword || !newPassword || !confirmPassword}
+                style={{ background: passwordSaved ? '#22c55e' : accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '11px', border: 'none', borderRadius: '10px', cursor: savingPassword || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer', opacity: savingPassword || (!newPassword || !confirmPassword) ? 0.6 : 1, transition: 'all 0.2s' }}
+              >
+                {savingPassword ? 'Updating...' : passwordSaved ? '✓ Updated' : 'Update Password →'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right column — editable fields */}
@@ -236,7 +300,6 @@ export default function ProfilePage() {
           <div style={{ ...card, padding: isMobile ? '20px' : '28px 32px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '16px' }}>Trading Profile</div>
 
-            {/* Experience */}
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Experience Level</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
@@ -248,7 +311,6 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Preferred pairs */}
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Preferred Pairs</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
@@ -260,20 +322,17 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Goals */}
             <div style={{ marginBottom: '16px' }}>
               <label style={labelStyle}>Trading Goals</label>
               <textarea value={profile.goals} onChange={e => setProfile(p => ({ ...p, goals: e.target.value }))} rows={3} placeholder="What do you want to achieve? What is your target monthly income from trading?" style={{ ...inputStyle, resize: 'vertical' as const }} />
             </div>
 
-            {/* Bio */}
             <div>
               <label style={labelStyle}>Bio <span style={{ opacity: 0.5 }}>(optional)</span></label>
               <textarea value={profile.bio} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))} rows={2} placeholder="A short description about yourself..." style={{ ...inputStyle, resize: 'vertical' as const }} />
             </div>
           </div>
 
-          {/* Mobile save button at bottom too — convenience */}
           {isMobile && (
             <button onClick={saveProfile} disabled={saving} style={{ background: saved ? '#22c55e' : accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving ? 0.7 : 1, marginBottom: 'env(safe-area-inset-bottom)' }}>
               {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes →'}

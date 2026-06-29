@@ -1,12 +1,11 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
-import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useDarkMode } from '@/lib/hooks'
 import { getTheme } from '@/lib/styles'
 
 const ADMIN_EMAIL = 'mauro.steenhoudt@gmail.com'
-
 const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 type Member = {
@@ -139,11 +138,12 @@ export default function AdminPage() {
   async function loadMembers() {
     setMembersLoading(true)
     try {
-      const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers()
+      const res = await fetch('/api/admin/list-users')
+      const { users } = await res.json()
       const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
-      if (profiles && authUsers) {
-        const merged = profiles.map(p => {
-          const authUser = authUsers.users.find(u => u.id === p.id)
+      if (profiles && users) {
+        const merged = profiles.map((p: any) => {
+          const authUser = users.find((u: any) => u.id === p.id)
           return { ...p, last_sign_in_at: authUser?.last_sign_in_at }
         })
         setMembers(merged)
@@ -225,19 +225,34 @@ export default function AdminPage() {
 
   async function deleteMember(memberId: string, name: string) {
     if (!confirm(`Delete ${name}? This cannot be undone.`)) return
-    await supabaseAdmin.auth.admin.deleteUser(memberId)
-    await supabase.from('profiles').delete().eq('id', memberId)
+    await fetch('/api/admin/delete-user', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId }),
+    })
     loadMembers()
     loadStats()
   }
 
+  async function resetSession(memberId: string, name: string) {
+    await fetch('/api/admin/reset-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId, name }),
+    })
+    setResetSuccess(`Session reset for ${name}. They can now log in on a new device.`)
+    setTimeout(() => setResetSuccess(''), 6000)
+  }
+
   async function resetPassword(email: string) {
-    const newPassword = `FC${Math.random().toString(36).slice(2, 8).toUpperCase()}!`
-    const { data: user } = await supabaseAdmin.auth.admin.listUsers()
-    const target = user?.users.find(u => u.email === email)
-    if (target) {
-      await supabaseAdmin.auth.admin.updateUserById(target.id, { password: newPassword })
-      setResetSuccess(`New password for ${email}: ${newPassword}`)
+    const res = await fetch('/api/admin/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    const data = await res.json()
+    if (data.newPassword) {
+      setResetSuccess(`New password for ${email}: ${data.newPassword}`)
       setTimeout(() => setResetSuccess(''), 10000)
     }
   }
@@ -248,21 +263,18 @@ export default function AdminPage() {
     setMemberError('')
     setCreatedMember(null)
     try {
-      const { data, error } = await supabaseAdmin.auth.admin.createUser({
-        email: memberForm.email,
-        password: memberForm.password,
-        email_confirm: true,
-        user_metadata: { full_name: memberForm.full_name }
+      const res = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memberForm),
       })
-      if (error) { setMemberError(error.message); setSavingMember(false); return }
-      if (data.user) {
-        await supabase.from('profiles').insert({ id: data.user.id, email: memberForm.email, full_name: memberForm.full_name, role: memberForm.role })
-        setCreatedMember({ full_name: memberForm.full_name, email: memberForm.email, password: memberForm.password, role: memberForm.role })
-        setMemberForm({ full_name: '', email: '', password: '', role: 'standard' })
-        setShowMemberForm(false)
-        loadMembers()
-        loadStats()
-      }
+      const data = await res.json()
+      if (!res.ok) { setMemberError(data.error || 'Failed to create member.'); setSavingMember(false); return }
+      setCreatedMember({ full_name: memberForm.full_name, email: memberForm.email, password: memberForm.password, role: memberForm.role })
+      setMemberForm({ full_name: '', email: '', password: '', role: 'standard' })
+      setShowMemberForm(false)
+      loadMembers()
+      loadStats()
     } catch (err) {
       setMemberError('Failed to create member.')
     }
@@ -314,9 +326,16 @@ export default function AdminPage() {
     setUploading(true)
     const ext = file.name.split('.').pop()
     const path = `${Date.now()}.${ext}`
-    const { error } = await supabaseAdmin.storage.from('course-videos').upload(path, file, { upsert: false })
+    const res = await fetch('/api/admin/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
+    const { token, error: urlError } = await res.json()
+    if (urlError) { console.error('Upload URL error:', urlError); setUploading(false); return }
+    const { error } = await supabase.storage.from('course-videos').uploadToSignedUrl(path, token, file)
     if (error) { console.error('Upload error:', error.message); setUploading(false); return }
-    const { data } = supabaseAdmin.storage.from('course-videos').getPublicUrl(path)
+    const { data } = supabase.storage.from('course-videos').getPublicUrl(path)
     setForm(f => ({ ...f, video_url: data.publicUrl }))
     setUploading(false)
   }
@@ -496,7 +515,7 @@ export default function AdminPage() {
           )}
 
           <div style={{ ...card, overflow: 'hidden' }}>
-            <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${tableBorder}`, display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 110px 100px 130px', gap: '12px' }}>
+            <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${tableBorder}`, display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 110px 100px 150px', gap: '12px' }}>
               {['Name', 'Email', 'Role', 'Joined', 'Last Active', 'Actions'].map(h => (
                 <div key={h} style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{h}</div>
               ))}
@@ -506,7 +525,7 @@ export default function AdminPage() {
             ) : members.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>No members yet</div>
             ) : members.map((member, idx) => (
-              <div key={member.id} style={{ padding: '14px 24px', borderBottom: idx < members.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 110px 100px 130px', gap: '12px', alignItems: 'center' }}>
+              <div key={member.id} style={{ padding: '14px 24px', borderBottom: idx < members.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 110px 100px 150px', gap: '12px', alignItems: 'center' }}>
                 <div style={{ fontSize: '13px', fontWeight: '600', color: textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.full_name}</div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.email}</div>
                 <div>
@@ -519,6 +538,10 @@ export default function AdminPage() {
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{formatDate(member.created_at)}</div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{timeAgo(member.last_sign_in_at)}</div>
                 <div style={{ display: 'flex', gap: '6px' }}>
+                  <button onClick={() => resetSession(member.id, member.full_name)} title="Reset session" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                  >🔄</button>
                   <button onClick={() => resetPassword(member.email)} title="Reset password" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
@@ -641,7 +664,6 @@ export default function AdminPage() {
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{wallPosts.length} posts total · {wallPosts.filter(p => p.is_public).length} public · {wallPosts.filter(p => !p.is_public).length} hidden</div>
             <input type="text" placeholder="Filter by member name..." value={wallFilter} onChange={e => setWallFilter(e.target.value)} style={{ background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '8px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', width: '220px' }} />
           </div>
-
           <div style={{ ...card, overflow: 'hidden' }}>
             <div style={{ padding: '14px 24px', borderBottom: `0.5px solid ${tableBorder}`, display: 'grid', gridTemplateColumns: '80px 1.5fr 2fr 100px 110px 120px', gap: '12px' }}>
               {['Photo', 'Member', 'Caption', 'Amount', 'Date', 'Actions'].map(h => (
@@ -686,7 +708,6 @@ export default function AdminPage() {
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, marginBottom: '20px' }}>
             Edit each day's session. Paste a Discord link to activate the Join Now button for members — clear it to hide it.
           </div>
-
           {scheduleLoading ? (
             <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading schedule...</div>
           ) : (
@@ -697,7 +718,6 @@ export default function AdminPage() {
                 const isSaving = scheduleSaving === row.day
                 const discordVal = getScheduleValue(row, 'discord_url')
                 const hasLink = !!discordVal
-
                 return (
                   <div key={row.id} style={{ ...card, padding: '20px 24px', border: isToday ? `1px solid ${accent}` : `0.5px solid ${cardBorder}`, boxShadow: isToday ? `0 0 0 1px ${accent}20` : cardShadow }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
@@ -705,7 +725,6 @@ export default function AdminPage() {
                         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: isToday ? accent : textPrimary, letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>{DAY_LABELS[row.day]}</div>
                         {isToday && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: accent, marginTop: '2px' }}>Today</div>}
                       </div>
-
                       <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '12px' }}>
                         <div>
                           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '5px' }}>Session Type</label>
@@ -736,7 +755,6 @@ export default function AdminPage() {
                           </div>
                         </div>
                       </div>
-
                       <div style={{ flexShrink: 0, paddingTop: '22px' }}>
                         <button onClick={() => saveScheduleRow(row)} disabled={isSaving || !hasEdits} style={{ background: hasEdits ? accent : 'transparent', color: hasEdits ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.06em', padding: '8px 18px', border: `1px solid ${hasEdits ? accent : cardBorder}`, borderRadius: '8px', cursor: hasEdits ? 'pointer' : 'default', opacity: isSaving ? 0.6 : 1, transition: 'all 0.15s', whiteSpace: 'nowrap' as const }}>
                           {isSaving ? 'Saving…' : 'Save'}
