@@ -107,12 +107,13 @@ export default function AdminPage() {
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
   async function authHeaders() {
-    const { data: { session } } = await supabase.auth.getSession()
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session?.access_token ?? ''}`,
-    }
+  await supabase.auth.refreshSession()
+  const { data: { session } } = await supabase.auth.getSession()
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${session?.access_token ?? ''}`,
   }
+}
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
