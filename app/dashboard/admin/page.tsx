@@ -106,6 +106,14 @@ export default function AdminPage() {
   const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, inputBg, inputBorder, tableBorder } = getTheme(dark)
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
+  async function authHeaders() {
+    const { data: { session } } = await supabase.auth.getSession()
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token ?? ''}`,
+    }
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session || session.user.email !== ADMIN_EMAIL) { router.push('/dashboard'); return }
@@ -138,7 +146,7 @@ export default function AdminPage() {
   async function loadMembers() {
     setMembersLoading(true)
     try {
-      const res = await fetch('/api/admin/list-users')
+      const res = await fetch('/api/admin/list-users', { headers: await authHeaders() })
       const { users } = await res.json()
       const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
       if (profiles && users) {
@@ -227,7 +235,7 @@ export default function AdminPage() {
     if (!confirm(`Delete ${name}? This cannot be undone.`)) return
     await fetch('/api/admin/delete-user', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({ memberId }),
     })
     loadMembers()
@@ -237,7 +245,7 @@ export default function AdminPage() {
   async function resetSession(memberId: string, name: string) {
     await fetch('/api/admin/reset-session', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({ memberId, name }),
     })
     setResetSuccess(`Session reset for ${name}. They can now log in on a new device.`)
@@ -247,7 +255,7 @@ export default function AdminPage() {
   async function resetPassword(email: string) {
     const res = await fetch('/api/admin/reset-password', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({ email }),
     })
     const data = await res.json()
@@ -265,7 +273,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/admin/create-user', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify(memberForm),
       })
       const data = await res.json()
@@ -328,7 +336,7 @@ export default function AdminPage() {
     const path = `${Date.now()}.${ext}`
     const res = await fetch('/api/admin/upload-url', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({ path }),
     })
     const { token, error: urlError } = await res.json()
@@ -433,7 +441,6 @@ export default function AdminPage() {
         <button style={TAB_STYLE(activeTab === 'schedule')} onClick={() => setActiveTab('schedule')}>Schedule</button>
       </div>
 
-      {/* ── MEMBERS TAB ── */}
       {activeTab === 'members' && (
         <div>
           <div style={{ marginBottom: '16px' }}>
@@ -557,7 +564,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ── CONTENT TAB ── */}
       {activeTab === 'content' && (
         <div>
           <div style={{ marginBottom: '16px' }}>
@@ -657,7 +663,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ── WALL TAB ── */}
       {activeTab === 'wall' && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -702,7 +707,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ── SCHEDULE TAB ── */}
       {activeTab === 'schedule' && (
         <div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, marginBottom: '20px' }}>
