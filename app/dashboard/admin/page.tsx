@@ -66,6 +66,9 @@ type Stats = {
   totalWallPosts: number
 }
 
+// ── NEW: tracks which item is pending inline confirmation ──
+type PendingDelete = { type: 'member' | 'lesson' | 'wall'; id: string; name: string }
+
 export default function AdminPage() {
   const router = useRouter()
   const dark = useDarkMode()
@@ -82,6 +85,9 @@ export default function AdminPage() {
   const [copied, setCopied] = useState(false)
   const [resetSuccess, setResetSuccess] = useState('')
   const [memberForm, setMemberForm] = useState({ full_name: '', email: '', password: '', role: 'standard' as 'standard' | 'premium' })
+
+  // ── NEW ──
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
 
   const [courses, setCourses] = useState<Course[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -107,19 +113,19 @@ export default function AdminPage() {
   const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
   async function authHeaders() {
-  const { data: { session } } = await supabase.auth.getSession()
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${session?.access_token ?? ''}`,
+    const { data: { session } } = await supabase.auth.getSession()
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token ?? ''}`,
+    }
   }
-}
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session || session.user.email !== ADMIN_EMAIL) { router.push('/dashboard'); return }
       setAuthorized(true)
-supabase.auth.startAutoRefresh()
-loadMembers()
+      supabase.auth.startAutoRefresh()
+      loadMembers()
       loadContent()
       loadStats()
       loadWall()
@@ -232,37 +238,75 @@ loadMembers()
     loadStats()
   }
 
-  async function deleteMember(memberId: string, name: string) {
-    if (!confirm(`Delete ${name}? This cannot be undone.`)) return
-    await fetch('/api/admin/delete-user', {
-      method: 'DELETE',
-      headers: await authHeaders(),
-      body: JSON.stringify({ memberId }),
-    })
+  // ── CHANGED: no confirm(), just set pendingDelete ──
+  function requestDeleteMember(member: Member) {
+    setPendingDelete({ type: 'member', id: member.id, name: member.full_name })
+  }
+
+  async function confirmDeleteMember(memberId: string) {
+    setPendingDelete(null)
+    setMemberError('')
+    try {
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'DELETE',
+        headers: await authHeaders(),
+        body: JSON.stringify({ memberId }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setMemberError(data.error || 'Failed to delete member.')
+        return
+      }
+    } catch {
+      setMemberError('Failed to delete member. Check your connection.')
+      return
+    }
     loadMembers()
     loadStats()
   }
 
+  // ── CHANGED: added try/catch + error display ──
   async function resetSession(memberId: string, name: string) {
-    await fetch('/api/admin/reset-session', {
-      method: 'POST',
-      headers: await authHeaders(),
-      body: JSON.stringify({ memberId, name }),
-    })
-    setResetSuccess(`Session reset for ${name}. They can now log in on a new device.`)
-    setTimeout(() => setResetSuccess(''), 6000)
+    setMemberError('')
+    try {
+      const res = await fetch('/api/admin/reset-session', {
+        method: 'POST',
+        headers: await authHeaders(),
+        body: JSON.stringify({ memberId, name }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setMemberError(data.error || 'Failed to reset session.')
+        return
+      }
+      setResetSuccess(`Session reset for ${name}. They can now log in on a new device.`)
+      setTimeout(() => setResetSuccess(''), 6000)
+    } catch {
+      setMemberError('Failed to reset session. Check your connection.')
+    }
   }
 
+  // ── CHANGED: added try/catch + error display ──
   async function resetPassword(email: string) {
-    const res = await fetch('/api/admin/reset-password', {
-      method: 'POST',
-      headers: await authHeaders(),
-      body: JSON.stringify({ email }),
-    })
-    const data = await res.json()
-    if (data.newPassword) {
-      setResetSuccess(`New password for ${email}: ${data.newPassword}`)
-      setTimeout(() => setResetSuccess(''), 10000)
+    setMemberError('')
+    try {
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: await authHeaders(),
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setMemberError(data.error || 'Failed to reset password.')
+        return
+      }
+      const data = await res.json()
+      if (data.newPassword) {
+        setResetSuccess(`New password for ${email}: ${data.newPassword}`)
+        setTimeout(() => setResetSuccess(''), 10000)
+      }
+    } catch {
+      setMemberError('Failed to reset password. Check your connection.')
     }
   }
 
@@ -284,7 +328,7 @@ loadMembers()
       setShowMemberForm(false)
       loadMembers()
       loadStats()
-    } catch (err) {
+    } catch {
       setMemberError('Failed to create member.')
     }
     setSavingMember(false)
@@ -313,8 +357,13 @@ loadMembers()
     setSaving(false)
   }
 
-  async function deleteLesson(id: string) {
-    if (!confirm('Delete this lesson?')) return
+  // ── CHANGED: no confirm(), just set pendingDelete ──
+  function requestDeleteLesson(lesson: Lesson) {
+    setPendingDelete({ type: 'lesson', id: lesson.id, name: lesson.title })
+  }
+
+  async function confirmDeleteLesson(id: string) {
+    setPendingDelete(null)
     await supabase.from('lessons').delete().eq('id', id)
     loadContent()
   }
@@ -362,8 +411,13 @@ loadMembers()
     loadStats()
   }
 
-  async function deleteWallPost(id: string) {
-    if (!confirm('Delete this post? This cannot be undone.')) return
+  // ── CHANGED: no confirm(), just set pendingDelete ──
+  function requestDeleteWallPost(post: WallPost) {
+    setPendingDelete({ type: 'wall', id: post.id, name: `post by ${profileNames[post.user_id] || 'member'}` })
+  }
+
+  async function confirmDeleteWallPost(id: string) {
+    setPendingDelete(null)
     await supabase.from('wall_posts').delete().eq('id', id)
     loadWall()
     loadStats()
@@ -407,6 +461,17 @@ loadMembers()
     : wallPosts
 
   const todayIndex = (new Date().getDay() + 6) % 7
+
+  // ── NEW: inline confirm buttons ──
+  function InlineConfirm({ pd, onConfirm }: { pd: PendingDelete; onConfirm: () => void }) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}>Sure?</span>
+        <button onClick={onConfirm} style={{ background: '#dc3232', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700' }}>Yes</button>
+        <button onClick={() => setPendingDelete(null)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>Cancel</button>
+      </div>
+    )
+  }
 
   return (
     <div style={{ padding: '40px 48px', background: bg, minHeight: '100vh' }}>
@@ -532,35 +597,45 @@ loadMembers()
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading members...</div>
             ) : members.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>No members yet</div>
-            ) : members.map((member, idx) => (
-              <div key={member.id} style={{ padding: '14px 24px', borderBottom: idx < members.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 110px 100px 150px', gap: '12px', alignItems: 'center' }}>
-                <div style={{ fontSize: '13px', fontWeight: '600', color: textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.full_name}</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.email}</div>
-                <div>
-                  <select value={member.role} onChange={e => changeRole(member.id, e.target.value)} style={{ background: member.role === 'premium' ? 'rgba(34,197,94,0.1)' : member.role === 'admin' ? 'rgba(43,94,167,0.1)' : 'rgba(245,158,11,0.1)', border: `0.5px solid ${member.role === 'premium' ? 'rgba(34,197,94,0.3)' : member.role === 'admin' ? 'rgba(43,94,167,0.3)' : 'rgba(245,158,11,0.3)'}`, borderRadius: '6px', padding: '4px 8px', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: member.role === 'premium' ? '#22c55e' : member.role === 'admin' ? accent : '#f59e0b', cursor: 'pointer', outline: 'none', width: '100%' }}>
-                    <option value="standard">Standard</option>
-                    <option value="premium">Premium</option>
-                    <option value="admin">Admin</option>
-                  </select>
+            ) : members.map((member, idx) => {
+              const isPendingDelete = pendingDelete?.type === 'member' && pendingDelete.id === member.id
+              return (
+                <div key={member.id} style={{ padding: '14px 24px', borderBottom: idx < members.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '2fr 1.5fr 100px 110px 100px 150px', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '600', color: textPrimary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.full_name}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.email}</div>
+                  <div>
+                    <select value={member.role} onChange={e => changeRole(member.id, e.target.value)} style={{ background: member.role === 'premium' ? 'rgba(34,197,94,0.1)' : member.role === 'admin' ? 'rgba(43,94,167,0.1)' : 'rgba(245,158,11,0.1)', border: `0.5px solid ${member.role === 'premium' ? 'rgba(34,197,94,0.3)' : member.role === 'admin' ? 'rgba(43,94,167,0.3)' : 'rgba(245,158,11,0.3)'}`, borderRadius: '6px', padding: '4px 8px', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: member.role === 'premium' ? '#22c55e' : member.role === 'admin' ? accent : '#f59e0b', cursor: 'pointer', outline: 'none', width: '100%' }}>
+                      <option value="standard">Standard</option>
+                      <option value="premium">Premium</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{formatDate(member.created_at)}</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{timeAgo(member.last_sign_in_at)}</div>
+                  {/* ── CHANGED: show inline confirm or normal buttons ── */}
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {isPendingDelete ? (
+                      <InlineConfirm pd={pendingDelete!} onConfirm={() => confirmDeleteMember(member.id)} />
+                    ) : (
+                      <>
+                        <button onClick={() => resetSession(member.id, member.full_name)} title="Reset session" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                        >🔄</button>
+                        <button onClick={() => resetPassword(member.email)} title="Reset password" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                        >🔑</button>
+                        <button onClick={() => requestDeleteMember(member)} title="Delete" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                        >✕</button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{formatDate(member.created_at)}</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{timeAgo(member.last_sign_in_at)}</div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button onClick={() => resetSession(member.id, member.full_name)} title="Reset session" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
-                  >🔄</button>
-                  <button onClick={() => resetPassword(member.email)} title="Reset password" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
-                  >🔑</button>
-                  <button onClick={() => deleteMember(member.id, member.full_name)} title="Delete" style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
-                  >✕</button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
@@ -632,30 +707,38 @@ loadMembers()
                     </div>
                     {courseLessons.length === 0 ? (
                       <div style={{ padding: '24px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, textAlign: 'center' as const }}>No lessons yet</div>
-                    ) : courseLessons.map((lesson, idx) => (
-                      <div key={lesson.id} style={{ padding: '12px 24px', borderBottom: idx < courseLessons.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '2px' }}>
-                          <button onClick={() => moveLesson(lesson, 'up', courseLessons)} disabled={idx === 0} style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'transparent' : textMuted, fontSize: '10px', padding: 0 }}>▲</button>
-                          <button onClick={() => moveLesson(lesson, 'down', courseLessons)} disabled={idx === courseLessons.length - 1} style={{ background: 'none', border: 'none', cursor: idx === courseLessons.length - 1 ? 'default' : 'pointer', color: idx === courseLessons.length - 1 ? 'transparent' : textMuted, fontSize: '10px', padding: 0 }}>▼</button>
+                    ) : courseLessons.map((lesson, idx) => {
+                      const isPendingDelete = pendingDelete?.type === 'lesson' && pendingDelete.id === lesson.id
+                      return (
+                        <div key={lesson.id} style={{ padding: '12px 24px', borderBottom: idx < courseLessons.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '2px' }}>
+                            <button onClick={() => moveLesson(lesson, 'up', courseLessons)} disabled={idx === 0} style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'transparent' : textMuted, fontSize: '10px', padding: 0 }}>▲</button>
+                            <button onClick={() => moveLesson(lesson, 'down', courseLessons)} disabled={idx === courseLessons.length - 1} style={{ background: 'none', border: 'none', cursor: idx === courseLessons.length - 1 ? 'default' : 'pointer', color: idx === courseLessons.length - 1 ? 'transparent' : textMuted, fontSize: '10px', padding: 0 }}>▼</button>
+                          </div>
+                          <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{lesson.order_number}</span>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '13px', fontWeight: '600', color: textPrimary }}>{lesson.title}</div>
+                            {lesson.description && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{lesson.description}</div>}
+                          </div>
+                          {lesson.video_url && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e', background: 'rgba(34,197,94,0.1)', padding: '3px 8px', borderRadius: '4px' }}>▶ Video</span>}
+                          <button onClick={() => startEdit(lesson)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                          >Edit</button>
+                          {/* ── CHANGED ── */}
+                          {isPendingDelete ? (
+                            <InlineConfirm pd={pendingDelete!} onConfirm={() => confirmDeleteLesson(lesson.id)} />
+                          ) : (
+                            <button onClick={() => requestDeleteLesson(lesson)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px', opacity: 0.5 }}
+                              onMouseEnter={e => { e.currentTarget.style.color = '#dc3232'; e.currentTarget.style.opacity = '1' }}
+                              onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.opacity = '0.5' }}
+                            >✕</button>
+                          )}
                         </div>
-                        <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{lesson.order_number}</span>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '13px', fontWeight: '600', color: textPrimary }}>{lesson.title}</div>
-                          {lesson.description && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{lesson.description}</div>}
-                        </div>
-                        {lesson.video_url && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e', background: 'rgba(34,197,94,0.1)', padding: '3px 8px', borderRadius: '4px' }}>▶ Video</span>}
-                        <button onClick={() => startEdit(lesson)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
-                        >Edit</button>
-                        <button onClick={() => deleteLesson(lesson.id)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px', opacity: 0.5 }}
-                          onMouseEnter={e => { e.currentTarget.style.color = '#dc3232'; e.currentTarget.style.opacity = '1' }}
-                          onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.opacity = '0.5' }}
-                        >✕</button>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )
               })}
@@ -680,30 +763,40 @@ loadMembers()
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading posts...</div>
             ) : filteredWall.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>No posts found</div>
-            ) : filteredWall.map((post, idx) => (
-              <div key={post.id} style={{ padding: '12px 24px', borderBottom: idx < filteredWall.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '80px 1.5fr 2fr 100px 110px 120px', gap: '12px', alignItems: 'center', opacity: post.is_public ? 1 : 0.5 }}>
-                <div style={{ width: '64px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', flexShrink: 0 }}>
-                  {post.screenshot_url ? <img src={post.screenshot_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📸</div>}
+            ) : filteredWall.map((post, idx) => {
+              const isPendingDelete = pendingDelete?.type === 'wall' && pendingDelete.id === post.id
+              return (
+                <div key={post.id} style={{ padding: '12px 24px', borderBottom: idx < filteredWall.length - 1 ? `0.5px solid ${tableBorder}` : 'none', display: 'grid', gridTemplateColumns: '80px 1.5fr 2fr 100px 110px 120px', gap: '12px', alignItems: 'center', opacity: post.is_public ? 1 : 0.5 }}>
+                  <div style={{ width: '64px', height: '40px', borderRadius: '6px', overflow: 'hidden', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', flexShrink: 0 }}>
+                    {post.screenshot_url ? <img src={post.screenshot_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>📸</div>}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '600', color: textPrimary }}>{profileNames[post.user_id] || 'Member'}</div>
+                    {!post.is_public && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#f59e0b', marginTop: '2px' }}>Hidden from wall</div>}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{post.caption || '—'}</div>
+                  <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color: '#22c55e' }}>+{post.amount.toFixed(0)}€</div>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{formatDate(post.created_at)}</div>
+                  {/* ── CHANGED ── */}
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {isPendingDelete ? (
+                      <InlineConfirm pd={pendingDelete!} onConfirm={() => confirmDeleteWallPost(post.id)} />
+                    ) : (
+                      <>
+                        <button onClick={() => toggleWallPost(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted, whiteSpace: 'nowrap' as const }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                        >{post.is_public ? 'Hide' : 'Show'}</button>
+                        <button onClick={() => requestDeleteWallPost(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
+                        >✕</button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '600', color: textPrimary }}>{profileNames[post.user_id] || 'Member'}</div>
-                  {!post.is_public && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#f59e0b', marginTop: '2px' }}>Hidden from wall</div>}
-                </div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{post.caption || '—'}</div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color: '#22c55e' }}>+{post.amount.toFixed(0)}€</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{formatDate(post.created_at)}</div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button onClick={() => toggleWallPost(post)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted, whiteSpace: 'nowrap' as const }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
-                  >{post.is_public ? 'Hide' : 'Show'}</button>
-                  <button onClick={() => deleteWallPost(post.id)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: textMuted }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#dc3232'; e.currentTarget.style.color = '#dc3232' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = cardBorder; e.currentTarget.style.color = textMuted }}
-                  >✕</button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
