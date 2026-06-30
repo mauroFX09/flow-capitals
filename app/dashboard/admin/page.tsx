@@ -118,7 +118,8 @@ export default function AdminPage() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session || session.user.email !== ADMIN_EMAIL) { router.push('/dashboard'); return }
       setAuthorized(true)
-      loadMembers()
+supabase.auth.startAutoRefresh()
+loadMembers()
       loadContent()
       loadStats()
       loadWall()
