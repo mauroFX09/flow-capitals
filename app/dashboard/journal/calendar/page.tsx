@@ -26,7 +26,7 @@ export default function CalendarPage() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return
-      const { data } = await supabase.from('trades').select('*').eq('user_id', session.user.id).order('created_at', { ascending: true })
+      const { data } = await supabase.from('trades').select('*').eq('user_id', session.user.id).order('trade_date', { ascending: true })
       if (data) setTrades(data)
       setLoading(false)
     })
@@ -40,9 +40,10 @@ export default function CalendarPage() {
 
   const dayMap: Record<number, { pnl: number; trades: Trade[] }> = {}
   trades.forEach(tr => {
-    const d = new Date(tr.created_at)
-    if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
-      const day = d.getDate()
+    if (!tr.trade_date) return
+    const [year, month, dayNum] = tr.trade_date.split('-').map(Number)
+    if (year === calYear && month - 1 === calMonth) {
+      const day = dayNum
       if (!dayMap[day]) dayMap[day] = { pnl: 0, trades: [] }
       dayMap[day].pnl += tr.pnl || 0
       dayMap[day].trades.push(tr)
@@ -166,8 +167,8 @@ export default function CalendarPage() {
                       <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '10px' : '11px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: isMobile ? '2px' : '6px', textAlign: isMobile ? 'center' as const : 'left' as const }}>{day}</div>
                       {data && !isMobile && (
                         <>
-                          <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: pnlColor, lineHeight: 1, marginBottom: '3px' }}>
-                            {pnl > 0 ? '+' : ''}{pnl.toFixed(0)}€
+                          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: '700', color: pnlColor, lineHeight: 1, marginBottom: '3px', letterSpacing: '-0.02em' }}>
+                            {pnl > 0 ? '+' : ''}€{pnl.toFixed(0)}
                           </div>
                           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{tradeCount} trade{tradeCount !== 1 ? 's' : ''}</div>
                         </>
@@ -203,8 +204,8 @@ export default function CalendarPage() {
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '3px' }}>
                   {new Date(calYear, calMonth, selectedDay!).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '22px', fontWeight: '700', color: selectedDayData.pnl >= 0 ? '#22c55e' : '#dc3232' }}>
-                  {selectedDayData.pnl >= 0 ? '+' : ''}{selectedDayData.pnl.toFixed(0)}€
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '22px', fontWeight: '700', color: selectedDayData.pnl >= 0 ? '#22c55e' : '#dc3232', letterSpacing: '-0.02em' }}>
+                  {selectedDayData.pnl >= 0 ? '+' : ''}€{selectedDayData.pnl.toFixed(0)}
                 </div>
               </div>
               <button onClick={() => setSelectedDay(null)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', color: textMuted, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
@@ -215,11 +216,11 @@ export default function CalendarPage() {
                 <div key={trade.id} style={{ background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(26,26,26,0.02)', border: `0.5px solid ${tableBorder}`, borderRadius: '10px', padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: textPrimary }}>{trade.pair}</span>
-                      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.direction === 'Long' ? '#22c55e' : '#dc3232', background: trade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{trade.direction?.toUpperCase()}</span>
+                      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: '700', color: textPrimary }}>{trade.pair}</span>
+                      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.direction === 'long' ? '#22c55e' : '#dc3232', background: trade.direction === 'long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{trade.direction?.toUpperCase()}</span>
                     </div>
-                    <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>
-                      {trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', fontWeight: '700', letterSpacing: '-0.02em', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>
+                      {trade.pnl > 0 ? '+' : ''}€{trade.pnl.toFixed(0)}
                     </span>
                   </div>
                   {trade.emotion && (

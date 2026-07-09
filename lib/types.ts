@@ -18,6 +18,7 @@ export type Trade = {
   pair: string
   direction: string
   entry_price: number | null
+  exit_price: number | null
   stop_loss: number | null
   take_profit: number | null
   lot_size: number | null
@@ -27,6 +28,9 @@ export type Trade = {
   notes: string | null
   followed_plan: boolean | null
   screenshot_urls: string[]
+  screenshots: string[]
+  session: string
+  trade_date: string
   created_at: string
 }
 
