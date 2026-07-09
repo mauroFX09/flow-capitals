@@ -23,6 +23,13 @@ const CHECKLIST_ITEMS = [
   { key: 'wall', label: 'Post on the Trading Wall', href: '/dashboard/wall' },
 ]
 
+const JOURNAL_SUBITEMS = [
+  { label: 'Overview',  href: '/dashboard/journal' },
+  { label: 'Trade Log', href: '/dashboard/journal/trades' },
+  { label: 'Report', href: '/dashboard/journal/report' },
+  { label: 'Calendar',  href: '/dashboard/journal/calendar' },
+]
+
 // ── AVATAR CIRCLE ──
 function AvatarCircle({ size = 30, avatarUrl, userEmail }: { size?: number; avatarUrl: string | null; userEmail: string }) {
   return (
@@ -408,11 +415,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {[...NAV_ITEMS.filter(i => i.href !== '__more'), ...MORE_ITEMS].filter(item => {
               if (item.access === 'admin') return isAdmin
               return true
-            }).map(item => {
+            }).flatMap(item => {
               const active = item.href === '/dashboard' ? pathname === '/dashboard' : pathname === item.href || pathname.startsWith(item.href + '/')
               const locked = item.access === 'premium' && !isPremium
               const adminItem = item.access === 'admin'
-              return (
+              const isJournal = item.href === '/dashboard/journal'
+              const journalActive = pathname === '/dashboard/journal' || pathname.startsWith('/dashboard/journal/')
+
+              const mainLink = (
                 <a key={item.href} href={locked ? '/dashboard/upgrade' : item.href}
                   title={collapsed ? item.label : undefined}
                   style={{ display: 'flex', alignItems: 'center', gap: collapsed ? '0' : '12px', padding: collapsed ? '10px 0' : '10px 10px', justifyContent: collapsed ? 'center' : 'flex-start', borderRadius: '8px', textDecoration: 'none', marginBottom: '2px', background: active ? navActive : 'transparent', borderLeft: collapsed ? 'none' : active ? '2px solid #2B5EA7' : '2px solid transparent', opacity: locked ? 0.5 : 1 }}
@@ -423,6 +433,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {!collapsed && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: active ? accent : adminItem ? accent : muted, fontWeight: active ? '600' : adminItem ? '600' : '400', whiteSpace: 'nowrap' as const, flex: 1 }}>{item.label}</span>}
                 </a>
               )
+
+              if (isJournal && journalActive && !collapsed) {
+                return [
+                  mainLink,
+                  <div key="journal-sub" style={{ marginLeft: '14px', paddingLeft: '10px', borderLeft: `0.5px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.1)'}`, marginBottom: '6px' }}>
+                    {JOURNAL_SUBITEMS.map(sub => {
+                      const subActive = sub.href === '/dashboard/journal'
+                        ? pathname === '/dashboard/journal'
+                        : pathname === sub.href || pathname.startsWith(sub.href + '/')
+                      return (
+                        <a key={sub.href} href={sub.href}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', borderRadius: '6px', textDecoration: 'none', marginBottom: '1px', background: subActive ? navActive : 'transparent' }}
+                          onMouseEnter={e => { if (!subActive) e.currentTarget.style.background = navHover }}
+                          onMouseLeave={e => { if (!subActive) e.currentTarget.style.background = 'transparent' }}
+                        >
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: subActive ? accent : (dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.2)'), flexShrink: 0 }} />
+                          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: subActive ? accent : muted, fontWeight: subActive ? '600' : '400', whiteSpace: 'nowrap' as const }}>{sub.label}</span>
+                        </a>
+                      )
+                    })}
+                  </div>
+                ]
+              }
+
+              return [mainLink]
             })}
 
             {!collapsed && !allDone && (

@@ -1,879 +1,650 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-type Trade = {
+interface Trade {
   id: string
+  user_id: string
   pair: string
-  direction: string
-  entry_price: number
-  stop_loss: number
-  take_profit: number
-  lot_size: number
+  direction: 'long' | 'short'
+  trade_date: string
+  entry_price: number | null
+  exit_price: number | null
+  stop_loss: number | null
+  take_profit: number | null
+  lot_size: number | null
   pnl: number
   rr: number
-  emotion: string
   notes: string
-  followed_plan: boolean | null
-  screenshot_urls: string[]
-  session: string | null
+  screenshots: string[]
+  session: string
+  emotion: string
+  followed_plan: boolean
   created_at: string
 }
 
-const PAIR_CATEGORIES = {
-  'Forex Majors': ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD'],
-  'Forex Minors': ['EUR/GBP', 'EUR/JPY', 'GBP/JPY', 'EUR/AUD', 'GBP/AUD', 'AUD/JPY', 'EUR/CAD', 'GBP/CAD'],
-  'Indices': ['NAS100', 'US500', 'US30', 'DAX40', 'FTSE100', 'JP225'],
-  'Commodities': ['XAU/USD', 'XAG/USD', 'USOIL', 'UKOIL'],
-  'Crypto': ['BTC/USD', 'ETH/USD', 'SOL/USD'],
-}
-
-const EMOTIONS = [
-  { label: 'Calm', emoji: '😌' },
-  { label: 'Confident', emoji: '💪' },
-  { label: 'Patient', emoji: '🧘' },
-  { label: 'Focused', emoji: '🎯' },
-  { label: 'Nervous', emoji: '😰' },
-  { label: 'FOMO', emoji: '😱' },
-  { label: 'Revenge', emoji: '😤' },
-  { label: 'Tired', emoji: '😴' },
-  { label: 'Greedy', emoji: '🤑' },
-  { label: 'Bored', emoji: '😑' },
+const PAIRS = [
+  'EUR/USD','GBP/USD','USD/JPY','USD/CHF','AUD/USD','NZD/USD','USD/CAD',
+  'EUR/GBP','EUR/JPY','EUR/CHF','EUR/AUD','EUR/CAD','EUR/NZD',
+  'GBP/JPY','GBP/CHF','GBP/AUD','GBP/CAD','GBP/NZD',
+  'AUD/JPY','AUD/CHF','AUD/CAD','AUD/NZD',
+  'NZD/JPY','CHF/JPY','CAD/JPY',
+  'XAU/USD','XAG/USD',
+  'BTC/USD','ETH/USD',
+  'US30','NAS100','SPX500',
 ]
 
-const SESSIONS = ['Asia Killzone', 'London Killzone', 'New York Killzone', 'Other']
+// ─── Trade Detail Modal ───────────────────────────────────────────────────────
 
-const TABS = [
-  { label: 'Overview', href: '/dashboard/journal', value: 'overview' },
-  { label: 'Trade Log', href: '/dashboard/journal/trades', value: 'trades' },
-  { label: 'Analytics', href: '/dashboard/journal/analytics', value: 'analytics' },
-]
-
-const PER_PAGE = 10
-
-function getPairDisplay(pair: string) {
-  return pair.replace('/', '').substring(0, 2).toUpperCase()
-}
-
-function PairBadge({ pair, dark }: { pair: string; dark: boolean }) {
-  return (
-    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: dark ? 'rgba(122,174,232,0.12)' : 'rgba(43,94,167,0.08)', border: `0.5px solid ${dark ? 'rgba(122,174,232,0.2)' : 'rgba(43,94,167,0.15)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: dark ? '#7aaee8' : '#2B5EA7', letterSpacing: '0.02em' }}>{getPairDisplay(pair)}</span>
-    </div>
-  )
-}
-
-function SegmentedControl({ options, value, onChange, dark }: {
-  options: { label: string; value: string }[]
-  value: string
-  onChange: (v: string) => void
-  dark: boolean
-}) {
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const activeIdx = options.findIndex(o => o.value === value)
-  return (
-    <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
-      <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
-      {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function PairSelector({ value, onChange, dark }: { value: string; onChange: (v: string) => void; dark: boolean }) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.1)'
-  const textPrimary = dark ? '#e0ecf8' : '#1a1a1a'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const accent = dark ? '#7aaee8' : '#2B5EA7'
-  const inputBg = dark ? '#0a1018' : '#F5F2EC'
-
-  const filtered = Object.entries(PAIR_CATEGORIES).reduce((acc, [cat, pairs]) => {
-    const f = pairs.filter(p => p.toLowerCase().includes(search.toLowerCase()))
-    if (f.length) acc[cat] = f
-    return acc
-  }, {} as Record<string, string[]>)
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(!open)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '10px 12px', cursor: 'pointer' }}>
-        <PairBadge pair={value} dark={dark} />
-        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, flex: 1, textAlign: 'left' as const }}>{value}</span>
-        <span style={{ fontSize: '10px', color: textMuted }}>▼</span>
-      </button>
-      {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '12px', boxShadow: dark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: '280px', overflowY: 'auto' as const }}>
-          <div style={{ padding: '10px' }}>
-            <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pairs..." style={{ width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', padding: '8px 12px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-          </div>
-          {Object.entries(filtered).map(([cat, pairs]) => (
-            <div key={cat}>
-              <div style={{ padding: '6px 14px', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{cat}</div>
-              {pairs.map(pair => (
-                <button key={pair} onClick={() => { onChange(pair); setOpen(false); setSearch('') }} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '9px 14px', background: pair === value ? (dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.06)') : 'transparent', border: 'none', cursor: 'pointer' }}>
-                  <PairBadge pair={pair} dark={dark} />
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: pair === value ? accent : textPrimary }}>{pair}</span>
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-type Theme = {
-  dark: boolean
-  cardBg: string
-  cardBorder: string
-  cardShadow: string
-  textPrimary: string
-  textMuted: string
-  accent: string
-  inputBg: string
-  inputBorder: string
-  tableBorder: string
-}
-
-type FormState = {
-  trade_date: string
-  pair: string
-  direction: string
-  entry_price: string
-  stop_loss: string
-  take_profit: string
-  lot_size: string
-  pnl: string
-  rr: string
-  session: string
-  emotion: string
-  notes: string
-  followed_plan: boolean | null
-}
-
-// ── EXPORT CSV ──
-function exportToCSV(trades: Trade[]) {
-  const totalPnl = trades.reduce((sum, t) => sum + t.pnl, 0)
-  const wins = trades.filter(t => t.pnl > 0).length
-  const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0
-
-  const rows = trades.map((t, i) => {
-    const isWin = t.pnl > 0
-    const isLoss = t.pnl < 0
-    const result = isWin ? 'WIN' : isLoss ? 'LOSS' : 'BE'
-    const pnlStr = isWin ? `+€${t.pnl.toFixed(0)}` : isLoss ? `-€${Math.abs(t.pnl).toFixed(0)}` : '€0'
-    const resultColor = isWin ? '#22c55e' : isLoss ? '#ef4444' : '#94a3b8'
-    const resultBg = isWin ? 'rgba(34,197,94,0.12)' : isLoss ? 'rgba(239,68,68,0.12)' : 'rgba(148,163,184,0.1)'
-    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-      <td style="padding:13px 16px;color:rgba(255,255,255,0.3);font-size:12px;">${i + 1}</td>
-      <td style="padding:13px 16px;color:rgba(255,255,255,0.6);font-size:13px;">${new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-      <td style="padding:13px 16px;color:#fff;font-weight:700;font-size:13px;">${t.pair}</td>
-      <td style="padding:13px 16px;color:${t.direction === 'Long' ? '#22c55e' : '#ef4444'};font-size:13px;">${t.direction}</td>
-      <td style="padding:13px 16px;color:rgba(255,255,255,0.55);font-size:13px;">${t.session || '—'}</td>
-      <td style="padding:13px 16px;"><span style="color:${resultColor};font-weight:700;font-size:11px;background:${resultBg};padding:4px 10px;border-radius:4px;letter-spacing:0.06em;">${result}</span></td>
-      <td style="padding:13px 16px;color:${resultColor};font-weight:700;font-size:14px;">${pnlStr}</td>
-      <td style="padding:13px 16px;color:rgba(255,255,255,0.45);font-size:13px;">${t.rr ? `1:${t.rr}` : '—'}</td>
-    </tr>`
-  }).join('')
-
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Flow Capitals — Trade Record</title>
-  <style>*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}body{background:#080d14;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;color:#fff;}</style>
-  </head><body>
-  <div style="background:#0d1929;border-bottom:1px solid rgba(255,255,255,0.08);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:30px;height:30px;border:2px solid #7aaee8;border-radius:6px;display:flex;align-items:center;justify-content:center;">
-        <div style="width:10px;height:10px;background:#7aaee8;border-radius:2px;"></div>
-      </div>
-      <span style="font-size:15px;font-weight:700;letter-spacing:0.05em;"><span style="color:#fff;">FLOW</span> <span style="color:#7aaee8;">CAPITALS</span> — Trade Record</span>
-    </div>
-    <span style="color:rgba(255,255,255,0.25);font-size:12px;">flowcapitals.be</span>
-  </div>
-  <div style="padding:22px 40px;background:#0a1018;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:48px;">
-    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Exported</div><div style="font-size:14px;color:rgba(255,255,255,0.8);">${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div></div>
-    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Total Trades</div><div style="font-size:14px;color:rgba(255,255,255,0.8);">${trades.length}</div></div>
-    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Win Rate</div><div style="font-size:14px;color:rgba(255,255,255,0.8);">${winRate}%</div></div>
-    <div><div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Net P&amp;L</div><div style="font-size:18px;font-weight:700;color:${totalPnl >= 0 ? '#22c55e' : '#ef4444'};">${totalPnl >= 0 ? '+' : ''}€${Math.abs(totalPnl).toFixed(0)}</div></div>
-  </div>
-  <div style="padding:0 40px;">
-    <table style="width:100%;border-collapse:collapse;">
-      <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
-        ${['#','DATE','PAIR','BIAS','SESSION','RESULT','P&L (€)','R:R'].map(h => `<th style="padding:13px 16px;text-align:left;font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.3);font-weight:500;">${h}</th>`).join('')}
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>
-  <div style="margin:0 40px;padding:16px 16px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.4);">TOTAL</span>
-    <span style="font-size:16px;font-weight:700;color:${totalPnl >= 0 ? '#22c55e' : '#ef4444'};">${totalPnl >= 0 ? '+' : ''}€${Math.abs(totalPnl).toFixed(0)}</span>
-  </div>
-  <div style="padding:24px 40px;margin-top:8px;border-top:1px solid rgba(255,255,255,0.05);">
-    <p style="font-size:11px;color:rgba(255,255,255,0.18);text-align:center;">Generated by Flow Capitals · flowcapitals.be · Confidential track record</p>
-  </div>
-  <div style="position:fixed;bottom:24px;right:24px;">
-    <button onclick="window.print()" style="background:#7aaee8;color:#080d14;border:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.05em;">↓ Save as PDF</button>
-  </div>
-  <style>@media print{button{display:none!important;}}</style>
-  </body></html>`
-
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `flow-capitals-tradelog-${new Date().toISOString().split('T')[0]}.html`
-  link.click()
-}
-
-// ── DETAIL POPUP ──
-function DetailPopup({ trade, onClose, onEdit, onDelete, isMobile, theme }: {
+function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
   trade: Trade
+  dark: boolean
   onClose: () => void
-  onEdit: (trade: Trade) => void
-  onDelete: (id: string) => void
-  isMobile: boolean
-  theme: Theme
+  onEdit: () => void
+  onDelete: () => void
 }) {
+  const accent      = '#2B5EA7'
+  const cardBg      = dark ? '#1a1a1a' : '#ffffff'
+  const cardBorder  = dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)'
+  const textPrimary = dark ? '#ffffff' : '#1a1a1a'
+  const textMuted   = dark ? 'rgba(255,255,255,0.4)' : 'rgba(26,26,26,0.4)'
+  const overlayBg   = dark ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.45)'
+  const divider     = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const rowBg       = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
+
+  const pnlColor = trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textPrimary
+  const date = new Date(trade.trade_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const { dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder } = theme
-  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
+
+  // close on backdrop click
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose()
+  }
+
+  // close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') lightboxUrl ? setLightboxUrl(null) : onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [lightboxUrl, onClose])
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em',
+    textTransform: 'uppercase', color: textMuted,
+  }
+  const valueStyle: React.CSSProperties = {
+    fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, fontWeight: 500,
+  }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? '0' : '24px' }}
-      onClick={onClose}>
-      <div style={{ ...card, width: '100%', maxWidth: isMobile ? '100%' : '680px', maxHeight: '90vh', overflowY: 'auto' as const, padding: isMobile ? '24px 20px' : '36px', borderTop: `3px solid ${trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : accent}`, borderRadius: isMobile ? '20px 20px 0 0' : '16px' }}
-        onClick={e => e.stopPropagation()}>
-
-        {isMobile && <div style={{ width: '40px', height: '4px', background: dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.15)', borderRadius: '2px', margin: '0 auto 20px' }} />}
-
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <PairBadge pair={trade.pair} dark={dark} />
+    <>
+      {/* Backdrop */}
+      <div onClick={handleBackdrop} style={{
+        position: 'fixed', inset: 0, background: overlayBg,
+        zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px', backdropFilter: 'blur(4px)',
+      }}>
+        {/* Modal */}
+        <div style={{
+          background: cardBg, border: `0.5px solid ${cardBorder}`,
+          borderRadius: '20px', width: '100%', maxWidth: '520px',
+          maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: dark ? '0 24px 80px rgba(0,0,0,0.7)' : '0 24px 80px rgba(0,0,0,0.18)',
+        }}>
+          {/* Header */}
+          <div style={{ padding: '22px 24px 16px', borderBottom: `0.5px solid ${divider}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '18px' : '22px', fontWeight: '700', color: textPrimary }}>{trade.pair}</div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+              <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 700, color: textPrimary, marginBottom: '4px' }}>
+                {trade.pair}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{date}</span>
+                <span style={{
+                  fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 700,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  color: trade.direction === 'long' ? '#22c55e' : '#dc3232',
+                  background: trade.direction === 'long'
+                    ? (dark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)')
+                    : (dark ? 'rgba(220,50,50,0.12)' : 'rgba(220,50,50,0.08)'),
+                  padding: '3px 8px', borderRadius: '6px',
+                }}>{trade.direction}</span>
+                {trade.session && (
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize' }}>
+                    {trade.session}
+                  </span>
+                )}
+              </div>
             </div>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '22px', lineHeight: 1, padding: '0 0 0 12px', flexShrink: 0 }}>×</button>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '20px', lineHeight: 1 }}>✕</button>
-        </div>
 
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' as const }}>
-          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
-            {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
-          </span>
-          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: trade.direction === 'Long' ? '#22c55e' : '#dc3232', background: trade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
-            {trade.direction === 'Long' ? '↑ Long' : '↓ Short'}
-          </span>
-          {trade.session && (
-            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', padding: '4px 12px', borderRadius: '6px' }}>
-              🕐 {trade.session}
-            </span>
-          )}
-          {trade.followed_plan !== null && (
-            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', color: trade.followed_plan ? '#22c55e' : '#dc3232', background: trade.followed_plan ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '4px 12px', borderRadius: '6px' }}>
-              {trade.followed_plan ? '✓ Followed Plan' : '✕ Broke Plan'}
-            </span>
-          )}
-          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', padding: '4px 12px', borderRadius: '6px' }}>
-            {EMOTIONS.find(e => e.label === trade.emotion)?.emoji} {trade.emotion}
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '8px', marginBottom: '20px' }}>
-          {[
-            { label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}${trade.pnl?.toFixed(0)}€`, color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textPrimary },
-            { label: 'R:R', value: trade.rr ? `1:${trade.rr}` : '—', color: textPrimary },
-            { label: 'Entry', value: trade.entry_price?.toString() || '—', color: textPrimary },
-            { label: 'Stop Loss', value: trade.stop_loss?.toString() || '—', color: textPrimary },
-            { label: 'Take Profit', value: trade.take_profit?.toString() || '—', color: textPrimary },
-            { label: 'Lot Size', value: trade.lot_size?.toString() || '—', color: textPrimary },
-          ].map(stat => (
-            <div key={stat.label} style={{ background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(26,26,26,0.03)', borderRadius: '10px', padding: '12px 14px' }}>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '4px' }}>{stat.label}</div>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '15px' : '18px', fontWeight: '700', color: stat.color }}>{stat.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {trade.notes && (
-          <div style={{ marginBottom: '20px', padding: '14px', background: dark ? 'rgba(255,255,255,0.03)' : 'rgba(26,26,26,0.03)', borderRadius: '10px' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Notes & Thesis</div>
-            <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: textPrimary, lineHeight: '1.7', margin: 0 }}>{trade.notes}</p>
-          </div>
-        )}
-
-        {trade.screenshot_urls?.length > 0 && (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Charts</div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' as const }}>
-              {trade.screenshot_urls.map((url, i) => (
-                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                  <img src={url} alt={`chart ${i + 1}`} style={{ width: isMobile ? '100px' : '180px', height: isMobile ? '70px' : '120px', objectFit: 'cover', borderRadius: '8px', border: `0.5px solid ${cardBorder}` }} />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', gap: '10px', paddingTop: '16px', borderTop: `0.5px solid ${tableBorder}` }}>
-          <button onClick={() => onEdit(trade)} style={{ flex: 1, padding: '11px', background: accent, border: 'none', borderRadius: '10px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-            ✎ Edit
-          </button>
-          {confirmDelete ? (
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>Are you sure?</span>
-              <button onClick={() => onDelete(trade.id)} style={{ padding: '11px 16px', background: '#dc3232', border: 'none', borderRadius: '10px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>Yes, delete</button>
-              <button onClick={() => setConfirmDelete(false)} style={{ padding: '11px 16px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '10px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer' }}>Cancel</button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmDelete(true)} style={{ padding: '11px 20px', background: 'none', border: `0.5px solid rgba(220,50,50,0.3)`, borderRadius: '10px', color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>
-              Delete
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── TRADE FORM ──
-function TradeForm({ form, setForm, isMobile, editingId, saving, uploading, screenshots, setScreenshots, fileRef, onUpload, onSave, onClose, theme }: {
-  form: FormState
-  setForm: (f: FormState) => void
-  isMobile: boolean
-  editingId: string | null
-  saving: boolean
-  uploading: boolean
-  screenshots: string[]
-  setScreenshots: (s: string[]) => void
-  fileRef: React.RefObject<HTMLInputElement | null>
-  onUpload: (file: File) => void
-  onSave: () => void
-  onClose: () => void
-  theme: Theme
-}) {
-  const { dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, inputBg, inputBorder } = theme
-  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
-
-  return (
-    <div style={{ ...card, padding: isMobile ? '20px 16px' : '32px', marginBottom: '16px', borderTop: `3px solid ${accent}` }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.16em', textTransform: 'uppercase' as const }}>
-          {editingId ? 'Edit Trade' : 'New Trade Entry'}
-        </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '18px' }}>✕</button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? '10px' : '14px', marginBottom: '14px' }}>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Trade Date</label>
-          <input type="date" value={form.trade_date} onChange={e => setForm({ ...form, trade_date: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Direction</label>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            {['Long', 'Short'].map(d => (
-              <button key={d} onClick={() => setForm({ ...form, direction: d })} style={{ flex: 1, padding: '10px 6px', background: form.direction === d ? (d === 'Long' ? '#22c55e' : '#dc3232') : inputBg, border: `0.5px solid ${form.direction === d ? 'transparent' : inputBorder}`, borderRadius: '10px', color: form.direction === d ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: isMobile ? '11px' : '12px', cursor: 'pointer', fontWeight: '600' }}>
-                {d === 'Long' ? '↑' : '↓'} {d}
-              </button>
+          {/* Stats grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: divider, borderBottom: `0.5px solid ${divider}` }}>
+            {[
+              { label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}€${trade.pnl?.toFixed(0) ?? '—'}`, color: pnlColor },
+              { label: 'R:R', value: trade.rr > 0 ? `1:${trade.rr}` : '—', color: textPrimary },
+              { label: 'Emotion', value: trade.emotion || '—', color: textPrimary },
+            ].map(({ label, value, color }) => (
+              <div key={label} style={{ background: rowBg, padding: '14px 16px' }}>
+                <div style={{ ...labelStyle, marginBottom: '5px' }}>{label}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, color, letterSpacing: '-0.01em', textTransform: 'capitalize' }}>{value}</div>
+              </div>
             ))}
           </div>
-        </div>
-        <div style={{ gridColumn: isMobile ? '1 / -1' : 'auto' }}>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Pair</label>
-          <PairSelector value={form.pair} onChange={pair => setForm({ ...form, pair })} dark={dark} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Entry</label>
-          <input type="number" step="any" placeholder="1.08500" value={form.entry_price} onChange={e => setForm({ ...form, entry_price: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Stop Loss</label>
-          <input type="number" step="any" placeholder="1.08200" value={form.stop_loss} onChange={e => setForm({ ...form, stop_loss: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Take Profit</label>
-          <input type="number" step="any" placeholder="1.09500" value={form.take_profit} onChange={e => setForm({ ...form, take_profit: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Lot Size</label>
-          <input type="number" step="any" placeholder="0.10" value={form.lot_size} onChange={e => setForm({ ...form, lot_size: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>P&L (€)</label>
-          <input type="number" step="any" placeholder="+120.00" value={form.pnl} onChange={e => setForm({ ...form, pnl: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: parseFloat(form.pnl) > 0 ? '#22c55e' : parseFloat(form.pnl) < 0 ? '#dc3232' : textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>R:R <span style={{ opacity: 0.5 }}>(optional)</span></label>
-          <input type="number" step="any" placeholder="auto-calc or enter manually" value={form.rr} onChange={e => setForm({ ...form, rr: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
-        </div>
-      </div>
 
-      {/* Session */}
-      <div style={{ marginBottom: '14px' }}>
-        <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Session</label>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-          {SESSIONS.map(s => (
-            <button key={s} onClick={() => setForm({ ...form, session: form.session === s ? '' : s })} style={{ padding: isMobile ? '6px 10px' : '7px 14px', background: form.session === s ? accent : inputBg, border: `0.5px solid ${form.session === s ? accent : inputBorder}`, borderRadius: '20px', color: form.session === s ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: isMobile ? '11px' : '12px', cursor: 'pointer' }}>
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: '14px' }}>
-        <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Emotion</label>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const }}>
-          {EMOTIONS.map(em => (
-            <button key={em.label} onClick={() => setForm({ ...form, emotion: em.label })} style={{ padding: isMobile ? '6px 10px' : '7px 14px', background: form.emotion === em.label ? accent : inputBg, border: `0.5px solid ${form.emotion === em.label ? accent : inputBorder}`, borderRadius: '20px', color: form.emotion === em.label ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: isMobile ? '11px' : '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span>{em.emoji}</span><span>{em.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: '14px' }}>
-        <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Followed Trading Plan?</label>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {[{ val: true, label: '✓ Yes', activeColor: '#22c55e' }, { val: false, label: '✕ No', activeColor: '#dc3232' }].map(opt => (
-            <button key={String(opt.val)} onClick={() => setForm({ ...form, followed_plan: opt.val })} style={{ flex: 1, padding: '10px', background: form.followed_plan === opt.val ? opt.activeColor : inputBg, border: `0.5px solid ${form.followed_plan === opt.val ? opt.activeColor : inputBorder}`, borderRadius: '10px', color: form.followed_plan === opt.val ? '#ffffff' : textMuted, fontFamily: 'var(--font-inter)', fontSize: '13px', cursor: 'pointer', fontWeight: '700' }}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ marginBottom: '14px' }}>
-        <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Notes & Thesis</label>
-        <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} placeholder="What was your reasoning? What did you see on the chart?" style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '10px 12px', fontFamily: 'var(--font-playfair)', fontSize: '13px', color: textPrimary, outline: 'none', resize: 'vertical' as const, boxSizing: 'border-box' as const }} />
-      </div>
-
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Screenshots <span style={{ opacity: 0.5 }}>(optional · max 3)</span></label>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' as const }}>
-          {screenshots.map((url, i) => (
-            <div key={i} style={{ position: 'relative', width: '90px', height: '65px', borderRadius: '8px', overflow: 'hidden', border: `0.5px solid ${inputBorder}` }}>
-              <img src={url} alt={`screenshot ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <button onClick={() => setScreenshots(screenshots.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', color: '#ffffff', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          {/* Price details */}
+          {(trade.entry_price || trade.exit_price) && (
+            <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {trade.entry_price != null && (
+                <div>
+                  <div style={{ ...labelStyle, marginBottom: '4px' }}>Entry</div>
+                  <div style={valueStyle}>{trade.entry_price}</div>
+                </div>
+              )}
+              {trade.exit_price != null && (
+                <div>
+                  <div style={{ ...labelStyle, marginBottom: '4px' }}>Exit</div>
+                  <div style={valueStyle}>{trade.exit_price}</div>
+                </div>
+              )}
             </div>
-          ))}
-          {screenshots.length < 3 && (
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ width: '90px', height: '65px', background: inputBg, border: `1px dashed ${inputBorder}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', gap: '4px', color: textMuted }}>
-              <span style={{ fontSize: '18px' }}>{uploading ? '⏳' : '📎'}</span>
-              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px' }}>{uploading ? 'Uploading...' : 'Add chart'}</span>
-            </button>
           )}
-          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => { const file = e.target.files?.[0]; if (file) onUpload(file) }} />
+
+          {/* Followed plan */}
+          <div style={{ padding: '12px 24px', borderBottom: `0.5px solid ${divider}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
+              background: trade.followed_plan ? (dark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)') : (dark ? 'rgba(220,50,50,0.15)' : 'rgba(220,50,50,0.1)'),
+              border: `1px solid ${trade.followed_plan ? '#22c55e' : '#dc3232'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {trade.followed_plan && <span style={{ color: '#22c55e', fontSize: '10px', fontWeight: 700, lineHeight: 1 }}>✓</span>}
+            </div>
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: trade.followed_plan ? '#22c55e' : '#dc3232' }}>
+              {trade.followed_plan ? 'Followed the trading plan' : 'Did not follow the trading plan'}
+            </span>
+          </div>
+
+          {/* Notes */}
+          {trade.notes && (
+            <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}` }}>
+              <div style={{ ...labelStyle, marginBottom: '8px' }}>Notes</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                {trade.notes}
+              </div>
+            </div>
+          )}
+
+          {/* Screenshots */}
+          {trade.screenshots?.length > 0 && (
+            <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}` }}>
+              <div style={{ ...labelStyle, marginBottom: '10px' }}>Screenshots</div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {trade.screenshots.map((url, i) => (
+                  <div key={i} onClick={() => setLightboxUrl(url)} style={{ cursor: 'zoom-in', borderRadius: '8px', overflow: 'hidden', border: `0.5px solid ${cardBorder}`, width: '110px', height: '78px', flexShrink: 0 }}>
+                    <img src={url} alt={`screenshot ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div style={{ padding: '16px 24px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            {confirmDelete ? (
+              <>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: '#dc3232', alignSelf: 'center', marginRight: 'auto' }}>Delete this trade?</span>
+                <button onClick={() => setConfirmDelete(false)} style={{ padding: '8px 16px', borderRadius: '10px', border: `0.5px solid ${cardBorder}`, background: 'transparent', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer' }}>Cancel</button>
+                <button onClick={onDelete} style={{ padding: '8px 16px', borderRadius: '10px', border: 'none', background: '#dc3232', color: '#fff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setConfirmDelete(true)} style={{ padding: '8px 16px', borderRadius: '10px', border: '0.5px solid rgba(220,50,50,0.3)', background: 'transparent', color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer' }}>Delete</button>
+                <button onClick={onEdit} style={{ padding: '8px 20px', borderRadius: '10px', border: 'none', background: accent, color: '#fff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Edit Trade</button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      <button onClick={onSave} disabled={saving} style={{ width: isMobile ? '100%' : 'auto', background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving ? 0.7 : 1 }}>
-        {saving ? 'Saving...' : editingId ? 'Update Trade →' : 'Save Trade →'}
-      </button>
-    </div>
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div onClick={() => setLightboxUrl(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', cursor: 'zoom-out' }}>
+          <img src={lightboxUrl} alt="screenshot" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+          <button onClick={() => setLightboxUrl(null)} style={{ position: 'absolute', top: '20px', right: '24px', background: 'none', border: 'none', color: '#fff', fontSize: '28px', cursor: 'pointer', lineHeight: 1, opacity: 0.7 }}>×</button>
+        </div>
+      )}
+    </>
   )
 }
 
-const emptyForm = (): FormState => ({
-  trade_date: new Date().toISOString().split('T')[0],
-  pair: 'EUR/USD', direction: 'Long', entry_price: '',
-  stop_loss: '', take_profit: '', lot_size: '', pnl: '', rr: '',
-  session: '', emotion: 'Calm', notes: '', followed_plan: null,
-})
+// ─── Trade Form ───────────────────────────────────────────────────────────────
 
-export default function TradeLog() {
-  const [dark, setDark] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [trades, setTrades] = useState<Trade[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [uploading, setUploading] = useState(false)
-  const [screenshots, setScreenshots] = useState<string[]>([])
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [detailTrade, setDetailTrade] = useState<Trade | null>(null)
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+interface TradeFormProps {
+  dark: boolean
+  editingTrade: Trade | null
+  onSave: (data: Partial<Trade>) => Promise<void>
+  onCancel: () => void
+  uploadScreenshot: (file: File) => Promise<string | null>
+  deleteScreenshot: (url: string) => Promise<void>
+}
+
+function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, deleteScreenshot }: TradeFormProps) {
+  const accent      = '#2B5EA7'
+  const cardBg      = dark ? '#1a1a1a' : '#ffffff'
+  const cardBorder  = dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)'
+  const textPrimary = dark ? '#ffffff' : '#1a1a1a'
+  const textMuted   = dark ? 'rgba(255,255,255,0.4)' : 'rgba(26,26,26,0.4)'
+  const inputBg     = dark ? '#111111' : '#f9f9f9'
+
+  const [pair,         setPair]         = useState(editingTrade?.pair || PAIRS[0])
+  const [direction,    setDirection]    = useState<'long' | 'short'>(editingTrade?.direction ?? 'long')
+  const [tradeDate,    setTradeDate]    = useState(editingTrade?.trade_date ?? new Date().toISOString().split('T')[0])
+  const [entryPrice,   setEntryPrice]   = useState(editingTrade?.entry_price != null ? String(editingTrade.entry_price) : '')
+  const [exitPrice,    setExitPrice]    = useState(editingTrade?.exit_price  != null ? String(editingTrade.exit_price)  : '')
+  const [pnl,          setPnl]          = useState(editingTrade?.pnl != null ? String(editingTrade.pnl) : '')
+  const [rr,           setRr]           = useState(editingTrade?.rr  != null ? String(editingTrade.rr)  : '')
+  const [notes,        setNotes]        = useState(editingTrade?.notes ?? '')
+  const [session,      setSession]      = useState(editingTrade?.session ?? '')
+  const [emotion,      setEmotion]      = useState(editingTrade?.emotion ?? '')
+  const [followedPlan, setFollowedPlan] = useState(editingTrade?.followed_plan ?? true)
+  const [screenshots,  setScreenshots]  = useState<string[]>(editingTrade?.screenshots ?? [])
+  const [uploading,    setUploading]    = useState(false)
+  const [saving,       setSaving]       = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
-  const [form, setForm] = useState<FormState>(emptyForm())
 
-  useEffect(() => {
-    const saved = localStorage.getItem('fc-dark-mode')
-    if (saved === 'true') setDark(true)
-    const handler = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
-    window.addEventListener('storage', handler)
-    window.addEventListener('fc-theme-change', handler)
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => {
-      window.removeEventListener('storage', handler)
-      window.removeEventListener('fc-theme-change', handler)
-      window.removeEventListener('resize', checkMobile)
-    }
-  }, [])
-
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return
-      setUserId(session.user.id)
-      loadTrades(session.user.id)
-    })
-  }, [])
-
-  async function loadTrades(uid: string) {
-    setLoading(true)
-    const { data } = await supabase.from('trades').select('*').eq('user_id', uid).order('created_at', { ascending: false })
-    if (data) setTrades(data)
-    setLoading(false)
-  }
-
-  async function uploadScreenshot(file: File) {
-    if (!userId) return
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
     setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `${userId}/${Date.now()}.${ext}`
-    const { data: uploadData, error } = await supabase.storage.from('trade-screenshots').upload(path, file)
-    if (!error && uploadData) {
-      const { data: urlData } = supabase.storage.from('trade-screenshots').getPublicUrl(uploadData.path)
-      setScreenshots(prev => [...prev, urlData.publicUrl])
-    }
+    const url = await uploadScreenshot(file)
+    if (url) setScreenshots(prev => [...prev, url])
     setUploading(false)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
-  function openEdit(trade: Trade) {
-    setEditingId(trade.id)
-    setForm({
-      trade_date: trade.created_at.split('T')[0],
-      pair: trade.pair, direction: trade.direction,
-      entry_price: trade.entry_price?.toString() || '',
-      stop_loss: trade.stop_loss?.toString() || '',
-      take_profit: trade.take_profit?.toString() || '',
-      lot_size: trade.lot_size?.toString() || '',
-      pnl: trade.pnl?.toString() || '',
-      rr: trade.rr?.toString() || '',
-      session: trade.session || '',
-      emotion: trade.emotion || 'Calm',
-      notes: trade.notes || '',
-      followed_plan: trade.followed_plan,
-    })
-    setScreenshots(trade.screenshot_urls || [])
-    setShowForm(true)
-    setDetailTrade(null)
+  const removeScreenshot = async (i: number) => {
+    const url = screenshots[i]
+    setScreenshots(prev => prev.filter((_, idx) => idx !== i))
+    await deleteScreenshot(url)
   }
 
-  function openNew() {
-    setEditingId(null)
-    setForm(emptyForm())
-    setScreenshots([])
-    setShowForm(true)
-    setDetailTrade(null)
-  }
-
-  async function saveTrade() {
-    if (!userId) return
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setSaving(true)
-    const entry = parseFloat(form.entry_price)
-    const sl = parseFloat(form.stop_loss)
-    const tp = parseFloat(form.take_profit)
-    const autoRr = sl && tp && entry ? Math.abs(tp - entry) / Math.abs(entry - sl) : 0
-    const rr = parseFloat(form.rr) || parseFloat(autoRr.toFixed(2))
-    const payload = {
-      pair: form.pair, direction: form.direction,
-      entry_price: entry || null, stop_loss: sl || null,
-      take_profit: tp || null, lot_size: parseFloat(form.lot_size) || null,
-      pnl: parseFloat(form.pnl) || 0, rr: rr,
-      session: form.session || null,
-      emotion: form.emotion, notes: form.notes,
-      followed_plan: form.followed_plan, screenshot_urls: screenshots,
-      created_at: new Date(form.trade_date).toISOString(),
-    }
-    if (editingId) {
-      await supabase.from('trades').update(payload).eq('id', editingId)
-    } else {
-      await supabase.from('trades').insert({ ...payload, user_id: userId })
-    }
-    setForm(emptyForm())
-    setScreenshots([])
-    setShowForm(false)
-    setEditingId(null)
-    loadTrades(userId)
+    await onSave({
+      pair,
+      direction,
+      trade_date:  tradeDate,
+      entry_price: entryPrice ? parseFloat(entryPrice) : null,
+      exit_price:  exitPrice  ? parseFloat(exitPrice)  : null,
+      pnl:         parseFloat(pnl) || 0,
+      rr:          parseFloat(rr)  || 0,
+      notes,
+      screenshots,
+      session,
+      emotion,
+      followed_plan: followedPlan,
+    })
     setSaving(false)
   }
 
-  async function deleteTrade(id: string) {
-    await supabase.from('trades').delete().eq('id', id)
-    if (userId) loadTrades(userId)
-    setDetailTrade(null)
-    setConfirmDeleteId(null)
+  const inputStyle: React.CSSProperties = {
+    width: '100%', background: inputBg,
+    border: `0.5px solid ${cardBorder}`, borderRadius: '8px',
+    padding: '9px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px',
+    color: textPrimary, outline: 'none', boxSizing: 'border-box',
+  }
+  const labelStyle: React.CSSProperties = {
+    fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const, color: textMuted,
+    marginBottom: '5px', display: 'block',
   }
 
-  const totalPages = Math.ceil(trades.length / PER_PAGE)
-  const paginated = trades.slice((page - 1) * PER_PAGE, page * PER_PAGE)
-
-  const bg = dark ? '#080d14' : '#F5F2EC'
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
-  const cardShadow = dark ? '0 4px 20px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset' : '0 4px 20px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.9) inset'
-  const textPrimary = dark ? '#e0ecf8' : '#1a1a1a'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const accent = dark ? '#7aaee8' : '#2B5EA7'
-  const inputBg = dark ? '#0a1018' : '#F5F2EC'
-  const inputBorder = dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.12)'
-  const tableBorder = dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.06)'
-  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
-
-  const theme: Theme = { dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, inputBg, inputBorder, tableBorder }
-
   return (
-    <div style={{ padding: isMobile ? '20px 16px' : '40px 48px', background: bg, minHeight: '100vh' }}>
-
-      {detailTrade && (
-        <DetailPopup
-          trade={detailTrade}
-          onClose={() => setDetailTrade(null)}
-          onEdit={openEdit}
-          onDelete={deleteTrade}
-          isMobile={isMobile}
-          theme={theme}
-        />
-      )}
-
-      {/* Header */}
-      <div style={{ marginBottom: isMobile ? '16px' : '28px' }}>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: isMobile ? '16px' : '24px', height: '1px', background: accent }} />Trading Journal
-        </div>
-        {isMobile ? (
-          <>
-            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1, marginBottom: '12px' }}>Trade Log.</h1>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-              <div style={{ flex: 1 }}>
-                <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="trades" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
-              </div>
-              <button onClick={openNew} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', padding: '0 16px', border: 'none', cursor: 'pointer', borderRadius: '10px', whiteSpace: 'nowrap' as const }}>
-                + Log
-              </button>
-            </div>
-            <button onClick={() => exportToCSV(trades)} style={{ width: '100%', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '10px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer' }}>
-              ↓ Export to Spreadsheet
-            </button>
-          </>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-            <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Trade Log.</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button onClick={() => exportToCSV(trades)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '10px 16px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}
-                onMouseEnter={e => e.currentTarget.style.color = textPrimary}
-                onMouseLeave={e => e.currentTarget.style.color = textMuted}
-              >
-                ↓ Export to Spreadsheet
-              </button>
-              <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="trades" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
-              <button onClick={openNew} style={{ background: accent, color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
-                + Log Trade
-              </button>
-            </div>
-          </div>
-        )}
+    <form onSubmit={handleSubmit} style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 700, color: textPrimary, marginBottom: '20px' }}>
+        {editingTrade ? 'Edit Trade' : 'Log New Trade'}
       </div>
 
-      {/* Form */}
-      {showForm && (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+        <div>
+          <label style={labelStyle}>Pair</label>
+          <select value={pair} onChange={e => setPair(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>
+            {PAIRS.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Date</label>
+          <input type="date" value={tradeDate} onChange={e => setTradeDate(e.target.value)} style={inputStyle} required />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>Direction</label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {(['long', 'short'] as const).map(d => (
+            <button key={d} type="button" onClick={() => setDirection(d)} style={{
+              flex: 1, padding: '8px', borderRadius: '8px',
+              border: `0.5px solid ${direction === d ? accent : cardBorder}`,
+              background: direction === d ? (dark ? 'rgba(43,94,167,0.12)' : 'rgba(43,94,167,0.07)') : inputBg,
+              color: direction === d ? accent : textMuted,
+              fontFamily: 'var(--font-inter)', fontSize: '12px',
+              fontWeight: direction === d ? 600 : 400, cursor: 'pointer',
+              textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+            }}>{d}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+        <div>
+          <label style={labelStyle}>Entry Price</label>
+          <input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} placeholder="0.00" style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Exit Price</label>
+          <input type="number" step="any" value={exitPrice} onChange={e => setExitPrice(e.target.value)} placeholder="0.00" style={inputStyle} />
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+        <div>
+          <label style={labelStyle}>P&amp;L (€)</label>
+          <input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="0.00" style={inputStyle} required />
+        </div>
+        <div>
+          <label style={labelStyle}>Realized R:R</label>
+          <input type="number" step="any" value={rr} onChange={e => setRr(e.target.value)} placeholder="0.00" style={inputStyle} />
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+        <div>
+          <label style={labelStyle}>Session</label>
+          <select value={session} onChange={e => setSession(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>
+            <option value="">—</option>
+            <option value="london">London</option>
+            <option value="ny">New York</option>
+            <option value="asia">Asia</option>
+            <option value="overlap">Overlap</option>
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Emotion</label>
+          <select value={emotion} onChange={e => setEmotion(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>
+            <option value="">—</option>
+            <option value="calm">Calm</option>
+            <option value="confident">Confident</option>
+            <option value="anxious">Anxious</option>
+            <option value="fomo">FOMO</option>
+            <option value="revenge">Revenge</option>
+            <option value="disciplined">Disciplined</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <input type="checkbox" id="followedPlan" checked={followedPlan} onChange={e => setFollowedPlan(e.target.checked)} style={{ width: '15px', height: '15px', accentColor: accent, cursor: 'pointer' }} />
+        <label htmlFor="followedPlan" style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, cursor: 'pointer' }}>Followed the trading plan</label>
+      </div>
+
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>Notes</label>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="What happened? What did you learn?" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
+      </div>
+
+      <div style={{ marginBottom: '14px' }}>
+        <label style={labelStyle}>Screenshots</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {screenshots.map((url, i) => (
+            <div key={i} style={{ position: 'relative', width: '90px', height: '65px', borderRadius: '8px', overflow: 'hidden', border: `0.5px solid ${cardBorder}` }}>
+              <img src={url} alt={`screenshot ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <button type="button" onClick={() => removeScreenshot(i)} style={{ position: 'absolute', top: '3px', right: '3px', width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(0,0,0,0.65)', border: 'none', color: '#fff', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, padding: 0 }}>×</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => fileRef.current?.click()} style={{ width: '90px', height: '65px', borderRadius: '8px', border: `0.5px dashed ${cardBorder}`, background: inputBg, color: textMuted, cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '20px', lineHeight: 1, fontWeight: 300 }}>+</span>
+            <span>{uploading ? '…' : 'Add'}</span>
+          </button>
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <button type="button" onClick={onCancel} style={{ padding: '9px 20px', borderRadius: '10px', border: `0.5px solid ${cardBorder}`, background: 'transparent', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
+        <button type="submit" disabled={saving} style={{ padding: '9px 24px', borderRadius: '10px', border: 'none', background: accent, color: '#fff', fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{saving ? 'Saving…' : editingTrade ? 'Update Trade' : 'Log Trade'}</button>
+      </div>
+    </form>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function TradesPage() {
+  const router = useRouter()
+
+  const [trades,       setTrades]       = useState<Trade[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [showForm,     setShowForm]     = useState(false)
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null)
+  const [selectedTrade,setSelectedTrade]= useState<Trade | null>(null)
+  const [error,        setError]        = useState('')
+  const [dark,         setDark]         = useState(false)
+  const [isMobile,     setIsMobile]     = useState(false)
+
+  useEffect(() => {
+    const check = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
+    check()
+    window.addEventListener('fc-theme-change', check)
+    return () => window.removeEventListener('fc-theme-change', check)
+  }, [])
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const fetchTrades = useCallback(async () => {
+    setLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { router.push('/login'); return }
+    const { data, error } = await supabase
+      .from('trades')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('trade_date', { ascending: false })
+    if (error) setError(error.message)
+    else setTrades(data ?? [])
+    setLoading(false)
+  }, [router])
+
+  useEffect(() => { fetchTrades() }, [fetchTrades])
+
+  const uploadScreenshot = async (file: File): Promise<string | null> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return null
+    const ext  = file.name.split('.').pop()
+    const path = `${session.user.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('trade-screenshots').upload(path, file)
+    if (error) { console.error(error); return null }
+    const { data } = supabase.storage.from('trade-screenshots').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  const deleteScreenshot = async (url: string) => {
+    const path = url.split('/trade-screenshots/')[1]
+    if (path) await supabase.storage.from('trade-screenshots').remove([path])
+  }
+
+  const handleSave = async (formData: Partial<Trade>) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+    if (editingTrade) {
+      const { error } = await supabase.from('trades').update(formData).eq('id', editingTrade.id)
+      if (error) { setError(error.message); return }
+    } else {
+      const { error } = await supabase.from('trades').insert({ ...formData, user_id: session.user.id })
+      if (error) { setError(error.message); return }
+    }
+    setShowForm(false)
+    setEditingTrade(null)
+    setSelectedTrade(null)
+    fetchTrades()
+  }
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('trades').delete().eq('id', id)
+    if (error) setError(error.message)
+    else { setTrades(prev => prev.filter(t => t.id !== id)); setSelectedTrade(null) }
+  }
+
+  const totalPnl     = trades.reduce((s, t) => s + (t.pnl || 0), 0)
+  const wins         = trades.filter(t => t.pnl > 0)
+  const losses       = trades.filter(t => t.pnl < 0)
+  const winRate      = trades.length > 0 ? Math.round((wins.length / trades.length) * 100) : 0
+  const tradesWithRR = trades.filter(t => t.rr > 0)
+  const avgRR        = tradesWithRR.length > 0
+    ? parseFloat((tradesWithRR.reduce((s, t) => s + t.rr, 0) / tradesWithRR.length).toFixed(2))
+    : 0
+  const grossProfit  = wins.reduce((s, t) => s + t.pnl, 0)
+  const grossLoss    = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
+  const profitFactor = grossLoss > 0
+    ? parseFloat((grossProfit / grossLoss).toFixed(2))
+    : grossProfit > 0 ? Infinity : 0
+
+  const accent      = '#2B5EA7'
+  const cardBg      = dark ? '#1a1a1a' : '#ffffff'
+  const cardBorder  = dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)'
+  const cardShadow  = dark ? '0 1px 12px rgba(0,0,0,0.4)' : '0 1px 12px rgba(0,0,0,0.05)'
+  const textPrimary = dark ? '#ffffff' : '#1a1a1a'
+  const textMuted   = dark ? 'rgba(255,255,255,0.4)' : 'rgba(26,26,26,0.4)'
+  const pageBg      = dark ? '#0f0f0f' : '#f7f7f7'
+
+  const pnlColor = totalPnl > 0 ? '#22c55e' : totalPnl < 0 ? '#dc3232' : textPrimary
+  const rrColor  = avgRR >= 1 ? '#22c55e' : avgRR > 0 ? '#dc3232' : textPrimary
+  const wrColor  = winRate >= 50 ? '#22c55e' : '#dc3232'
+  const pfColor  = profitFactor >= 2 ? '#22c55e' : profitFactor >= 1 ? accent : profitFactor === 0 ? textPrimary : '#dc3232'
+
+  return (
+    <div style={{ minHeight: '100vh', background: pageBg, padding: isMobile ? '20px 16px' : '32px 32px' }}>
+
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: isMobile ? '24px' : '32px', fontWeight: 700, color: textPrimary, marginBottom: '4px' }}>Trade Journal.</div>
+        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>Track, review and improve every trade</div>
+      </div>
+
+      {!loading && trades.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ background: totalPnl < 0 ? (dark ? 'rgba(220,50,50,0.08)' : 'rgba(220,50,50,0.05)') : cardBg, border: `0.5px solid ${totalPnl < 0 ? 'rgba(220,50,50,0.2)' : cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 22px' }}>
+            <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Net P&L</div>
+            <div style={{ fontSize: '28px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, lineHeight: 1, letterSpacing: '-0.02em' }}>{totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(0)}</div>
+          </div>
+          <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 22px' }}>
+            <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Avg R:R</div>
+            <div style={{ fontSize: '28px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: rrColor, lineHeight: 1, letterSpacing: '-0.02em' }}>{avgRR > 0 ? `1:${avgRR}` : '—'}</div>
+          </div>
+          <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 22px' }}>
+            <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Win Rate</div>
+            <div style={{ fontSize: '28px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: wrColor, lineHeight: 1, letterSpacing: '-0.02em' }}>{winRate}%</div>
+          </div>
+          <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 22px' }}>
+            <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Profit Factor</div>
+            <div style={{ fontSize: '28px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pfColor, lineHeight: 1, letterSpacing: '-0.02em' }}>{profitFactor === Infinity ? '∞' : profitFactor > 0 ? profitFactor.toFixed(2) : '—'}</div>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ background: dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.06)', border: '0.5px solid rgba(220,50,50,0.3)', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#dc3232', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {error}
+          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: '#dc3232', cursor: 'pointer', fontSize: '16px', fontWeight: 700, lineHeight: 1, padding: 0, marginLeft: '12px' }}>×</button>
+        </div>
+      )}
+
+      {!showForm && !editingTrade && (
+        <button onClick={() => setShowForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accent, color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 20px', fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', marginBottom: '24px' }}>
+          <span style={{ fontSize: '18px', lineHeight: 1, fontWeight: 300 }}>+</span>
+          Log Trade
+        </button>
+      )}
+
+      {(showForm || editingTrade) && (
         <TradeForm
-          form={form}
-          setForm={setForm}
-          isMobile={isMobile}
-          editingId={editingId}
-          saving={saving}
-          uploading={uploading}
-          screenshots={screenshots}
-          setScreenshots={setScreenshots}
-          fileRef={fileRef}
-          onUpload={uploadScreenshot}
-          onSave={saveTrade}
-          onClose={() => { setShowForm(false); setEditingId(null) }}
-          theme={theme}
+          dark={dark}
+          editingTrade={editingTrade}
+          onSave={handleSave}
+          onCancel={() => { setShowForm(false); setEditingTrade(null) }}
+          uploadScreenshot={uploadScreenshot}
+          deleteScreenshot={deleteScreenshot}
         />
       )}
 
-      {/* Trade list */}
-      {isMobile ? (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>All Trades</div>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{trades.length} total</div>
-          </div>
-          {loading ? (
-            <div style={{ ...card, padding: '40px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
-          ) : trades.length === 0 ? (
-            <div style={{ ...card, padding: '48px 24px', textAlign: 'center' as const }}>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '16px', color: textMuted, marginBottom: '6px' }}>No trades logged yet.</div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>Tap "+ Log" to add your first entry.</div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '8px' }}>
-              {paginated.map(trade => (
-                <div key={trade.id} style={{ ...card, padding: '14px 16px', borderLeft: `3px solid ${trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8'}`, cursor: 'pointer' }}
-                  onClick={() => setDetailTrade(trade)}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <PairBadge pair={trade.pair} dark={dark} />
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: '600', color: textPrimary }}>{trade.pair}</div>
-                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')} · {trade.direction}</div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' as const }}>
-                      <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '16px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>
-                        {trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€
-                      </div>
-                      <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '3px' }}>
-                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '2px 7px', borderRadius: '4px' }}>
-                          {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
-                        </span>
-                        {trade.rr > 0 && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', padding: '2px 7px', borderRadius: '4px' }}>1:{trade.rr}</span>}
-                      </div>
-                    </div>
-                  </div>
-                  {trade.emotion && (
-                    <div style={{ marginTop: '8px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>
-                      {EMOTIONS.find(e => e.label === trade.emotion)?.emoji} {trade.emotion}
-                      {trade.session && <span style={{ marginLeft: '8px' }}>· {trade.session}</span>}
-                      {trade.followed_plan !== null && <span style={{ marginLeft: '8px', color: trade.followed_plan ? '#22c55e' : '#dc3232' }}>{trade.followed_plan ? '· ✓ Plan' : '· ✕ Plan'}</span>}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px' }}>
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '8px 16px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', color: page === 1 ? textMuted : textPrimary, cursor: page === 1 ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-inter)', fontSize: '12px', opacity: page === 1 ? 0.4 : 1 }}>← Prev</button>
-              <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{page} / {totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: '8px 16px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', color: page === totalPages ? textMuted : textPrimary, cursor: page === totalPages ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-inter)', fontSize: '12px', opacity: page === totalPages ? 0.4 : 1 }}>Next →</button>
-            </div>
-          )}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>Loading…</div>
+      ) : trades.length === 0 && !showForm ? (
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: '20px', fontWeight: 700, color: textPrimary, marginBottom: '8px' }}>No trades yet</div>
+          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>Log your first trade to get started</div>
         </div>
       ) : (
-        <div style={{ ...card, overflow: 'hidden', borderTop: `3px solid ${accent}` }}>
-          <div style={{ padding: '18px 24px', borderBottom: `0.5px solid ${tableBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.14em', textTransform: 'uppercase' as const }}>All Trades</div>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{trades.length} total</div>
-          </div>
-          {loading ? (
-            <div style={{ padding: '48px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
-          ) : trades.length === 0 ? (
-            <div style={{ padding: '64px', textAlign: 'center' as const }}>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '18px', color: textMuted, marginBottom: '8px' }}>No trades logged yet.</div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>Click &quot;+ Log Trade&quot; to add your first entry.</div>
-            </div>
-          ) : (
-            <>
-              <div style={{ overflowX: 'auto' as const }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' as const }}>
-                  <thead>
-                    <tr style={{ borderBottom: `0.5px solid ${tableBorder}` }}>
-                      {['Date', 'Pair', 'Direction', 'Session', 'Result', 'Entry', 'R:R', 'P&L', 'Emotion', 'Plan', 'Charts', ''].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: textMuted, fontWeight: '400', whiteSpace: 'nowrap' as const }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginated.map(trade => (
-                      <tr key={trade.id} style={{ borderBottom: `0.5px solid ${tableBorder}`, cursor: 'pointer' }}
-                        onClick={() => setDetailTrade(trade)}
-                        onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(43,94,167,0.03)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, whiteSpace: 'nowrap' as const }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <PairBadge pair={trade.pair} dark={dark} />
-                            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, fontWeight: '600' }}>{trade.pair}</span>
-                          </div>
-                        </td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: trade.direction === 'Long' ? '#22c55e' : '#dc3232', background: trade.direction === 'Long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
-                            {trade.direction === 'Long' ? '↑ Long' : '↓ Short'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, whiteSpace: 'nowrap' as const }}>{trade.session || '—'}</td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '3px 9px', borderRadius: '4px' }}>
-                            {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{trade.entry_price || '—'}</td>
-                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{trade.rr ? `1:${trade.rr}` : '—'}</td>
-                        <td style={{ padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>
-                            {EMOTIONS.find(e => e.label === trade.emotion)?.emoji} {trade.emotion}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 14px' }}>
-                          {trade.followed_plan === null
-                            ? <span style={{ color: textMuted, fontSize: '11px' }}>—</span>
-                            : trade.followed_plan
-                            ? <span style={{ color: '#22c55e', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', background: 'rgba(34,197,94,0.1)', padding: '3px 8px', borderRadius: '4px' }}>✓ YES</span>
-                            : <span style={{ color: '#dc3232', fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: '700', background: 'rgba(220,50,50,0.1)', padding: '3px 8px', borderRadius: '4px' }}>✕ NO</span>
-                          }
-                        </td>
-                        <td style={{ padding: '12px 14px' }}>
-                          {trade.screenshot_urls?.length > 0 ? (
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              {trade.screenshot_urls.slice(0, 3).map((url, i) => (
-                                <img key={i} src={url} alt="chart" style={{ width: '28px', height: '20px', objectFit: 'cover', borderRadius: '3px', border: `0.5px solid ${tableBorder}` }} />
-                              ))}
-                            </div>
-                          ) : <span style={{ color: textMuted, fontSize: '11px' }}>—</span>}
-                        </td>
-                        <td style={{ padding: '12px 14px' }} onClick={e => e.stopPropagation()}>
-                          <button onClick={() => openEdit(trade)} style={{ background: 'none', border: 'none', color: accent, cursor: 'pointer', fontSize: '14px', opacity: 0.6, marginRight: '8px' }}
-                            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                            onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
-                          >✎</button>
-                          {confirmDeleteId === trade.id ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <button onClick={() => deleteTrade(trade.id)} style={{ background: '#dc3232', border: 'none', borderRadius: '4px', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', padding: '3px 7px', cursor: 'pointer' }}>Yes</button>
-                              <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '4px', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '9px', padding: '3px 7px', cursor: 'pointer' }}>No</button>
-                            </span>
-                          ) : (
-                            <button onClick={() => setConfirmDeleteId(trade.id)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px', opacity: 0.5 }}
-                              onMouseEnter={e => { e.currentTarget.style.color = '#dc3232'; e.currentTarget.style.opacity = '1' }}
-                              onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.opacity = '0.5' }}
-                            >✕</button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {totalPages > 1 && (
-                <div style={{ padding: '16px 24px', borderTop: `0.5px solid ${tableBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>
-                    Showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, trades.length)} of {trades.length}
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 12px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', color: page === 1 ? textMuted : textPrimary, cursor: page === 1 ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px', opacity: page === 1 ? 0.4 : 1 }}>←</button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                      <button key={p} onClick={() => setPage(p)} style={{ padding: '6px 10px', background: p === page ? accent : 'none', border: `0.5px solid ${p === page ? accent : cardBorder}`, borderRadius: '6px', color: p === page ? '#ffffff' : textPrimary, cursor: 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px' }}>{p}</button>
-                    ))}
-                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: '6px 12px', background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', color: page === totalPages ? textMuted : textPrimary, cursor: page === totalPages ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-inter)', fontSize: '11px', opacity: page === totalPages ? 0.4 : 1 }}>→</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {trades.map(trade => {
+            const tPnlColor = trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textPrimary
+            const date = new Date(trade.trade_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            const hasExtra = !!(trade.notes || (trade.screenshots?.length > 0))
+            return (
+              <div
+                key={trade.id}
+                onClick={() => setSelectedTrade(trade)}
+                style={{
+                  background: cardBg, border: `0.5px solid ${cardBorder}`,
+                  borderRadius: '12px', boxShadow: cardShadow,
+                  padding: '12px 18px', cursor: 'pointer',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = dark ? 'rgba(255,255,255,0.16)' : 'rgba(43,94,167,0.25)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = dark ? '0 2px 16px rgba(0,0,0,0.5)' : '0 2px 16px rgba(43,94,167,0.08)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = cardBorder
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = cardShadow
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', fontWeight: 700, color: textPrimary, flexShrink: 0 }}>{trade.pair || '—'}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, flexShrink: 0 }}>{date}</span>
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: trade.direction === 'long' ? '#22c55e' : '#dc3232', background: trade.direction === 'long' ? (dark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)') : (dark ? 'rgba(220,50,50,0.12)' : 'rgba(220,50,50,0.08)'), padding: '3px 8px', borderRadius: '6px', flexShrink: 0 }}>{trade.direction}</span>
+                  {trade.session && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize' as const, flexShrink: 0 }}>{trade.session}</span>}
+                  {trade.emotion && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, textTransform: 'capitalize' as const, flexShrink: 0 }}>{trade.emotion}</span>}
+                  {trade.rr > 0 && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, flexShrink: 0 }}>R:R <strong style={{ color: textPrimary }}>1:{trade.rr}</strong></span>}
+                  {hasExtra && <span style={{ fontSize: '11px', color: textMuted, flexShrink: 0 }}>•••</span>}
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, letterSpacing: '-0.02em', color: tPnlColor }}>{trade.pnl > 0 ? '+' : ''}€{trade.pnl?.toFixed(0) ?? '—'}</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, opacity: 0.5 }}>›</span>
                   </div>
                 </div>
-              )}
-            </>
-          )}
+              </div>
+            )
+          })}
         </div>
+      )}
+
+      {selectedTrade && (
+        <TradeModal
+          trade={selectedTrade}
+          dark={dark}
+          onClose={() => setSelectedTrade(null)}
+          onEdit={() => { setEditingTrade(selectedTrade); setSelectedTrade(null); setShowForm(false) }}
+          onDelete={() => handleDelete(selectedTrade.id)}
+        />
       )}
     </div>
   )

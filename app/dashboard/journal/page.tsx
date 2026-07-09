@@ -1,278 +1,429 @@
 'use client'
+
 import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useDarkMode } from '@/lib/hooks'
 import { getTheme, getCard } from '@/lib/styles'
 import type { Trade } from '@/lib/types'
 
-function PairIcon({ pair }: { pair: string }) {
-  const base = pair.replace('/', '').substring(0, 2).toUpperCase()
-  return (
-    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(43,94,167,0.08)', border: '0.5px solid rgba(43,94,167,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: '#2B5EA7', letterSpacing: '0.02em' }}>{base}</span>
-    </div>
-  )
-}
+const ACCENT = '#2B5EA7'
 
-function ThreeArcGauge({ wins, losses, be, total, dark, size = 80 }: { wins: number; losses: number; be: number; total: number; dark: boolean; size?: number }) {
-  const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
-  const winDash = total > 0 ? (wins / total) * circ : 0
-  const beDash = total > 0 ? (be / total) * circ : 0
-  const lossDash = total > 0 ? (losses / total) * circ : 0
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'} strokeWidth={sw} />
-          {wins > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#22c55e" strokeWidth={sw} strokeDasharray={`${winDash} ${circ - winDash}`} strokeDashoffset={0} strokeLinecap="round" />}
-          {be > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#94a3b8" strokeWidth={sw} strokeDasharray={`${beDash} ${circ - beDash}`} strokeDashoffset={-winDash} strokeLinecap="round" />}
-          {losses > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#dc3232" strokeWidth={sw} strokeDasharray={`${lossDash} ${circ - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
-        </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: size < 70 ? '13px' : '16px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{total}</span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />{wins}W</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />{losses}L</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />{be}BE</div>
-      </div>
-    </div>
-  )
-}
-
-function WinRateGauge({ winRate, beRate, dark, size = 80 }: { winRate: number; beRate: number; dark: boolean; size?: number }) {
-  const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
-  const lossRate = Math.max(0, 100 - winRate - beRate)
-  const winDash = (winRate / 100) * circ; const beDash = (beRate / 100) * circ; const lossDash = (lossRate / 100) * circ
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'} strokeWidth={sw} />
-          {winRate > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#22c55e" strokeWidth={sw} strokeDasharray={`${winDash} ${circ - winDash}`} strokeLinecap="round" />}
-          {beRate > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#94a3b8" strokeWidth={sw} strokeDasharray={`${beDash} ${circ - beDash}`} strokeDashoffset={-winDash} strokeLinecap="round" />}
-          {lossRate > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#dc3232" strokeWidth={sw} strokeDasharray={`${lossDash} ${circ - lossDash}`} strokeDashoffset={-(winDash + beDash)} strokeLinecap="round" />}
-        </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: size < 70 ? '12px' : '14px', fontWeight: '700', color: dark ? '#e0ecf8' : '#1a1a1a' }}>{winRate}%</span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />Win</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#dc3232' }} />Loss</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: dark ? 'rgba(255,255,255,0.4)' : '#8a8070' }}><div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#94a3b8' }} />BE</div>
-      </div>
-    </div>
-  )
-}
-
-function AvgWinLossGauge({ avgWin, avgLoss, dark, accent, size = 80 }: { avgWin: number; avgLoss: number; dark: boolean; accent: string; size?: number }) {
-  const sw = 7; const r = (size - sw) / 2; const circ = 2 * Math.PI * r
-  const ratio = avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? 3 : 0
-  const fill = (Math.min(ratio, 3) / 3) * circ
-  const color = ratio >= 2 ? '#22c55e' : ratio >= 1 ? accent : ratio === 0 ? (dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0') : '#dc3232'
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)'} strokeWidth={sw} />
-          {fill > 0 && <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={sw} strokeDasharray={`${fill} ${circ - fill}`} strokeLinecap="round" />}
-        </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: size < 70 ? '11px' : '13px', fontWeight: '700', color }}>{avgLoss > 0 ? ratio.toFixed(2) : avgWin > 0 ? '∞' : '—'}</span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '4px' }}>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e' }}>+{avgWin.toFixed(0)}€</div>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}>-{avgLoss.toFixed(0)}€</div>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: dark ? 'rgba(255,255,255,0.3)' : '#8a8070' }}>{ratio >= 2 ? 'Excellent' : ratio >= 1 ? 'Profitable' : ratio === 0 ? 'No data' : 'Needs work'}</div>
-      </div>
-    </div>
-  )
-}
-
-function PnlChart({ data, trades, dark }: { data: number[]; trades: Trade[]; dark: boolean }) {
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
-  if (data.length < 2) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: dark ? 'rgba(255,255,255,0.2)' : '#c8c0b0', fontSize: '13px' }}>
-      Log at least 2 trades to see your curve
-    </div>
-  )
-  const cumulative = data.reduce((acc, val) => { acc.push((acc[acc.length - 1] || 0) + val); return acc }, [] as number[])
-  const min = Math.min(...cumulative, 0); const max = Math.max(...cumulative, 0); const range = max - min || 1
-  const W = 560; const H = 170; const padL = 52; const padR = 12; const padT = 10; const padB = 28
-  const pts = cumulative.map((v, i) => ({ x: padL + (i / (cumulative.length - 1)) * (W - padL - padR), y: padT + ((max - v) / range) * (H - padT - padB), value: v }))
-  function bezierPath(points: { x: number; y: number }[]) {
-    if (points.length < 2) return ''
-    let d = `M ${points[0].x} ${points[0].y}`
-    for (let i = 1; i < points.length; i++) { const prev = points[i - 1]; const curr = points[i]; const cpx = (prev.x + curr.x) / 2; d += ` C ${cpx} ${prev.y} ${cpx} ${curr.y} ${curr.x} ${curr.y}` }
-    return d
+// ── PairIcon ──────────────────────────────────────────────────────────────────
+function PairIcon({ pair, size = 28 }: { pair: string; size?: number }) {
+  const colors: Record<string, string> = {
+    USD: '#2B5EA7', EUR: '#003399', GBP: '#00247D', JPY: '#BC002D',
+    CHF: '#FF0000', CAD: '#FF0000', AUD: '#00008B', NZD: '#00247D',
+    XAU: '#FFD700', XAG: '#C0C0C0', BTC: '#F7931A', ETH: '#627EEA',
   }
-  const pathD = bezierPath(pts)
-  const isPositive = cumulative[cumulative.length - 1] >= 0
-  const lineColor = isPositive ? '#22c55e' : '#dc3232'
-  const zeroY = padT + ((max - 0) / range) * (H - padT - padB)
-  const axisColor = dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.08)'
-  const labelColor = dark ? 'rgba(255,255,255,0.3)' : '#8a8070'
-  const yLabels = Array.from({ length: 5 }, (_, i) => ({ val: max - (range * i) / 4, y: padT + (i / 4) * (H - padT - padB) }))
-  const xStep = Math.max(1, Math.floor(cumulative.length / 4))
-  const xLabels = cumulative.map((_, i) => i).filter(i => i === 0 || i === cumulative.length - 1 || i % xStep === 0).slice(0, 6)
+  const clean = pair?.replace('/', '').toUpperCase() || ''
+  const base = clean.slice(0, 3)
+  const quote = clean.slice(3, 6)
+  const c1 = colors[base] || '#6b7280'
+  const c2 = colors[quote] || '#9ca3af'
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-        <defs>
-          <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={lineColor} stopOpacity="0.25" /><stop offset="100%" stopColor={lineColor} stopOpacity="0.02" /></linearGradient>
-          <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-        </defs>
-        {yLabels.map(({ val, y }, i) => (
-          <g key={i}>
-            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={axisColor} strokeWidth="0.5" strokeDasharray={val === 0 ? '0' : '3,3'} />
-            <text x={padL - 6} y={y + 4} textAnchor="end" fontFamily="Arial, sans-serif" fontSize="8.5" fill={labelColor}>{Math.abs(val) >= 1000 ? `${(val / 1000).toFixed(1)}k` : val.toFixed(0)}€</text>
-          </g>
-        ))}
-        {min < 0 && max > 0 && <line x1={padL} y1={zeroY} x2={W - padR} y2={zeroY} stroke={dark ? 'rgba(255,255,255,0.2)' : 'rgba(26,26,26,0.15)'} strokeWidth="1" />}
-        <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke={axisColor} strokeWidth="0.5" />
-        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke={axisColor} strokeWidth="0.5" />
-        {xLabels.map(i => { const pt = pts[i]; const trade = trades[i]; const date = trade ? new Date(trade.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : ''; return <text key={i} x={pt.x} y={H - padB + 14} textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="8.5" fill={labelColor}>{date}</text> })}
-        <path d={`${pathD} L ${pts[pts.length-1].x} ${Math.min(zeroY, H - padB)} L ${pts[0].x} ${Math.min(zeroY, H - padB)} Z`} fill="url(#pnlGrad)" />
-        <path d={pathD} fill="none" stroke={lineColor} strokeWidth="4" opacity="0.3" filter="url(#glow)" />
-        <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2.5" strokeLinecap="round" />
-        {pts.map((pt, i) => (
-          <g key={i} onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)} style={{ cursor: 'pointer' }}>
-            <circle cx={pt.x} cy={pt.y} r="12" fill="transparent" />
-            <circle cx={pt.x} cy={pt.y} r={hoveredIdx === i ? 5 : 3} fill={lineColor} stroke={dark ? '#080d14' : '#ffffff'} strokeWidth="2" style={{ transition: 'r 0.15s ease' }} />
-          </g>
-        ))}
-        {hoveredIdx !== null && (() => {
-          const pt = pts[hoveredIdx]; const trade = trades[hoveredIdx]; const pnl = data[hoveredIdx]
-          const popupW = 150; const popupH = 72
-          const px = pt.x + popupW > W ? pt.x - popupW - 8 : pt.x + 8
-          const py = pt.y - popupH < 0 ? pt.y + 8 : pt.y - popupH - 8
-          return (
-            <g>
-              <rect x={px} y={py} width={popupW} height={popupH} rx="8" fill={dark ? '#0f1825' : '#ffffff'} stroke={dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.1)'} strokeWidth="0.5" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))' }} />
-              <text x={px+10} y={py+16} fontFamily="Arial, sans-serif" fontSize="9" fill={labelColor}>{new Date(trade?.created_at || '').toLocaleDateString('en-GB')}</text>
-              <text x={px+10} y={py+32} fontFamily="Georgia, serif" fontSize="13" fontWeight="bold" fill={dark ? '#e0ecf8' : '#1a1a1a'}>{trade?.pair}</text>
-              <text x={px+10} y={py+48} fontFamily="Georgia, serif" fontSize="13" fontWeight="bold" fill={pnl >= 0 ? '#22c55e' : '#dc3232'}>{pnl >= 0 ? '+' : ''}{pnl.toFixed(0)}€</text>
-              <text x={px+10} y={py+62} fontFamily="Arial, sans-serif" fontSize="9" fill={labelColor}>{trade?.direction} · {trade?.emotion}</text>
-            </g>
-          )
-        })()}
+    <svg width={size} height={size} viewBox="0 0 28 28">
+      <circle cx="10" cy="14" r="9" fill={c1} />
+      <circle cx="18" cy="14" r="9" fill={c2} opacity="0.85" />
+    </svg>
+  )
+}
+
+// ── AvgWinLossGauge ───────────────────────────────────────────────────────────
+function AvgWinLossGauge({ avgWin, avgLoss, dark }: { avgWin: number; avgLoss: number; dark: boolean }) {
+  const total = avgWin + avgLoss
+  const winPct = total > 0 ? avgWin / total : 0.5
+  const W = 160, H = 20
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '20px' }}>
+        <rect x="0" y="4" width={W} height="12" rx="6" fill={dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} />
+        <rect x="0" y="4" width={winPct * W} height="12" rx="6" fill="#22c55e" />
+        <rect x={winPct * W} y="4" width={(1 - winPct) * W} height="12" rx="6" fill="#dc3232" />
+        <circle cx={winPct * W} cy="10" r="7" fill="white" stroke={dark ? '#1a1a1a' : '#f5f5f0'} strokeWidth="2" />
       </svg>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-inter)' }}>
+        <span style={{ color: '#22c55e' }}>Avg Win: €{avgWin.toFixed(0)}</span>
+        <span style={{ color: '#dc3232' }}>Avg Loss: €{avgLoss.toFixed(0)}</span>
+      </div>
     </div>
   )
 }
 
-function SegmentedControl({ options, value, onChange, dark }: { options: { label: string; value: string }[]; value: string; onChange: (v: string) => void; dark: boolean }) {
-  const cardBg = dark ? '#0f1825' : '#ffffff'
-  const cardBorder = dark ? 'rgba(255,255,255,0.07)' : 'rgba(26,26,26,0.08)'
-  const textMuted = dark ? 'rgba(255,255,255,0.4)' : '#8a8070'
-  const activeIdx = options.findIndex(o => o.value === value)
+// ── smooth bezier path helper ─────────────────────────────────────────────────
+function smoothLinePath(pts: { x: number; y: number }[]): string {
+  if (pts.length < 2) return ''
+  let d = `M ${pts[0].x},${pts[0].y}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const x0 = i > 0 ? pts[i - 1].x : pts[0].x
+    const y0 = i > 0 ? pts[i - 1].y : pts[0].y
+    const x1 = pts[i].x, y1 = pts[i].y
+    const x2 = pts[i + 1].x, y2 = pts[i + 1].y
+    const x3 = i < pts.length - 2 ? pts[i + 2].x : x2
+    const y3 = i < pts.length - 2 ? pts[i + 2].y : y2
+    const cp1x = x1 + (x2 - x0) / 6
+    const cp1y = y1 + (y2 - y0) / 6
+    const cp2x = x2 - (x3 - x1) / 6
+    const cp2y = y2 - (y3 - y1) / 6
+    d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`
+  }
+  return d
+}
+
+// ── PnlChart ──────────────────────────────────────────────────────────────────
+function PnlChart({
+  trades, period, dark, card, textPrimary, textMuted, tableBorder
+}: {
+  trades: Trade[]; period: string; dark: boolean
+  card: string; textPrimary: string; textMuted: string; tableBorder: string
+}) {
+  const [hover, setHover] = useState<{ x: number; y: number; label: string; val: number } | null>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  function getChartData() {
+    if (!trades.length) return []
+    const sorted = [...trades].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    if (period === 'Daily') {
+      const map = new Map<string, number>()
+      sorted.forEach(t => {
+        const d = new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+        map.set(d, (map.get(d) || 0) + (t.pnl || 0))
+      })
+      let cum = 0
+      return Array.from(map.entries()).map(([label, val]) => { cum += val; return { label, val: parseFloat(cum.toFixed(2)) } })
+    }
+    if (period === 'Weekly') {
+      const map = new Map<string, number>()
+      sorted.forEach(t => {
+        const d = new Date(t.created_at)
+        const day = d.getDay()
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+        const mon = new Date(d); mon.setDate(diff)
+        const key = `W${mon.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`
+        map.set(key, (map.get(key) || 0) + (t.pnl || 0))
+      })
+      let cum = 0
+      return Array.from(map.entries()).map(([label, val]) => { cum += val; return { label, val: parseFloat(cum.toFixed(2)) } })
+    }
+    const map = new Map<string, number>()
+    sorted.forEach(t => {
+      const d = new Date(t.created_at).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+      map.set(d, (map.get(d) || 0) + (t.pnl || 0))
+    })
+    let cum = 0
+    return Array.from(map.entries()).map(([label, val]) => { cum += val; return { label, val: parseFloat(cum.toFixed(2)) } })
+  }
+
+  const data = getChartData()
+  if (!data.length) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', color: textMuted, fontSize: '13px', fontFamily: 'var(--font-inter)' }}>
+        No trade data yet
+      </div>
+    )
+  }
+
+  const W = 600, H = 180, padL = 52, padR = 16, padT = 16, padB = 32
+  const vals = data.map(d => d.val)
+  const minV = Math.min(0, ...vals), maxV = Math.max(0, ...vals)
+  const range = maxV - minV || 1
+  const toX = (i: number) => padL + (i / Math.max(data.length - 1, 1)) * (W - padL - padR)
+  const toY = (v: number) => padT + ((maxV - v) / range) * (H - padT - padB)
+  const zeroY = toY(0)
+
+  const points = data.map((d, i) => ({ x: toX(i), y: toY(d.val) }))
+  const linePath = smoothLinePath(points)
+
+  // build smooth area path: follow the smooth line, then return along zero baseline
+  const areaPath = linePath + ` L ${toX(data.length - 1)},${zeroY} L ${toX(0)},${zeroY} Z`
+
+  const last = vals[vals.length - 1]
+  const color = last >= 0 ? '#22c55e' : '#dc3232'
+  const gradId = `pnlGrad${last >= 0 ? 'g' : 'r'}`
+
+  const ticks = 4
+  const tickVals = Array.from({ length: ticks + 1 }, (_, i) => minV + (i / ticks) * (maxV - minV))
+
+  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const rect = svgRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const mx = ((e.clientX - rect.left) / rect.width) * W
+    let closest = 0, minDist = Infinity
+    data.forEach((_, i) => {
+      const dist = Math.abs(toX(i) - mx)
+      if (dist < minDist) { minDist = dist; closest = i }
+    })
+    setHover({ x: toX(closest), y: toY(data[closest].val), label: data[closest].label, val: data[closest].val })
+  }
+
   return (
-    <div style={{ position: 'relative', display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.05)', borderRadius: '10px', padding: '3px' }}>
-      <div style={{ position: 'absolute', top: '3px', left: `calc(3px + ${activeIdx} * (100% - 6px) / ${options.length})`, width: `calc((100% - 6px) / ${options.length})`, height: 'calc(100% - 6px)', background: cardBg, borderRadius: '7px', boxShadow: dark ? '0 2px 8px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.12)', border: `0.5px solid ${cardBorder}`, transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 0 }} />
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ width: '100%', height: '180px', overflow: 'visible', cursor: 'crosshair' }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setHover(null)}
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+        </linearGradient>
+        <clipPath id="chartClip">
+          <rect x={padL} y={padT} width={W - padL - padR} height={H - padT - padB} />
+        </clipPath>
+      </defs>
+      {tickVals.map((v, i) => {
+        const y = toY(v)
+        return (
+          <g key={i}>
+            <line x1={padL} x2={W - padR} y1={y} y2={y} stroke={dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
+            <text x={padL - 6} y={y + 4} textAnchor="end" fontSize="9" fontFamily="var(--font-inter)" fill={textMuted}>
+              {Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(0)}
+            </text>
+          </g>
+        )
+      })}
+      {minV < 0 && maxV > 0 && (
+        <line x1={padL} x2={W - padR} y1={zeroY} y2={zeroY}
+          stroke={dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)'} strokeDasharray="3 3" />
+      )}
+      <g clipPath="url(#chartClip)">
+        <path d={areaPath} fill={`url(#${gradId})`} />
+        <path d={linePath} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+      {hover && (
+        <g>
+          <line x1={hover.x} x2={hover.x} y1={padT} y2={H - padB}
+            stroke={dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)'} strokeDasharray="4 3" />
+          <circle cx={hover.x} cy={hover.y} r="4" fill={color} />
+          <rect x={Math.min(hover.x - 44, W - 96)} y={hover.y - 36} width="88" height="28" rx="5"
+            fill={dark ? '#2a2a2a' : '#fff'} stroke={dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+          <text x={Math.min(hover.x, W - 52)} y={hover.y - 24} textAnchor="middle" fontSize="9" fontFamily="var(--font-inter)" fill={textMuted}>{hover.label}</text>
+          <text x={Math.min(hover.x, W - 52)} y={hover.y - 13} textAnchor="middle" fontSize="11" fontFamily="var(--font-inter)" fontWeight="600" fill={hover.val >= 0 ? '#22c55e' : '#dc3232'}>
+            {hover.val >= 0 ? '+' : ''}€{hover.val.toFixed(2)}
+          </text>
+        </g>
+      )}
+      {data.length <= 20 && data.map((d, i) => (
+        <text key={i} x={toX(i)} y={H - padB + 14} textAnchor="middle" fontSize="8"
+          fontFamily="var(--font-inter)" fill={textMuted}>{d.label}</text>
+      ))}
+    </svg>
+  )
+}
+
+// ── SegmentedControl ──────────────────────────────────────────────────────────
+function SegmentedControl({ options, value, onChange, dark }: {
+  options: string[]; value: string; onChange: (v: string) => void; dark: boolean
+}) {
+  return (
+    <div style={{
+      display: 'inline-flex', borderRadius: '8px', padding: '3px', gap: '2px',
+      background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+    }}>
       {options.map(opt => (
-        <button key={opt.value} onClick={() => onChange(opt.value)} style={{ flex: 1, padding: '7px 14px', background: 'transparent', border: 'none', color: value === opt.value ? (dark ? '#e0ecf8' : '#1a1a1a') : textMuted, fontFamily: 'var(--font-inter)', fontSize: '11px', cursor: 'pointer', position: 'relative', zIndex: 1, fontWeight: value === opt.value ? '600' : '400', transition: 'color 0.2s ease', borderRadius: '7px' }}>
-          {opt.label}
-        </button>
+        <button key={opt} onClick={() => onChange(opt)} style={{
+          padding: '4px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer',
+          fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 500,
+          background: value === opt ? (dark ? 'rgba(255,255,255,0.12)' : '#fff') : 'transparent',
+          color: value === opt ? (dark ? '#fff' : '#1a1a1a') : dark ? 'rgba(255,255,255,0.45)' : 'rgba(26,26,26,0.45)',
+          boxShadow: value === opt ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+          transition: 'all 0.15s',
+        }}>{opt}</button>
       ))}
     </div>
   )
 }
 
-function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder, isMobile }: {
-  trades: Trade[]; dark: boolean; cardBg: string; cardBorder: string; cardShadow: string; textPrimary: string; textMuted: string; accent: string; tableBorder: string; isMobile: boolean
-}) {
-  const today = new Date()
-  const [calYear, setCalYear] = useState(today.getFullYear())
-  const [calMonth, setCalMonth] = useState(today.getMonth())
-  const isCurrentMonth = calYear === today.getFullYear() && calMonth === today.getMonth()
+// ── ProfitFactorDisplay ───────────────────────────────────────────────────────
+function ProfitFactorDisplay({ value, dark, textMuted }: { value: number; dark: boolean; textMuted: string }) {
+  const color = value >= 2 ? '#22c55e' : value >= 1 ? ACCENT : value === 0 ? (dark ? 'rgba(255,255,255,0.25)' : '#bbb') : '#dc3232'
+  const label = value === Infinity ? 'Perfect' : value >= 2 ? 'Strong' : value >= 1.5 ? 'Good' : value >= 1 ? 'Breakeven+' : value > 0 ? 'Losing' : '—'
+  const disp = value === Infinity ? '∞' : value > 0 ? value.toFixed(2) : '—'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <span style={{ fontSize: '32px', fontFamily: 'Georgia, serif', fontWeight: 700, color, lineHeight: 1 }}>{disp}</span>
+      <span style={{
+        fontSize: '11px', fontFamily: 'var(--font-inter)', fontWeight: 600,
+        color, background: `${color}18`, borderRadius: '20px', padding: '3px 10px',
+        whiteSpace: 'nowrap' as const,
+      }}>{label}</span>
+    </div>
+  )
+}
 
-  const dayMap: Record<string, number> = {}
-  trades.forEach(t => {
-    const d = new Date(t.created_at)
-    if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
-      const key = d.getDate().toString()
-      dayMap[key] = (dayMap[key] || 0) + (t.pnl || 0)
+// ── WeeklyBarChart ────────────────────────────────────────────────────────────
+function WeeklyBarChart({ trades, dark, textMuted, tableBorder }: {
+  trades: Trade[]; dark: boolean; textMuted: string; tableBorder: string
+}) {
+  const [hoverDay, setHoverDay] = useState<number | null>(null)
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const dayIndex = (d: Date) => (d.getDay() + 6) % 7
+
+  const byDay = DAYS.map((_, di) => {
+    const dt = trades.filter(t => dayIndex(new Date(t.created_at)) === di)
+    const pnl = dt.reduce((s, t) => s + (t.pnl || 0), 0)
+    return {
+      pnl,
+      wins: dt.filter(t => t.pnl > 0).length,
+      losses: dt.filter(t => t.pnl < 0).length,
+      be: dt.filter(t => t.pnl === 0).length,
+      count: dt.length,
     }
   })
 
-  const firstDay = new Date(calYear, calMonth, 1)
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
-  let startOffset = firstDay.getDay() - 1
-  if (startOffset < 0) startOffset = 6
-
-  const weeks: (number | null)[][] = []
-  let currentWeek: (number | null)[] = Array(startOffset).fill(null)
-  for (let d = 1; d <= daysInMonth; d++) {
-    currentWeek.push(d)
-    if (currentWeek.length === 7) { weeks.push(currentWeek); currentWeek = [] }
-  }
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push(null)
-    weeks.push(currentWeek)
-  }
-
-  const monthName = new Date(calYear, calMonth).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-  const dayLabels = isMobile ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-  function prevMonth() {
-    if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11) } else setCalMonth(m => m - 1)
-  }
-  function nextMonth() {
-    if (isCurrentMonth) return
-    if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0) } else setCalMonth(m => m + 1)
-  }
+  const maxAbs = Math.max(1, ...byDay.map(d => Math.abs(d.pnl)))
+  const W = 340, H = 120, padL = 8, padR = 8, padT = 12, padB = 24
+  const barW = (W - padL - padR) / 7
+  const midY = padT + (H - padT - padB) / 2
+  const scale = (H - padT - padB) / 2 / maxAbs
 
   return (
-    <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: isMobile ? '16px' : '24px', marginTop: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Trading Calendar</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: 'pointer', color: textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
-          <span style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '12px' : '14px', fontWeight: '600', color: textPrimary, minWidth: isMobile ? '100px' : '120px', textAlign: 'center' as const }}>{monthName}</span>
-          <button onClick={nextMonth} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '26px', height: '26px', cursor: isCurrentMonth ? 'not-allowed' : 'pointer', color: isCurrentMonth ? (dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.15)') : textMuted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isCurrentMonth ? 0.3 : 1 }}>→</button>
-        </div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px', marginBottom: isMobile ? '3px' : '4px' }}>
-        {dayLabels.map((d, i) => (
-          <div key={i} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', padding: '4px 0' }}>{d}</div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: isMobile ? '3px' : '4px' }}>
-        {weeks.map((week, wi) => (
-          <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '3px' : '4px' }}>
-            {week.map((day, di) => {
-              if (!day) return <div key={di} />
-              const pnl = dayMap[day.toString()]
-              const isToday = isCurrentMonth && day === today.getDate()
-              const hasTrades = pnl !== undefined
-              const isProfit = hasTrades && pnl > 0
-              const isLoss = hasTrades && pnl < 0
-              const isBe = hasTrades && pnl === 0
-              let bg = 'transparent'
-              let borderColor = dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.06)'
-              let pnlColor = textMuted
-              if (isProfit) { bg = dark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)'; borderColor = 'rgba(34,197,94,0.25)'; pnlColor = '#22c55e' }
-              if (isLoss) { bg = dark ? 'rgba(220,50,50,0.12)' : 'rgba(220,50,50,0.08)'; borderColor = 'rgba(220,50,50,0.25)'; pnlColor = '#dc3232' }
-              if (isBe) { bg = dark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.06)'; borderColor = 'rgba(148,163,184,0.2)'; pnlColor = '#94a3b8' }
-              return (
-                <div key={di} style={{ background: bg, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: isMobile ? '6px' : '8px', padding: isMobile ? '5px 3px' : '6px 8px', minHeight: isMobile ? '38px' : '48px', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '9px' : '10px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: '2px', textAlign: isMobile ? 'center' as const : 'left' as const }}>{day}</div>
-                  {hasTrades && !isMobile && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor, lineHeight: 1 }}>{pnl > 0 ? '+' : ''}{pnl.toFixed(0)}€</div>}
-                  {hasTrades && isMobile && <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: pnlColor, margin: '0 auto' }} />}
-                </div>
-              )
-            })}
+    <div style={{ position: 'relative' }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: '100%', height: '120px', overflow: 'visible' }}
+        onMouseLeave={() => setHoverDay(null)}
+      >
+        <line x1={padL} x2={W - padR} y1={midY} y2={midY}
+          stroke={dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+        {byDay.map((d, i) => {
+          const x = padL + i * barW + barW * 0.18
+          const bw = barW * 0.64
+          const barH = Math.max(2, Math.abs(d.pnl) * scale)
+          const y = d.pnl >= 0 ? midY - barH : midY
+          const color = d.pnl > 0 ? '#22c55e' : d.pnl < 0 ? '#dc3232'
+            : dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'
+          return (
+            <g key={i} style={{ cursor: d.count > 0 ? 'pointer' : 'default' }}
+              onMouseEnter={() => d.count > 0 && setHoverDay(i)}>
+              <rect x={x} y={padT} width={bw} height={H - padT - padB} fill="transparent" />
+              <rect x={x} y={y} width={bw} height={barH} rx="3" fill={color}
+                opacity={hoverDay === i ? 1 : 0.72} />
+              <text x={x + bw / 2} y={H - padB + 14} textAnchor="middle" fontSize="9"
+                fontFamily="var(--font-inter)" fill={textMuted}>{DAYS[i]}</text>
+            </g>
+          )
+        })}
+      </svg>
+      {hoverDay !== null && (
+        <div style={{
+          position: 'absolute', top: 0,
+          left: `${(hoverDay / 7) * 100 + 7}%`,
+          background: dark ? '#2a2a2a' : '#fff',
+          border: `1px solid ${tableBorder}`,
+          borderRadius: '8px', padding: '8px 12px',
+          fontSize: '11px', fontFamily: 'var(--font-inter)',
+          zIndex: 10, whiteSpace: 'nowrap',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          transform: hoverDay > 4 ? 'translateX(-110%)' : 'none',
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: '3px', color: byDay[hoverDay].pnl >= 0 ? '#22c55e' : '#dc3232' }}>
+            {byDay[hoverDay].pnl >= 0 ? '+' : ''}€{byDay[hoverDay].pnl.toFixed(2)}
           </div>
-        ))}
+          <div style={{ color: dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)' }}>
+            W {byDay[hoverDay].wins} · L {byDay[hoverDay].losses} · BE {byDay[hoverDay].be}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── SessionCards ──────────────────────────────────────────────────────────────
+function SessionCards({ trades, dark, card, textPrimary, textMuted, tableBorder }: {
+  trades: Trade[]; dark: boolean; card: string
+  textPrimary: string; textMuted: string; tableBorder: string
+}) {
+  const sessions = [
+    { key: 'london',  label: 'London',   flag: '🇬🇧', hours: '2AM – 5AM'   },
+    { key: 'ny',      label: 'New York', flag: '🇺🇸', hours: '7AM – 11AM'  },
+    { key: 'asia',    label: 'Asia',     flag: '🌏',  hours: '8PM – 00:00' },
+    { key: 'overlap', label: 'Overlap',  flag: '⚡',  hours: null           },
+  ]
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+      {sessions.map(sess => {
+        const st = trades.filter(t => (t as any).session === sess.key)
+        const pnl = st.reduce((s, t) => s + (t.pnl || 0), 0)
+        const wins = st.filter(t => t.pnl > 0).length
+        const winRate = st.length > 0 ? Math.round((wins / st.length) * 100) : 0
+        const pnlColor = pnl > 0 ? '#22c55e' : pnl < 0 ? '#dc3232' : textMuted
+        const statusLabel = pnl > 0 ? 'Profitable' : pnl < 0 ? 'Loss' : 'Breakeven'
+        const statusBg = pnl > 0 ? 'rgba(34,197,94,0.1)' : pnl < 0 ? 'rgba(220,50,50,0.1)'
+          : dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'
+
+        return (
+          <div key={sess.key} style={{
+            background: card, borderRadius: '14px', padding: '18px 16px',
+            border: `1px solid ${tableBorder}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>{sess.flag}</span>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>{sess.label}</div>
+                  {sess.hours && (
+                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{sess.hours}</div>
+                  )}
+                </div>
+              </div>
+              {st.length > 0 && (
+                <span style={{
+                  fontSize: '9px', fontFamily: 'var(--font-inter)', fontWeight: 600,
+                  padding: '3px 8px', borderRadius: '20px', background: statusBg, color: pnlColor,
+                }}>{statusLabel}</span>
+              )}
+            </div>
+            <div style={{ fontSize: '24px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              {st.length > 0 ? `${pnl >= 0 ? '+' : ''}€${pnl.toFixed(0)}` : '—'}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-inter)', color: textMuted }}>
+              <span>{st.length} trade{st.length !== 1 ? 's' : ''}</span>
+              {st.length > 0 && (
+                <span style={{ color: winRate >= 50 ? '#22c55e' : '#dc3232' }}>{winRate}% WR</span>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── MonthlyRecapCard ──────────────────────────────────────────────────────────
+type Recap = {
+  id: string; month: string; best_trade: string; worst_trade: string
+  biggest_lesson: string; what_worked: string; what_to_improve: string; created_at: string
+}
+
+function MonthlyRecapCard({ recap, dark, card, textPrimary, textMuted, tableBorder, onEdit }: {
+  recap: Recap; dark: boolean; card: string
+  textPrimary: string; textMuted: string; tableBorder: string; onEdit: () => void
+}) {
+  return (
+    <div style={{ background: card, borderRadius: '16px', padding: '20px 24px', border: `1px solid ${tableBorder}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h3 style={{ margin: 0, fontSize: '15px', fontFamily: 'Georgia, serif', color: textPrimary }}>{recap.month} Recap</h3>
+        <button onClick={onEdit} style={{
+          background: 'transparent', border: `1px solid ${tableBorder}`,
+          borderRadius: '8px', padding: '4px 12px', cursor: 'pointer',
+          fontSize: '11px', fontFamily: 'var(--font-inter)', color: textMuted,
+        }}>Edit</button>
       </div>
-      <div style={{ display: 'flex', gap: '16px', marginTop: '12px', paddingTop: '12px', borderTop: `0.5px solid ${tableBorder}`, flexWrap: 'wrap' as const }}>
-        {[{ color: '#22c55e', label: 'Profitable day' }, { color: '#dc3232', label: 'Loss day' }, { color: '#94a3b8', label: 'Breakeven' }].map(item => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: item.color, opacity: 0.7 }} />
-            {item.label}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        {[
+          { label: 'Best Trade', val: recap.best_trade },
+          { label: 'Worst Trade', val: recap.worst_trade },
+          { label: 'Biggest Lesson', val: recap.biggest_lesson },
+          { label: 'What Worked', val: recap.what_worked },
+          { label: 'To Improve', val: recap.what_to_improve },
+        ].map(f => (
+          <div key={f.label}>
+            <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</div>
+            <div style={{ fontSize: '12px', color: textPrimary, fontFamily: 'var(--font-inter)', lineHeight: 1.4 }}>{f.val || '—'}</div>
           </div>
         ))}
       </div>
@@ -280,477 +431,404 @@ function MonthCalendar({ trades, dark, cardBg, cardBorder, cardShadow, textPrima
   )
 }
 
-// ── MONTHLY RECAP CARD ──
-function MonthlyRecapCard({ cardRef, monthLabel, pnl, winRate, tradeCount, wallPosts, firstName, pairs, planAdherence }: {
-  cardRef: React.RefObject<HTMLDivElement | null>
-  monthLabel: string
-  pnl: number
-  winRate: number
-  tradeCount: number
-  wallPosts: number
-  firstName?: string
-  pairs: string[]
-  planAdherence: number
+// ── RecapModal ────────────────────────────────────────────────────────────────
+function RecapModal({ recap, dark, textPrimary, textMuted, tableBorder, onClose, onSave }: {
+  recap: Partial<Recap> | null; dark: boolean
+  textPrimary: string; textMuted: string; tableBorder: string
+  onClose: () => void; onSave: (r: Partial<Recap>) => void
 }) {
-  const quotes = [
-    "The market rewards discipline, not intelligence.",
-    "Consistency is the edge.",
-    "Every trade is a lesson. Every month is a chapter.",
-    "Process over outcome. Always.",
-    "Small gains compound. Stay the course.",
-    "The blueprint works. Trust the process.",
+  const now = new Date()
+  const defaultMonth = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+  const [form, setForm] = useState<Partial<Recap>>(recap || { month: defaultMonth })
+
+  const fields: Array<{ key: keyof Recap; label: string; placeholder: string }> = [
+    { key: 'month',           label: 'Month',          placeholder: 'e.g. June 2025' },
+    { key: 'best_trade',      label: 'Best Trade',      placeholder: 'What was your best setup?' },
+    { key: 'worst_trade',     label: 'Worst Trade',     placeholder: 'What went wrong?' },
+    { key: 'biggest_lesson',  label: 'Biggest Lesson',  placeholder: 'Key takeaway this month' },
+    { key: 'what_worked',     label: 'What Worked',     placeholder: 'Strategies or habits that paid off' },
+    { key: 'what_to_improve', label: 'To Improve',      placeholder: 'Focus for next month' },
   ]
-  const quote = quotes[new Date().getMonth() % quotes.length]
-  const isPositive = pnl >= 0
 
   return (
-    <div ref={cardRef} style={{ width: '390px', height: '760px', background: 'linear-gradient(145deg, #0d1e36 0%, #0a1628 50%, #061020 100%)', borderRadius: '24px', padding: '36px 36px', display: 'flex', flexDirection: 'column' as const, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-      {/* Grid pattern */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '36px 36px', pointerEvents: 'none' }} />
-      {/* Glow */}
-      <div style={{ position: 'absolute', top: '140px', left: '50%', transform: 'translateX(-50%)', width: '320px', height: '320px', background: isPositive ? 'radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(220,50,50,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', marginBottom: '36px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '22px', height: '22px', border: '1.5px solid #7aaee8', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: '6px', height: '6px', background: '#7aaee8', borderRadius: '1.5px' }} />
-          </div>
-          <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', letterSpacing: '1.2px', color: 'rgba(255,255,255,0.85)' }}>FLOW <span style={{ color: '#7aaee8' }}>CAPITALS</span></span>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+    }} onClick={onClose}>
+      <div style={{
+        background: dark ? '#1a1a1a' : '#fafaf7', borderRadius: '18px',
+        padding: '28px 32px', width: '480px', maxWidth: '94vw',
+        border: `1px solid ${tableBorder}`, boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+      }} onClick={e => e.stopPropagation()}>
+        <h2 style={{ margin: '0 0 20px', fontFamily: 'Georgia, serif', fontSize: '20px', color: textPrimary }}>Monthly Recap</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {fields.map(f => (
+            <div key={f.key}>
+              <label style={{ display: 'block', fontSize: '11px', color: textMuted, fontFamily: 'var(--font-inter)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{f.label}</label>
+              <textarea rows={f.key === 'month' ? 1 : 2} placeholder={f.placeholder}
+                value={(form[f.key] as string) || ''}
+                onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                style={{
+                  width: '100%', resize: 'vertical', borderRadius: '8px',
+                  border: `1px solid ${tableBorder}`, padding: '8px 10px',
+                  background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                  color: textPrimary, fontFamily: 'var(--font-inter)', fontSize: '13px',
+                  boxSizing: 'border-box',
+                }} />
+            </div>
+          ))}
         </div>
-        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em', textTransform: 'uppercase' as const }}>{monthLabel}</span>
-      </div>
-
-      {/* Recap label */}
-      <div style={{ position: 'relative', marginBottom: '8px' }}>
-        <span style={{ fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#7aaee8', letterSpacing: '0.2em', textTransform: 'uppercase' as const }}>
-          {firstName ? `${firstName}'s` : 'My'} Monthly Recap
-        </span>
-      </div>
-
-      {/* P&L Hero */}
-      <div style={{ position: 'relative', marginBottom: '4px' }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: '64px', fontWeight: '700', color: isPositive ? '#22c55e' : '#dc3232', lineHeight: 1, letterSpacing: '-2px', textShadow: isPositive ? '0 0 48px rgba(34,197,94,0.45)' : '0 0 48px rgba(220,50,50,0.45)' }}>
-          {isPositive ? '+' : ''}{pnl.toFixed(0)}€
+        <div style={{ display: 'flex', gap: '10px', marginTop: '22px', justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{
+            padding: '8px 18px', borderRadius: '8px', border: `1px solid ${tableBorder}`,
+            background: 'transparent', color: textMuted, cursor: 'pointer',
+            fontFamily: 'var(--font-inter)', fontSize: '13px',
+          }}>Cancel</button>
+          <button onClick={() => onSave(form)} style={{
+            padding: '8px 22px', borderRadius: '8px', border: 'none',
+            background: ACCENT, color: '#fff', cursor: 'pointer',
+            fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600,
+          }}>Save Recap</button>
         </div>
       </div>
-      <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '28px', position: 'relative' }}>Net profit this month</div>
+    </div>
+  )
+}
 
-      {/* Stats row */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '24px', position: 'relative' }}>
-        {[
-          { label: 'Win Rate', value: `${winRate}%`, color: winRate >= 60 ? '#22c55e' : winRate >= 40 ? '#7aaee8' : '#dc3232' },
-          { label: 'Trades', value: String(tradeCount), color: '#e0ecf8' },
-          { label: 'Wall Posts', value: String(wallPosts), color: '#22c55e' },
-          { label: 'Plan', value: `${planAdherence}%`, color: planAdherence >= 70 ? '#22c55e' : planAdherence >= 40 ? '#7aaee8' : '#dc3232' },
-        ].map((stat, i) => (
-          <div key={i} style={{ flex: 1, borderLeft: i > 0 ? '0.5px solid rgba(255,255,255,0.08)' : 'none', paddingLeft: i > 0 ? '14px' : '0' }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: '24px', fontWeight: '700', color: stat.color, lineHeight: 1, marginBottom: '5px' }}>{stat.value}</div>
-            <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '8px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>{stat.label}</div>
-          </div>
+// ── JournalDashboard ──────────────────────────────────────────────────────────
+export default function JournalDashboard() {
+  const dark = useDarkMode()
+  const router = useRouter()
+  const theme = getTheme(dark).bg
+  const card = getCard(dark).background
+
+  const textPrimary = dark ? '#f5f5f0' : '#1a1a1a'
+  const textMuted = dark ? 'rgba(245,245,240,0.45)' : 'rgba(26,26,26,0.45)'
+  const tableBorder = dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)'
+
+  const [trades, setTrades] = useState<Trade[]>([])
+  const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState('Daily')
+  const [recaps, setRecaps] = useState<Recap[]>([])
+  const [showRecapModal, setShowRecapModal] = useState(false)
+  const [editingRecap, setEditingRecap] = useState<Partial<Recap> | null>(null)
+
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const [{ data: tradeData }, { data: recapData }] = await Promise.all([
+        supabase.from('trades').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('monthly_recaps').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      ])
+      setTrades((tradeData as Trade[]) || [])
+      setRecaps((recapData as Recap[]) || [])
+      setLoading(false)
+    }
+    load()
+  }, [router])
+
+  async function handleSaveRecap(form: Partial<Recap>) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    if (form.id) {
+      await supabase.from('monthly_recaps').update(form).eq('id', form.id)
+    } else {
+      await supabase.from('monthly_recaps').insert({ ...form, user_id: user.id })
+    }
+    const { data } = await supabase.from('monthly_recaps').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+    setRecaps((data as Recap[]) || [])
+    setShowRecapModal(false)
+    setEditingRecap(null)
+  }
+
+  // ── stats ───────────────────────────────────────────────────────────────────
+  const sorted = [...trades].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  const totalPnl = trades.reduce((s, t) => s + (t.pnl || 0), 0)
+  const wins = trades.filter(t => t.pnl > 0)
+  const losses = trades.filter(t => t.pnl < 0)
+  const be = trades.filter(t => t.pnl === 0)
+  const winRate = trades.length > 0 ? Math.round((wins.length / trades.length) * 100) : 0
+  const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
+  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0
+  const grossProfit = wins.reduce((s, t) => s + t.pnl, 0)
+  const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
+  const profitFactor = grossLoss > 0 ? parseFloat((grossProfit / grossLoss).toFixed(2)) : grossProfit > 0 ? Infinity : 0
+  const pnlColor = totalPnl >= 0 ? '#22c55e' : '#dc3232'
+  const recentTrades = [...trades].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 8)
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: theme, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '14px' }}>Loading…</div>
+      </div>
+    )
+  }
+
+  // ── shared stat cards ───────────────────────────────────────────────────────
+  const statCards = (
+  <>
+    {/* Net P&L */}
+    <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
+      <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Net P&L</div>
+      <div style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '10px' }}>
+        {totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}
+      </div>
+      <div style={{ fontSize: '11px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{trades.length} trades total</div>
+    </div>
+
+    {/* Win Rate */}
+    <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
+      <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Win Rate</div>
+      <div style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: winRate >= 50 ? '#22c55e' : '#dc3232', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '10px' }}>{winRate}%</div>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {[{ c: '#22c55e', l: `W ${wins.length}` }, { c: '#dc3232', l: `L ${losses.length}` }, { c: textMuted, l: `BE ${be.length}` }].map(b => (
+          <span key={b.l} style={{
+            fontSize: '10px', fontFamily: 'var(--font-inter)', color: b.c,
+            background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)',
+            borderRadius: '6px', padding: '3px 8px',
+          }}>{b.l}</span>
         ))}
       </div>
+    </div>
 
-      {/* Divider */}
-      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', marginBottom: '20px', position: 'relative' }} />
+    {/* Avg Win / Loss */}
+    <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
+      <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Avg Win / Loss</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: '#22c55e', lineHeight: 1, letterSpacing: '-0.02em' }}>€{avgWin.toFixed(0)}</span>
+        <span style={{ fontSize: '28px', fontFamily: 'var(--font-inter)', fontWeight: 300, color: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)', lineHeight: 1 }}>/</span>
+        <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: '#dc3232', lineHeight: 1, letterSpacing: '-0.02em' }}>€{avgLoss.toFixed(0)}</span>
+      </div>
+      <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} />
+    </div>
 
-      {/* Pairs traded */}
-      {pairs.length > 0 && (
-        <div style={{ position: 'relative', marginBottom: '20px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Pairs Traded</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '6px' }}>
-            {pairs.map(pair => (
-              <div key={pair} style={{ background: 'rgba(122,174,232,0.1)', border: '0.5px solid rgba(122,174,232,0.25)', borderRadius: '6px', padding: '4px 10px', fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', color: '#7aaee8', letterSpacing: '0.05em' }}>
-                {pair}
+    {/* Profit Factor */}
+    <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
+      <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Profit Factor</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em', color: profitFactor >= 2 ? '#22c55e' : profitFactor >= 1 ? ACCENT : profitFactor === 0 ? textMuted : '#dc3232' }}>
+          {profitFactor === Infinity ? '∞' : profitFactor > 0 ? profitFactor.toFixed(2) : '—'}
+        </span>
+        <span style={{
+          fontSize: '11px', fontFamily: 'var(--font-inter)', fontWeight: 600,
+          color: profitFactor >= 2 ? '#22c55e' : profitFactor >= 1 ? ACCENT : '#dc3232',
+          background: `${profitFactor >= 2 ? '#22c55e' : profitFactor >= 1 ? ACCENT : '#dc3232'}18`,
+          borderRadius: '20px', padding: '3px 10px',
+        }}>
+          {profitFactor === Infinity ? 'Perfect' : profitFactor >= 2 ? 'Strong' : profitFactor >= 1.5 ? 'Good' : profitFactor >= 1 ? 'Breakeven+' : profitFactor > 0 ? 'Losing' : '—'}
+        </span>
+      </div>
+      <div style={{ fontSize: '11px', color: textMuted, fontFamily: 'var(--font-inter)' }}>€{grossProfit.toFixed(0)} gross profit</div>
+    </div>
+  </>
+)
+
+  // ── mobile ──────────────────────────────────────────────────────────────────
+  const mobile = (
+    <div style={{ minHeight: '100vh', background: theme, padding: '20px 16px 40px', boxSizing: 'border-box' as const }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ margin: 0, fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: 700, color: textPrimary }}>Overview.</h1>
+        <button onClick={() => { setEditingRecap(null); setShowRecapModal(true) }} style={{
+          background: ACCENT, color: '#fff', border: 'none', borderRadius: '10px',
+          padding: '8px 14px', fontSize: '12px', fontFamily: 'var(--font-inter)', fontWeight: 600, cursor: 'pointer',
+        }}>+ Recap</button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+        <div style={{ gridColumn: '1 / -1' }}>{/* Net P&L full width on mobile */}
+          <div style={{ background: card, borderRadius: '14px', padding: '16px', border: `1px solid ${tableBorder}` }}>
+            <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Net P&L</div>
+            <div style={{ fontSize: '32px', fontFamily: 'Georgia, serif', fontWeight: 700, color: pnlColor, marginBottom: '4px' }}>{totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}</div>
+            <div style={{ fontSize: '11px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{trades.length} trades</div>
+          </div>
+        </div>
+        <div style={{ background: card, borderRadius: '14px', padding: '14px', border: `1px solid ${tableBorder}` }}>
+          <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Win Rate</div>
+          <div style={{ fontSize: '26px', fontFamily: 'Georgia, serif', fontWeight: 700, color: winRate >= 50 ? '#22c55e' : '#dc3232', marginBottom: '6px' }}>{winRate}%</div>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' as const }}>
+            {[{ c: '#22c55e', l: `W ${wins.length}` }, { c: '#dc3232', l: `L ${losses.length}` }, { c: textMuted, l: `BE ${be.length}` }].map(b => (
+              <span key={b.l} style={{ fontSize: '9px', fontFamily: 'var(--font-inter)', color: b.c, background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', borderRadius: '5px', padding: '2px 6px' }}>{b.l}</span>
+            ))}
+          </div>
+        </div>
+        <div style={{ background: card, borderRadius: '14px', padding: '14px', border: `1px solid ${tableBorder}` }}>
+          <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Profit Factor</div>
+          <ProfitFactorDisplay value={profitFactor} dark={dark} textMuted={textMuted} />
+        </div>
+      </div>
+      <div style={{ background: card, borderRadius: '14px', padding: '14px', border: `1px solid ${tableBorder}`, marginBottom: '14px' }}>
+        <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>Avg Win / Loss</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#22c55e' }}>€{avgWin.toFixed(0)}</span>
+          <span style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#dc3232' }}>€{avgLoss.toFixed(0)}</span>
+        </div>
+        <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} />
+      </div>
+      <div style={{ background: card, borderRadius: '14px', padding: '16px', border: `1px solid ${tableBorder}`, marginBottom: '14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>Cumulative P&L</div>
+          <SegmentedControl options={['Daily', 'Weekly', 'Monthly']} value={period} onChange={setPeriod} dark={dark} />
+        </div>
+        <PnlChart trades={sorted} period={period} dark={dark} card={card} textPrimary={textPrimary} textMuted={textMuted} tableBorder={tableBorder} />
+      </div>
+      <div style={{ background: card, borderRadius: '14px', padding: '16px', border: `1px solid ${tableBorder}`, marginBottom: '14px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginBottom: '12px' }}>Weekly Distribution</div>
+        <WeeklyBarChart trades={trades} dark={dark} textMuted={textMuted} tableBorder={tableBorder} />
+      </div>
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginBottom: '10px' }}>Session Performance</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          {[
+            { key: 'london',  label: 'London',   flag: '🇬🇧', hours: '2AM – 5AM'   },
+            { key: 'ny',      label: 'New York', flag: '🇺🇸', hours: '7AM – 11AM'  },
+            { key: 'asia',    label: 'Asia',     flag: '🌏',  hours: '8PM – 00:00' },
+            { key: 'overlap', label: 'Overlap',  flag: '⚡',  hours: null           },
+          ].map(sess => {
+            const st = trades.filter(t => (t as any).session === sess.key)
+            const pnl = st.reduce((s, t) => s + (t.pnl || 0), 0)
+            const pc = pnl > 0 ? '#22c55e' : pnl < 0 ? '#dc3232' : textMuted
+            return (
+              <div key={sess.key} style={{ background: card, borderRadius: '12px', padding: '12px', border: `1px solid ${tableBorder}` }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ fontSize: '16px' }}>{sess.flag}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginLeft: '6px' }}>{sess.label}</span>
+                  {sess.hours && <div style={{ fontSize: '9px', color: textMuted, fontFamily: 'var(--font-inter)', marginTop: '1px' }}>{sess.hours}</div>}
+                </div>
+                <div style={{ fontSize: '20px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pc, letterSpacing: '-0.02em' }}>{st.length > 0 ? `${pnl >= 0 ? '+' : ''}€${pnl.toFixed(0)}` : '—'}</div>
+                <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', marginTop: '2px' }}>{st.length} trades</div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      {recentTrades.length > 0 && (
+        <div style={{ background: card, borderRadius: '14px', padding: '16px', border: `1px solid ${tableBorder}` }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginBottom: '12px' }}>Recent Trades</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {recentTrades.map((t, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <PairIcon pair={t.pair} size={22} />
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>{t.pair}</div>
+                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: '13px', fontFamily: 'Georgia, serif', fontWeight: 700, color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>{t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {showRecapModal && (
+        <RecapModal recap={editingRecap} dark={dark} textPrimary={textPrimary} textMuted={textMuted} tableBorder={tableBorder}
+          onClose={() => { setShowRecapModal(false); setEditingRecap(null) }} onSave={handleSaveRecap} />
+      )}
+    </div>
+  )
+
+  // ── desktop ─────────────────────────────────────────────────────────────────
+  const desktop = (
+    <div style={{ minHeight: '100vh', background: theme, padding: '36px 40px 56px', boxSizing: 'border-box' as const }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+        <h1 style={{ margin: 0, fontFamily: 'Georgia, serif', fontSize: '36px', fontWeight: 700, color: textPrimary }}>Overview.</h1>
+        <button onClick={() => { setEditingRecap(null); setShowRecapModal(true) }} style={{
+          background: ACCENT, color: '#fff', border: 'none', borderRadius: '10px',
+          padding: '10px 20px', fontSize: '13px', fontFamily: 'var(--font-inter)', fontWeight: 600, cursor: 'pointer',
+        }}>+ Monthly Recap</button>
+      </div>
+
+      {/* Row 1: 4 stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+        {statCards}
+      </div>
+
+      {/* Row 2: P&L chart + Weekly bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '16px', marginBottom: '20px' }}>
+        <div style={{ background: card, borderRadius: '16px', padding: '20px 22px', border: `1px solid ${tableBorder}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>Cumulative P&L</div>
+            <SegmentedControl options={['Daily', 'Weekly', 'Monthly']} value={period} onChange={setPeriod} dark={dark} />
+          </div>
+          <PnlChart trades={sorted} period={period} dark={dark} card={card} textPrimary={textPrimary} textMuted={textMuted} tableBorder={tableBorder} />
+        </div>
+        <div style={{ background: card, borderRadius: '16px', padding: '20px 22px', border: `1px solid ${tableBorder}` }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginBottom: '14px' }}>Weekly Distribution</div>
+          <WeeklyBarChart trades={trades} dark={dark} textMuted={textMuted} tableBorder={tableBorder} />
+          <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', marginTop: '8px', textAlign: 'center' as const }}>P&L by day · hover for details</div>
+        </div>
+      </div>
+
+      {/* Row 3: Sessions */}
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginBottom: '12px' }}>Session Performance</div>
+        <SessionCards trades={trades} dark={dark} card={card} textPrimary={textPrimary} textMuted={textMuted} tableBorder={tableBorder} />
+      </div>
+
+      {/* Row 4: Recent Trades */}
+      {recentTrades.length > 0 && (
+        <div style={{ background: card, borderRadius: '16px', padding: '20px 24px', border: `1px solid ${tableBorder}`, marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>Recent Trades</div>
+            <button onClick={() => router.push('/dashboard/journal/trades')} style={{
+              background: 'transparent', border: 'none', cursor: 'pointer',
+              fontSize: '12px', color: ACCENT, fontFamily: 'var(--font-inter)', fontWeight: 500,
+            }}>View all →</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+            {recentTrades.map((t, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 14px', borderRadius: '10px',
+                background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                border: `1px solid ${tableBorder}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <PairIcon pair={t.pair} size={22} />
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>{t.pair}</div>
+                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: '14px', fontFamily: 'var(--font-inter)', fontWeight: 700, letterSpacing: '-0.02em', color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>
+                  {t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Plan adherence bar */}
-      <div style={{ position: 'relative', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase' as const }}>Plan Adherence</div>
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: '12px', fontWeight: '700', color: planAdherence >= 70 ? '#22c55e' : planAdherence >= 40 ? '#7aaee8' : '#dc3232' }}>{planAdherence}%</div>
-        </div>
-        <div style={{ height: '4px', background: 'rgba(255,255,255,0.07)', borderRadius: '2px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${planAdherence}%`, background: planAdherence >= 70 ? 'linear-gradient(90deg, #16a34a, #22c55e)' : planAdherence >= 40 ? 'linear-gradient(90deg, #2b5ea7, #7aaee8)' : 'linear-gradient(90deg, #991b1b, #dc3232)', borderRadius: '2px' }} />
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', marginBottom: '20px', position: 'relative' }} />
-
-      {/* Quote + footer */}
-      <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-end' }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: '1.75', marginBottom: '24px' }}>
-          "{quote}"
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontFamily: 'Arial, sans-serif', fontSize: '9px', color: 'rgba(255,255,255,0.18)', letterSpacing: '0.1em' }}>FLOWCAPITALS.BE</div>
-          <div style={{ background: isPositive ? 'rgba(34,197,94,0.12)' : 'rgba(220,50,50,0.12)', border: `0.5px solid ${isPositive ? 'rgba(34,197,94,0.3)' : 'rgba(220,50,50,0.3)'}`, borderRadius: '20px', padding: '5px 14px', fontFamily: 'Arial, sans-serif', fontSize: '10px', fontWeight: '700', color: isPositive ? '#22c55e' : '#dc3232', letterSpacing: '0.04em' }}>
-            {isPositive ? '▲ Profitable Month' : '▼ Keep Going'}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── RECAP MODAL ──
-function RecapModal({ onClose, trades, dark, firstName, userId }: {
-  onClose: () => void
-  trades: Trade[]
-  dark: boolean
-  firstName?: string
-  userId: string | null
-}) {
-  const cardRef = useRef<HTMLDivElement>(null)
-  const [downloading, setDownloading] = useState(false)
-  const [wallPosts, setWallPosts] = useState(0)
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date()
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-  })
-
-  const [year, month] = selectedMonth.split('-').map(Number)
-
-  const monthTrades = trades.filter(t => {
-    const d = new Date(t.created_at)
-    return d.getFullYear() === year && d.getMonth() === month - 1
-  })
-  const pnl = monthTrades.reduce((s, t) => s + (t.pnl || 0), 0)
-  const wins = monthTrades.filter(t => t.pnl > 0).length
-  const winRate = monthTrades.length > 0 ? Math.round((wins / monthTrades.length) * 100) : 0
-  const monthLabel = new Date(year, month - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
-
-  // Unique pairs traded this month
-  const pairs = Array.from(new Set(monthTrades.map(t => t.pair))).filter(Boolean).slice(0, 8)
-
-  // Plan adherence — uses followed_plan boolean field; adjust if your field name differs
-  const tradesWithPlan = monthTrades.filter(t => t.followed_plan !== null)
-const planAdherence = tradesWithPlan.length > 0
-  ? Math.round((tradesWithPlan.filter(t => t.followed_plan === true).length / tradesWithPlan.length) * 100)
-  : 0
-
-  const monthOptions = Array.from(new Set(trades.map(t => {
-    const d = new Date(t.created_at)
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-  }))).sort().reverse()
-  const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-  if (!monthOptions.includes(currentMonthKey)) monthOptions.unshift(currentMonthKey)
-
-  useEffect(() => {
-    if (!userId) return
-    const start = new Date(year, month - 1, 1).toISOString()
-    const end = new Date(year, month, 1).toISOString()
-    supabase.from('wall_posts').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId).gte('created_at', start).lt('created_at', end)
-      .then(({ count }) => setWallPosts(count || 0))
-  }, [selectedMonth, userId])
-
-  async function download() {
-    if (!cardRef.current) return
-    setDownloading(true)
-    try {
-      const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(cardRef.current, { scale: 2.5, backgroundColor: null, logging: false, useCORS: true })
-      const link = document.createElement('a')
-      link.download = `flow-recap-${selectedMonth}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-    } catch (e) {
-      console.error(e)
-    }
-    setDownloading(false)
-  }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', overflowY: 'auto' as const }} onClick={onClose}>
-      <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: '20px' }} onClick={e => e.stopPropagation()}>
-
-        <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ background: '#0f1825', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 20px', color: '#e0ecf8', fontFamily: 'var(--font-inter)', fontSize: '12px', cursor: 'pointer', outline: 'none' }}>
-          {monthOptions.map(m => {
-            const [y, mo] = m.split('-').map(Number)
-            return <option key={m} value={m}>{new Date(y, mo - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</option>
-          })}
-        </select>
-
-        <MonthlyRecapCard
-          cardRef={cardRef}
-          monthLabel={monthLabel}
-          pnl={pnl}
-          winRate={winRate}
-          tradeCount={monthTrades.length}
-          wallPosts={wallPosts}
-          firstName={firstName}
-          pairs={pairs}
-          planAdherence={planAdherence}
-        />
-
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={download} disabled={downloading} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '13px 32px', border: 'none', borderRadius: '10px', cursor: downloading ? 'not-allowed' : 'pointer', opacity: downloading ? 0.7 : 1 }}>
-            {downloading ? 'Generating...' : '↓ Download Card'}
-          </button>
-          <button onClick={onClose} style={{ background: 'none', border: '0.5px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-inter)', fontSize: '12px', padding: '13px 24px', borderRadius: '10px', cursor: 'pointer' }}>
-            Close
-          </button>
-        </div>
-
-        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: 'rgba(255,255,255,0.25)', textAlign: 'center' as const }}>Share on Instagram · TikTok · WhatsApp stories</p>
-      </div>
-    </div>
-  )
-}
-
-const TABS = [
-  { label: 'Overview', href: '/dashboard/journal', value: 'overview' },
-  { label: 'Trade Log', href: '/dashboard/journal/trades', value: 'trades' },
-  { label: 'Analytics', href: '/dashboard/journal/analytics', value: 'analytics' },
-]
-
-export default function JournalDashboard() {
-  const dark = useDarkMode()
-  const [trades, setTrades] = useState<Trade[]>([])
-  const [chartMode, setChartMode] = useState('daily')
-  const [loading, setLoading] = useState(true)
-  const [isMobile, setIsMobile] = useState(false)
-  const [showRecap, setShowRecap] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [firstName, setFirstName] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return
-      setUserId(session.user.id)
-      const { data } = await supabase.from('trades').select('*').eq('user_id', session.user.id).order('created_at', { ascending: true })
-      if (data) setTrades(data)
-      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).single()
-      if (profile?.full_name) setFirstName(profile.full_name.split(' ')[0])
-      setLoading(false)
-    })
-  }, [])
-
-  const total = trades.length
-  const totalPnl = trades.reduce((s, t) => s + (t.pnl || 0), 0)
-  const wins = trades.filter(t => t.pnl > 0)
-  const losses = trades.filter(t => t.pnl < 0)
-  const be = trades.filter(t => t.pnl === 0)
-  const winRate = total > 0 ? Math.round((wins.length / total) * 100) : 0
-  const beRate = total > 0 ? Math.round((be.length / total) * 100) : 0
-  const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnl, 0) / wins.length : 0
-  const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnl, 0) / losses.length) : 0
-
-  function getChartData() {
-    if (trades.length === 0) return []
-    if (chartMode === 'daily') return trades.map(t => t.pnl || 0)
-    if (chartMode === 'weekly') {
-      const weeks: Record<string, number> = {}
-      trades.forEach(t => { const d = new Date(t.created_at); const week = `${d.getFullYear()}-W${Math.ceil(d.getDate() / 7)}`; weeks[week] = (weeks[week] || 0) + (t.pnl || 0) })
-      return Object.values(weeks)
-    }
-    const months: Record<string, number> = {}
-    trades.forEach(t => { const d = new Date(t.created_at); const month = `${d.getFullYear()}-${d.getMonth()}`; months[month] = (months[month] || 0) + (t.pnl || 0) })
-    return Object.values(months)
-  }
-
-  const chartData = getChartData()
-  const recentTrades = [...trades].reverse().slice(0, 8)
-
-  const t = getTheme(dark)
-  const { bg, cardBg, cardBorder, cardShadow, textPrimary, textMuted, accent, tableBorder } = t
-  const card = getCard(dark)
-  const pnlCardBg = totalPnl > 0 ? dark ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.06)' : totalPnl < 0 ? dark ? 'rgba(220,50,50,0.08)' : 'rgba(220,50,50,0.06)' : cardBg
-  const pnlCardBorder = totalPnl > 0 ? 'rgba(34,197,94,0.25)' : totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder
-
-  const RecapButton = () => (
-    <button onClick={() => setShowRecap(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #0d1e36, #1a3a6b)', color: '#7aaee8', fontFamily: 'var(--font-inter)', fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '10px 18px', border: '0.5px solid rgba(122,174,232,0.3)', borderRadius: '10px', cursor: 'pointer', whiteSpace: 'nowrap' as const }}>
-      <span>✦</span> Monthly Recap
-    </button>
-  )
-
-  // ── MOBILE ──
-  if (isMobile) {
-    return (
-      <div style={{ padding: '20px 16px', background: bg, minHeight: '100vh' }}>
-        {showRecap && <RecapModal onClose={() => setShowRecap(false)} trades={trades} dark={dark} firstName={firstName} userId={userId} />}
-
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '1px', background: accent }} />Trading Journal
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <h1 style={{ fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1 }}>Overview.</h1>
-            <RecapButton />
-          </div>
-          <SegmentedControl
-            options={TABS.map(tab => ({ label: tab.label, value: tab.value }))}
-            value="overview"
-            onChange={v => { const tab = TABS.find(tb => tb.value === v); if (tab) window.location.href = tab.href }}
-            dark={dark}
-          />
-        </div>
-
-        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '16px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Total Net P&L</div>
-            <div style={{ fontSize: '36px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1 }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
-          </div>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '6px 12px', borderRadius: '20px' }}>{total} trades</div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-          <div style={{ ...card, padding: '14px' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Win Rate</div>
-            <WinRateGauge winRate={winRate} beRate={beRate} dark={dark} size={60} />
-          </div>
-          <div style={{ ...card, padding: '14px' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Trades</div>
-            <ThreeArcGauge wins={wins.length} losses={losses.length} be={be.length} total={total} dark={dark} size={60} />
-          </div>
-        </div>
-
-        <div style={{ ...card, padding: '14px', marginBottom: '10px' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '10px' }}>Avg Win / Loss Ratio</div>
-          <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} accent={accent} size={60} />
-        </div>
-
-        <div style={{ ...card, padding: '16px', marginBottom: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '3px' }}>Cumulative P&L</div>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '20px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
-            </div>
-            <SegmentedControl options={[{ label: 'Day', value: 'daily' }, { label: 'Wk', value: 'weekly' }, { label: 'Mo', value: 'monthly' }]} value={chartMode} onChange={setChartMode} dark={dark} />
-          </div>
-          <div style={{ height: '160px' }}><PnlChart data={chartData} trades={trades} dark={dark} /></div>
-        </div>
-
-        <div style={{ ...card, overflow: 'hidden', marginBottom: '10px' }}>
-          <div style={{ padding: '14px 14px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
-            <a href="/dashboard/journal/trades" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>All →</a>
-          </div>
-          {loading ? (
-            <div style={{ padding: '24px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
-          ) : recentTrades.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, fontSize: '13px' }}>No trades yet</div>
-          ) : recentTrades.map(trade => (
-            <div key={trade.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderTop: `0.5px solid ${tableBorder}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <PairIcon pair={trade.pair} />
-                <div>
-                  <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '600', color: textPrimary }}>{trade.pair}</div>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{trade.direction}</div>
-                </div>
-              </div>
-              <div style={{ textAlign: 'right' as const }}>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <MonthCalendar trades={trades} dark={dark} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} textPrimary={textPrimary} textMuted={textMuted} accent={accent} tableBorder={tableBorder} isMobile={true} />
-      </div>
-    )
-  }
-
-  // ── DESKTOP ──
-  return (
-    <div style={{ padding: '40px 48px', background: bg, minHeight: '100vh' }}>
-      {showRecap && <RecapModal onClose={() => setShowRecap(false)} trades={trades} dark={dark} firstName={firstName} userId={userId} />}
-
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-          <h1 style={{ fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Overview.</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <RecapButton />
-            <SegmentedControl options={TABS.map(t => ({ label: t.label, value: t.value }))} value="overview" onChange={v => { const tab = TABS.find(t => t.value === v); if (tab) window.location.href = tab.href }} dark={dark} />
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
-        <div style={{ background: pnlCardBg, border: `0.5px solid ${pnlCardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px' }}>Total Net P&L</div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '4px' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>{total} trades</div>
-        </div>
-        <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Total Trades</div>
-          <ThreeArcGauge wins={wins.length} losses={losses.length} be={be.length} total={total} dark={dark} />
-        </div>
-        <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
-          <WinRateGauge winRate={winRate} beRate={beRate} dark={dark} />
-        </div>
-        <div style={{ ...card, padding: '20px 24px' }}>
-          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Avg Win / Loss</div>
-          <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} accent={accent} />
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '12px', marginBottom: '12px' }}>
-        <div style={{ ...card, padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '4px' }}>Cumulative P&L</div>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '24px', fontWeight: '700', color: totalPnl >= 0 ? '#22c55e' : '#dc3232' }}>{totalPnl >= 0 ? '+' : ''}{totalPnl.toFixed(0)}€</div>
-            </div>
-            <SegmentedControl options={[{ label: 'Daily', value: 'daily' }, { label: 'Weekly', value: 'weekly' }, { label: 'Monthly', value: 'monthly' }]} value={chartMode} onChange={setChartMode} dark={dark} />
-          </div>
-          <div style={{ height: '200px' }}><PnlChart data={chartData} trades={trades} dark={dark} /></div>
-        </div>
-
-        <div style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column' as const }}>
-          <div style={{ padding: '20px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Recent Trades</div>
-            <a href="/dashboard/journal/trades" style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, textDecoration: 'none' }}>View all →</a>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto' as const }}>
-            {loading ? (
-              <div style={{ padding: '32px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
-            ) : recentTrades.length === 0 ? (
-              <div style={{ padding: '32px', textAlign: 'center' as const, fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted, fontSize: '14px' }}>No trades yet</div>
-            ) : recentTrades.map(trade => (
-              <div key={trade.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', borderTop: `0.5px solid ${tableBorder}`, transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.background = dark ? 'rgba(255,255,255,0.03)' : 'rgba(43,94,167,0.03)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <PairIcon pair={trade.pair} />
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '600', color: textPrimary }}>{trade.pair}</div>
-                    <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{trade.direction} · {trade.emotion}</div>
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : '#94a3b8', background: trade.pnl > 0 ? 'rgba(34,197,94,0.1)' : trade.pnl < 0 ? 'rgba(220,50,50,0.1)' : 'rgba(148,163,184,0.1)', padding: '2px 7px', borderRadius: '4px' }}>
-                    {trade.pnl > 0 ? 'WIN' : trade.pnl < 0 ? 'LOSS' : 'BE'}
-                  </span>
-                </div>
-                <div style={{ textAlign: 'right' as const }}>
-                  <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '13px', fontWeight: '700', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>{trade.pnl > 0 ? '+' : ''}{trade.pnl.toFixed(0)}€</div>
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(trade.created_at).toLocaleDateString('en-GB')}</div>
-                </div>
-              </div>
+      {/* Recaps */}
+      {recaps.length > 0 && (
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)', marginBottom: '12px' }}>Monthly Recaps</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+            {recaps.map(r => (
+              <MonthlyRecapCard key={r.id} recap={r} dark={dark} card={card} textPrimary={textPrimary} textMuted={textMuted} tableBorder={tableBorder}
+                onEdit={() => { setEditingRecap(r); setShowRecapModal(true) }} />
             ))}
           </div>
         </div>
-      </div>
+      )}
 
-      <MonthCalendar trades={trades} dark={dark} cardBg={cardBg} cardBorder={cardBorder} cardShadow={cardShadow} textPrimary={textPrimary} textMuted={textMuted} accent={accent} tableBorder={tableBorder} isMobile={false} />
+      {showRecapModal && (
+        <RecapModal recap={editingRecap} dark={dark} textPrimary={textPrimary} textMuted={textMuted} tableBorder={tableBorder}
+          onClose={() => { setShowRecapModal(false); setEditingRecap(null) }} onSave={handleSaveRecap} />
+      )}
     </div>
+  )
+
+  return (
+    <>
+      <style>{`
+        @media (max-width: 768px) { .fc-desktop { display: none !important; } }
+        @media (min-width: 769px) { .fc-mobile  { display: none !important; } }
+      `}</style>
+      <div className="fc-mobile">{mobile}</div>
+      <div className="fc-desktop">{desktop}</div>
+    </>
   )
 }
