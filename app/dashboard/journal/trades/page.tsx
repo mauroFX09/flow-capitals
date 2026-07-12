@@ -38,11 +38,7 @@ const PAIRS = [
 ]
 
 function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
-  trade: Trade
-  dark: boolean
-  onClose: () => void
-  onEdit: () => void
-  onDelete: () => void
+  trade: Trade; dark: boolean; onClose: () => void; onEdit: () => void; onDelete: () => void
 }) {
   const accent      = '#2B5EA7'
   const cardBg      = dark ? '#1a1a1a' : '#ffffff'
@@ -52,16 +48,12 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
   const overlayBg   = dark ? 'rgba(0,0,0,0.75)' : 'rgba(0,0,0,0.45)'
   const divider     = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
   const rowBg       = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
-
   const pnlColor = trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textPrimary
   const date = new Date(trade.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
-
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose()
-  }
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) onClose() }
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') lightboxUrl ? setLightboxUrl(null) : onClose() }
@@ -69,27 +61,13 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
     return () => window.removeEventListener('keydown', handler)
   }, [lightboxUrl, onClose])
 
-  const labelStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em',
-    textTransform: 'uppercase', color: textMuted,
-  }
-  const valueStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, fontWeight: 500,
-  }
+  const labelStyle: React.CSSProperties = { fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: textMuted }
+  const valueStyle: React.CSSProperties = { fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, fontWeight: 500 }
 
   return (
     <>
-      <div onClick={handleBackdrop} style={{
-        position: 'fixed', inset: 0, background: overlayBg,
-        zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '20px', backdropFilter: 'blur(4px)',
-      }}>
-        <div style={{
-          background: cardBg, border: `0.5px solid ${cardBorder}`,
-          borderRadius: '20px', width: '100%', maxWidth: '520px',
-          maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: dark ? '0 24px 80px rgba(0,0,0,0.7)' : '0 24px 80px rgba(0,0,0,0.18)',
-        }}>
+      <div onClick={handleBackdrop} style={{ position: 'fixed', inset: 0, background: overlayBg, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}>
+        <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '20px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', boxShadow: dark ? '0 24px 80px rgba(0,0,0,0.7)' : '0 24px 80px rgba(0,0,0,0.18)' }}>
           <div style={{ padding: '22px 24px 16px', borderBottom: `0.5px solid ${divider}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -100,78 +78,38 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{date}</span>
-                <span style={{
-                  fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 700,
-                  letterSpacing: '0.06em', textTransform: 'uppercase',
-                  color: trade.direction === 'long' ? '#22c55e' : '#dc3232',
-                  background: trade.direction === 'long'
-                    ? (dark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)')
-                    : (dark ? 'rgba(220,50,50,0.12)' : 'rgba(220,50,50,0.08)'),
-                  padding: '3px 8px', borderRadius: '6px',
-                }}>{trade.direction}</span>
-                {trade.session && (
-                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize' }}>
-                    {trade.session}
-                  </span>
-                )}
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: trade.direction === 'long' ? '#22c55e' : '#dc3232', background: trade.direction === 'long' ? (dark ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.08)') : (dark ? 'rgba(220,50,50,0.12)' : 'rgba(220,50,50,0.08)'), padding: '3px 8px', borderRadius: '6px' }}>{trade.direction}</span>
+                {trade.session && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize' }}>{trade.session}</span>}
               </div>
             </div>
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '22px', lineHeight: 1, padding: '0 0 0 12px', flexShrink: 0 }}>×</button>
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: divider, borderBottom: `0.5px solid ${divider}` }}>
-            {[
-              { label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}€${trade.pnl?.toFixed(0) ?? '—'}`, color: pnlColor },
-              { label: 'R:R', value: trade.rr > 0 ? `1:${trade.rr}` : '—', color: textPrimary },
-              { label: 'Emotion', value: trade.emotion || '—', color: textPrimary },
-            ].map(({ label, value, color }) => (
+            {[{ label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}€${trade.pnl?.toFixed(0) ?? '—'}`, color: pnlColor }, { label: 'R:R', value: trade.rr > 0 ? `1:${trade.rr}` : '—', color: textPrimary }, { label: 'Emotion', value: trade.emotion || '—', color: textPrimary }].map(({ label, value, color }) => (
               <div key={label} style={{ background: rowBg, padding: '14px 16px' }}>
                 <div style={{ ...labelStyle, marginBottom: '5px' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, color, letterSpacing: '-0.01em', textTransform: 'capitalize' }}>{value}</div>
               </div>
             ))}
           </div>
-
           {(trade.entry_price || trade.exit_price) && (
             <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {trade.entry_price != null && (
-                <div>
-                  <div style={{ ...labelStyle, marginBottom: '4px' }}>Entry</div>
-                  <div style={valueStyle}>{trade.entry_price}</div>
-                </div>
-              )}
-              {trade.exit_price != null && (
-                <div>
-                  <div style={{ ...labelStyle, marginBottom: '4px' }}>Exit</div>
-                  <div style={valueStyle}>{trade.exit_price}</div>
-                </div>
-              )}
+              {trade.entry_price != null && <div><div style={{ ...labelStyle, marginBottom: '4px' }}>Entry</div><div style={valueStyle}>{trade.entry_price}</div></div>}
+              {trade.exit_price != null && <div><div style={{ ...labelStyle, marginBottom: '4px' }}>Exit</div><div style={valueStyle}>{trade.exit_price}</div></div>}
             </div>
           )}
-
           <div style={{ padding: '12px 24px', borderBottom: `0.5px solid ${divider}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{
-              width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
-              background: trade.followed_plan ? (dark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)') : (dark ? 'rgba(220,50,50,0.15)' : 'rgba(220,50,50,0.1)'),
-              border: `1px solid ${trade.followed_plan ? '#22c55e' : '#dc3232'}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, background: trade.followed_plan ? (dark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)') : (dark ? 'rgba(220,50,50,0.15)' : 'rgba(220,50,50,0.1)'), border: `1px solid ${trade.followed_plan ? '#22c55e' : '#dc3232'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {trade.followed_plan && <span style={{ color: '#22c55e', fontSize: '10px', fontWeight: 700, lineHeight: 1 }}>✓</span>}
             </div>
-            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: trade.followed_plan ? '#22c55e' : '#dc3232' }}>
-              {trade.followed_plan ? 'Followed the trading plan' : 'Did not follow the trading plan'}
-            </span>
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: trade.followed_plan ? '#22c55e' : '#dc3232' }}>{trade.followed_plan ? 'Followed the trading plan' : 'Did not follow the trading plan'}</span>
           </div>
-
           {trade.notes && (
             <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}` }}>
               <div style={{ ...labelStyle, marginBottom: '8px' }}>Notes</div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                {trade.notes}
-              </div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{trade.notes}</div>
             </div>
           )}
-
           {trade.screenshots?.length > 0 && (
             <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}` }}>
               <div style={{ ...labelStyle, marginBottom: '10px' }}>Screenshots</div>
@@ -184,7 +122,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
               </div>
             </div>
           )}
-
           <div style={{ padding: '16px 24px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             {confirmDelete ? (
               <>
@@ -201,7 +138,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
           </div>
         </div>
       </div>
-
       {lightboxUrl && (
         <div onClick={() => setLightboxUrl(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', cursor: 'zoom-out' }}>
           <img src={lightboxUrl} alt="screenshot" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
@@ -213,12 +149,9 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
 }
 
 interface TradeFormProps {
-  dark: boolean
-  editingTrade: Trade | null
-  onSave: (data: Partial<Trade>) => Promise<void>
-  onCancel: () => void
-  uploadScreenshot: (file: File) => Promise<string | null>
-  deleteScreenshot: (url: string) => Promise<void>
+  dark: boolean; editingTrade: Trade | null
+  onSave: (data: Partial<Trade>) => Promise<void>; onCancel: () => void
+  uploadScreenshot: (file: File) => Promise<string | null>; deleteScreenshot: (url: string) => Promise<void>
 }
 
 function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, deleteScreenshot }: TradeFormProps) {
@@ -264,122 +197,64 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    await onSave({
-      pair, direction, trade_date: tradeDate,
-      entry_price: entryPrice ? parseFloat(entryPrice) : null,
-      exit_price:  exitPrice  ? parseFloat(exitPrice)  : null,
-      pnl: parseFloat(pnl) || 0,
-      rr:  parseFloat(rr)  || 0,
-      notes, screenshots, session, emotion, followed_plan: followedPlan,
-    })
+    await onSave({ pair, direction, trade_date: tradeDate, entry_price: entryPrice ? parseFloat(entryPrice) : null, exit_price: exitPrice ? parseFloat(exitPrice) : null, pnl: parseFloat(pnl) || 0, rr: parseFloat(rr) || 0, notes, screenshots, session, emotion, followed_plan: followedPlan })
     setSaving(false)
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', background: inputBg,
-    border: `0.5px solid ${cardBorder}`, borderRadius: '8px',
-    padding: '9px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px',
-    color: textPrimary, outline: 'none', boxSizing: 'border-box',
-  }
-  const labelStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em',
-    textTransform: 'uppercase' as const, color: textMuted,
-    marginBottom: '5px', display: 'block',
-  }
+  const inputStyle: React.CSSProperties = { width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', padding: '9px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' }
+  const labelStyle: React.CSSProperties = { fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '5px', display: 'block' }
 
   return (
     <form onSubmit={handleSubmit} style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 700, color: textPrimary, marginBottom: '20px' }}>
-        {editingTrade ? 'Edit Trade' : 'Log New Trade'}
-      </div>
-
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 700, color: textPrimary, marginBottom: '20px' }}>{editingTrade ? 'Edit Trade' : 'Log New Trade'}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
         <div>
           <label style={labelStyle}>Pair</label>
-          <select value={pair} onChange={e => setPair(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>
-            {PAIRS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <select value={pair} onChange={e => setPair(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>{PAIRS.map(p => <option key={p} value={p}>{p}</option>)}</select>
         </div>
         <div>
           <label style={labelStyle}>Date</label>
           <input type="date" value={tradeDate} onChange={e => setTradeDate(e.target.value)} style={inputStyle} required />
         </div>
       </div>
-
       <div style={{ marginBottom: '14px' }}>
         <label style={labelStyle}>Direction</label>
         <div style={{ display: 'flex', gap: '8px' }}>
           {(['long', 'short'] as const).map(d => (
-            <button key={d} type="button" onClick={() => setDirection(d)} style={{
-              flex: 1, padding: '8px', borderRadius: '8px',
-              border: `0.5px solid ${direction === d ? accent : cardBorder}`,
-              background: direction === d ? (dark ? 'rgba(43,94,167,0.12)' : 'rgba(43,94,167,0.07)') : inputBg,
-              color: direction === d ? accent : textMuted,
-              fontFamily: 'var(--font-inter)', fontSize: '12px',
-              fontWeight: direction === d ? 600 : 400, cursor: 'pointer',
-              textTransform: 'uppercase' as const, letterSpacing: '0.06em',
-            }}>{d}</button>
+            <button key={d} type="button" onClick={() => setDirection(d)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: `0.5px solid ${direction === d ? accent : cardBorder}`, background: direction === d ? (dark ? 'rgba(43,94,167,0.12)' : 'rgba(43,94,167,0.07)') : inputBg, color: direction === d ? accent : textMuted, fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: direction === d ? 600 : 400, cursor: 'pointer', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{d}</button>
           ))}
         </div>
       </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-        <div>
-          <label style={labelStyle}>Entry Price</label>
-          <input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} placeholder="0.00" style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Exit Price</label>
-          <input type="number" step="any" value={exitPrice} onChange={e => setExitPrice(e.target.value)} placeholder="0.00" style={inputStyle} />
-        </div>
+        <div><label style={labelStyle}>Entry Price</label><input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} placeholder="0.00" style={inputStyle} /></div>
+        <div><label style={labelStyle}>Exit Price</label><input type="number" step="any" value={exitPrice} onChange={e => setExitPrice(e.target.value)} placeholder="0.00" style={inputStyle} /></div>
       </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-        <div>
-          <label style={labelStyle}>P&amp;L (€)</label>
-          <input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="0.00" style={inputStyle} required />
-        </div>
-        <div>
-          <label style={labelStyle}>Realized R:R</label>
-          <input type="number" step="any" value={rr} onChange={e => setRr(e.target.value)} placeholder="0.00" style={inputStyle} />
-        </div>
+        <div><label style={labelStyle}>P&amp;L (€)</label><input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="0.00" style={inputStyle} required /></div>
+        <div><label style={labelStyle}>Realized R:R</label><input type="number" step="any" value={rr} onChange={e => setRr(e.target.value)} placeholder="0.00" style={inputStyle} /></div>
       </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
         <div>
           <label style={labelStyle}>Session</label>
           <select value={session} onChange={e => setSession(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>
-            <option value="">—</option>
-            <option value="london">London</option>
-            <option value="ny">New York</option>
-            <option value="asia">Asia</option>
-            <option value="overlap">Overlap</option>
+            <option value="">—</option><option value="london">London</option><option value="ny">New York</option><option value="asia">Asia</option><option value="overlap">Overlap</option>
           </select>
         </div>
         <div>
           <label style={labelStyle}>Emotion</label>
           <select value={emotion} onChange={e => setEmotion(e.target.value)} style={{ ...inputStyle, appearance: 'none' as any }}>
-            <option value="">—</option>
-            <option value="calm">Calm</option>
-            <option value="confident">Confident</option>
-            <option value="anxious">Anxious</option>
-            <option value="fomo">FOMO</option>
-            <option value="revenge">Revenge</option>
-            <option value="disciplined">Disciplined</option>
+            <option value="">—</option><option value="calm">Calm</option><option value="confident">Confident</option><option value="anxious">Anxious</option><option value="fomo">FOMO</option><option value="revenge">Revenge</option><option value="disciplined">Disciplined</option>
           </select>
         </div>
       </div>
-
       <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <input type="checkbox" id="followedPlan" checked={followedPlan} onChange={e => setFollowedPlan(e.target.checked)} style={{ width: '15px', height: '15px', accentColor: accent, cursor: 'pointer' }} />
         <label htmlFor="followedPlan" style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, cursor: 'pointer' }}>Followed the trading plan</label>
       </div>
-
       <div style={{ marginBottom: '14px' }}>
         <label style={labelStyle}>Notes</label>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="What happened? What did you learn?" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
       </div>
-
       <div style={{ marginBottom: '14px' }}>
         <label style={labelStyle}>Screenshots</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -396,7 +271,6 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
         </div>
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
       </div>
-
       <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
         <button type="button" onClick={onCancel} style={{ padding: '9px 20px', borderRadius: '10px', border: `0.5px solid ${cardBorder}`, background: 'transparent', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
         <button type="submit" disabled={saving} style={{ padding: '9px 24px', borderRadius: '10px', border: 'none', background: accent, color: '#fff', fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{saving ? 'Saving…' : editingTrade ? 'Update Trade' : 'Log Trade'}</button>
@@ -407,15 +281,14 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
 
 export default function TradesPage() {
   const router = useRouter()
-
-  const [trades,       setTrades]       = useState<Trade[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [showForm,     setShowForm]     = useState(false)
-  const [editingTrade, setEditingTrade] = useState<Trade | null>(null)
-  const [selectedTrade,setSelectedTrade]= useState<Trade | null>(null)
-  const [error,        setError]        = useState('')
-  const [dark,         setDark]         = useState(false)
-  const [isMobile,     setIsMobile]     = useState(false)
+  const [trades,        setTrades]        = useState<Trade[]>([])
+  const [loading,       setLoading]       = useState(true)
+  const [showForm,      setShowForm]      = useState(false)
+  const [editingTrade,  setEditingTrade]  = useState<Trade | null>(null)
+  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
+  const [error,         setError]         = useState('')
+  const [dark,          setDark]          = useState(false)
+  const [isMobile,      setIsMobile]      = useState(false)
 
   useEffect(() => {
     const check = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
@@ -435,12 +308,7 @@ export default function TradesPage() {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/login'); return }
-
-    const { data, error } = await supabase
-      .from('trades')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('trade_date', { ascending: false })
+    const { data, error } = await supabase.from('trades').select('*').eq('user_id', session.user.id).order('trade_date', { ascending: false })
     if (error) setError(error.message)
     else setTrades(data ?? [])
     setLoading(false)
@@ -510,10 +378,26 @@ export default function TradesPage() {
   return (
     <div style={{ minHeight: '100vh', background: pageBg, padding: isMobile ? '20px 16px' : '32px 32px' }}>
 
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: isMobile ? '16px' : '24px' }}>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: isMobile ? '24px' : '32px', fontWeight: 700, color: textPrimary, marginBottom: '4px' }}>Trade Journal.</div>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>Track, review and improve every trade</div>
       </div>
+
+      {/* Mobile journal nav */}
+      {isMobile && (
+        <div style={{ display: 'flex', background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', borderRadius: '10px', padding: '3px', marginBottom: '20px' }}>
+          {[{ label: 'Overview', path: '/dashboard/journal' }, { label: 'Trades', path: '/dashboard/journal/trades' }].map(tab => (
+            <button key={tab.label} onClick={() => router.push(tab.path)} style={{
+              flex: 1, padding: '9px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+              background: tab.label === 'Trades' ? (dark ? 'rgba(255,255,255,0.12)' : '#fff') : 'transparent',
+              color: tab.label === 'Trades' ? (dark ? '#fff' : '#1a1a1a') : textMuted,
+              fontFamily: 'var(--font-inter)', fontSize: '13px',
+              fontWeight: tab.label === 'Trades' ? 600 : 400,
+              boxShadow: tab.label === 'Trades' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+            }}>{tab.label}</button>
+          ))}
+        </div>
+      )}
 
       {!loading && trades.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
@@ -549,7 +433,6 @@ export default function TradesPage() {
             <span style={{ fontSize: '18px', lineHeight: 1, fontWeight: 300 }}>+</span>
             Log Trade
           </button>
-
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: `0.5px solid ${cardBorder}`, borderRadius: '12px', padding: '10px 18px', opacity: 0.6 }}>
             <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>MT5 Sync</span>
             <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#f59e0b', background: dark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.1)', padding: '2px 7px', borderRadius: '5px' }}>SOON</span>
@@ -558,14 +441,7 @@ export default function TradesPage() {
       )}
 
       {(showForm || editingTrade) && (
-        <TradeForm
-          dark={dark}
-          editingTrade={editingTrade}
-          onSave={handleSave}
-          onCancel={() => { setShowForm(false); setEditingTrade(null) }}
-          uploadScreenshot={uploadScreenshot}
-          deleteScreenshot={deleteScreenshot}
-        />
+        <TradeForm dark={dark} editingTrade={editingTrade} onSave={handleSave} onCancel={() => { setShowForm(false); setEditingTrade(null) }} uploadScreenshot={uploadScreenshot} deleteScreenshot={deleteScreenshot} />
       )}
 
       {loading ? (
@@ -582,18 +458,10 @@ export default function TradesPage() {
             const date = new Date(trade.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
             const hasExtra = !!(trade.notes || (trade.screenshots?.length > 0))
             return (
-              <div
-                key={trade.id}
-                onClick={() => setSelectedTrade(trade)}
+              <div key={trade.id} onClick={() => setSelectedTrade(trade)}
                 style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '12px', boxShadow: cardShadow, padding: '12px 18px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s' }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = dark ? 'rgba(255,255,255,0.16)' : 'rgba(43,94,167,0.25)'
-                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = dark ? '0 2px 16px rgba(0,0,0,0.5)' : '0 2px 16px rgba(43,94,167,0.08)'
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = cardBorder
-                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = cardShadow
-                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = dark ? 'rgba(255,255,255,0.16)' : 'rgba(43,94,167,0.25)'; (e.currentTarget as HTMLDivElement).style.boxShadow = dark ? '0 2px 16px rgba(0,0,0,0.5)' : '0 2px 16px rgba(43,94,167,0.08)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = cardBorder; (e.currentTarget as HTMLDivElement).style.boxShadow = cardShadow }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', fontWeight: 700, color: textPrimary, flexShrink: 0 }}>{trade.pair || '—'}</span>
@@ -616,13 +484,7 @@ export default function TradesPage() {
       )}
 
       {selectedTrade && (
-        <TradeModal
-          trade={selectedTrade}
-          dark={dark}
-          onClose={() => setSelectedTrade(null)}
-          onEdit={() => { setEditingTrade(selectedTrade); setSelectedTrade(null); setShowForm(false) }}
-          onDelete={() => handleDelete(selectedTrade.id)}
-        />
+        <TradeModal trade={selectedTrade} dark={dark} onClose={() => setSelectedTrade(null)} onEdit={() => { setEditingTrade(selectedTrade); setSelectedTrade(null); setShowForm(false) }} onDelete={() => handleDelete(selectedTrade.id)} />
       )}
     </div>
   )
