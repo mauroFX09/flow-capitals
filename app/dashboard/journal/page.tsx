@@ -82,11 +82,12 @@ function PnlChart({
 
   function getChartData() {
     if (!trades.length) return []
-    const sorted = [...trades].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    const sorted = [...trades].sort((a, b) => (a.trade_date > b.trade_date ? 1 : -1))
     if (period === 'Daily') {
       const map = new Map<string, number>()
       sorted.forEach(t => {
-        const d = new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+        const [_y, _m, _d] = t.trade_date.split('-').map(Number)
+        const d = new Date(_y, _m - 1, _d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
         map.set(d, (map.get(d) || 0) + (t.pnl || 0))
       })
       let cum = 0
@@ -95,7 +96,8 @@ function PnlChart({
     if (period === 'Weekly') {
       const map = new Map<string, number>()
       sorted.forEach(t => {
-        const d = new Date(t.created_at)
+        const [_y, _m, _d] = t.trade_date.split('-').map(Number)
+        const d = new Date(_y, _m - 1, _d)
         const day = d.getDay()
         const diff = d.getDate() - day + (day === 0 ? -6 : 1)
         const mon = new Date(d); mon.setDate(diff)
@@ -107,7 +109,8 @@ function PnlChart({
     }
     const map = new Map<string, number>()
     sorted.forEach(t => {
-      const d = new Date(t.created_at).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+      const [_y, _m, _d] = t.trade_date.split('-').map(Number)
+      const d = new Date(_y, _m - 1, _d).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
       map.set(d, (map.get(d) || 0) + (t.pnl || 0))
     })
     let cum = 0
@@ -134,7 +137,6 @@ function PnlChart({
   const points = data.map((d, i) => ({ x: toX(i), y: toY(d.val) }))
   const linePath = smoothLinePath(points)
 
-  // build smooth area path: follow the smooth line, then return along zero baseline
   const areaPath = linePath + ` L ${toX(data.length - 1)},${zeroY} L ${toX(0)},${zeroY} Z`
 
   const last = vals[vals.length - 1]
@@ -262,7 +264,10 @@ function WeeklyBarChart({ trades, dark, textMuted, tableBorder }: {
   const dayIndex = (d: Date) => (d.getDay() + 6) % 7
 
   const byDay = DAYS.map((_, di) => {
-    const dt = trades.filter(t => dayIndex(new Date(t.created_at)) === di)
+    const dt = trades.filter(t => {
+      const p = (t.trade_date || '').split('-').map(Number)
+      return dayIndex(new Date(p[0], p[1] - 1, p[2])) === di
+    })
     const pnl = dt.reduce((s, t) => s + (t.pnl || 0), 0)
     return {
       pnl,
@@ -519,7 +524,7 @@ export default function JournalDashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const [{ data: tradeData }, { data: recapData }] = await Promise.all([
-        supabase.from('trades').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('trades').select('*').eq('user_id', user.id).order('trade_date', { ascending: false }),
         supabase.from('monthly_recaps').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ])
       setTrades((tradeData as Trade[]) || [])
@@ -544,7 +549,7 @@ export default function JournalDashboard() {
   }
 
   // ── stats ───────────────────────────────────────────────────────────────────
-  const sorted = [...trades].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  const sorted = [...trades].sort((a, b) => (a.trade_date > b.trade_date ? 1 : -1))
   const totalPnl = trades.reduce((s, t) => s + (t.pnl || 0), 0)
   const wins = trades.filter(t => t.pnl > 0)
   const losses = trades.filter(t => t.pnl < 0)
@@ -556,7 +561,7 @@ export default function JournalDashboard() {
   const grossLoss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
   const profitFactor = grossLoss > 0 ? parseFloat((grossProfit / grossLoss).toFixed(2)) : grossProfit > 0 ? Infinity : 0
   const pnlColor = totalPnl >= 0 ? '#22c55e' : '#dc3232'
-  const recentTrades = [...trades].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 8)
+  const recentTrades = [...trades].sort((a, b) => (b.trade_date > a.trade_date ? 1 : -1)).slice(0, 8)
 
   if (loading) {
     return (
@@ -712,7 +717,7 @@ export default function JournalDashboard() {
                   <PairIcon pair={t.pair} size={22} />
                   <div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>{t.pair}</div>
-                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
                   </div>
                 </div>
                 <div style={{ fontSize: '13px', fontFamily: 'Georgia, serif', fontWeight: 700, color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>{t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}</div>
@@ -789,7 +794,7 @@ export default function JournalDashboard() {
                   <PairIcon pair={t.pair} size={22} />
                   <div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: textPrimary, fontFamily: 'var(--font-inter)' }}>{t.pair}</div>
-                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                    <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
                   </div>
                 </div>
                 <div style={{ fontSize: '14px', fontFamily: 'var(--font-inter)', fontWeight: 700, letterSpacing: '-0.02em', color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>

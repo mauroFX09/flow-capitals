@@ -152,7 +152,7 @@ export default function DashboardHome() {
     const date = new Date(monday)
     date.setDate(monday.getDate() + i)
     const dateKey = date.toISOString().split('T')[0]
-    const dayTrades = allTrades.filter(t => t.created_at.split('T')[0] === dateKey)
+    const dayTrades = allTrades.filter(t => (t.trade_date || '') === dateKey)
     const dayPnl = dayTrades.reduce((s, t) => s + (t.pnl || 0), 0)
     const hasTrades = dayTrades.length > 0
     const isToday = date.toDateString() === today.toDateString()

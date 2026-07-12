@@ -23,6 +23,7 @@ interface Trade {
   emotion: string
   followed_plan: boolean
   created_at: string
+  source?: string
 }
 
 const PAIRS = [
@@ -35,8 +36,6 @@ const PAIRS = [
   'BTC/USD','ETH/USD',
   'US30','NAS100','SPX500',
 ]
-
-// ─── Trade Detail Modal ───────────────────────────────────────────────────────
 
 function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
   trade: Trade
@@ -55,17 +54,15 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
   const rowBg       = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
 
   const pnlColor = trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textPrimary
-  const date = new Date(trade.trade_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+  const date = new Date(trade.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
 
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  // close on backdrop click
   const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose()
   }
 
-  // close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') lightboxUrl ? setLightboxUrl(null) : onClose() }
     window.addEventListener('keydown', handler)
@@ -82,24 +79,24 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
 
   return (
     <>
-      {/* Backdrop */}
       <div onClick={handleBackdrop} style={{
         position: 'fixed', inset: 0, background: overlayBg,
         zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px', backdropFilter: 'blur(4px)',
       }}>
-        {/* Modal */}
         <div style={{
           background: cardBg, border: `0.5px solid ${cardBorder}`,
           borderRadius: '20px', width: '100%', maxWidth: '520px',
           maxHeight: '90vh', overflowY: 'auto',
           boxShadow: dark ? '0 24px 80px rgba(0,0,0,0.7)' : '0 24px 80px rgba(0,0,0,0.18)',
         }}>
-          {/* Header */}
           <div style={{ padding: '22px 24px 16px', borderBottom: `0.5px solid ${divider}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 700, color: textPrimary, marginBottom: '4px' }}>
-                {trade.pair}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <div style={{ fontFamily: 'Georgia, serif', fontSize: '22px', fontWeight: 700, color: textPrimary }}>{trade.pair}</div>
+                {trade.source === 'mt5' && (
+                  <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#7aaee8', background: dark ? 'rgba(122,174,232,0.12)' : 'rgba(43,94,167,0.08)', padding: '2px 7px', borderRadius: '5px' }}>MT5</span>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted }}>{date}</span>
@@ -122,7 +119,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '22px', lineHeight: 1, padding: '0 0 0 12px', flexShrink: 0 }}>×</button>
           </div>
 
-          {/* Stats grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: divider, borderBottom: `0.5px solid ${divider}` }}>
             {[
               { label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}€${trade.pnl?.toFixed(0) ?? '—'}`, color: pnlColor },
@@ -136,7 +132,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             ))}
           </div>
 
-          {/* Price details */}
           {(trade.entry_price || trade.exit_price) && (
             <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}`, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {trade.entry_price != null && (
@@ -154,7 +149,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             </div>
           )}
 
-          {/* Followed plan */}
           <div style={{ padding: '12px 24px', borderBottom: `0.5px solid ${divider}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
               width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
@@ -169,7 +163,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             </span>
           </div>
 
-          {/* Notes */}
           {trade.notes && (
             <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}` }}>
               <div style={{ ...labelStyle, marginBottom: '8px' }}>Notes</div>
@@ -179,7 +172,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             </div>
           )}
 
-          {/* Screenshots */}
           {trade.screenshots?.length > 0 && (
             <div style={{ padding: '16px 24px', borderBottom: `0.5px solid ${divider}` }}>
               <div style={{ ...labelStyle, marginBottom: '10px' }}>Screenshots</div>
@@ -193,7 +185,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             </div>
           )}
 
-          {/* Actions */}
           <div style={{ padding: '16px 24px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             {confirmDelete ? (
               <>
@@ -211,7 +202,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
         </div>
       </div>
 
-      {/* Lightbox */}
       {lightboxUrl && (
         <div onClick={() => setLightboxUrl(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', cursor: 'zoom-out' }}>
           <img src={lightboxUrl} alt="screenshot" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px' }} />
@@ -221,8 +211,6 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
     </>
   )
 }
-
-// ─── Trade Form ───────────────────────────────────────────────────────────────
 
 interface TradeFormProps {
   dark: boolean
@@ -277,18 +265,12 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
     e.preventDefault()
     setSaving(true)
     await onSave({
-      pair,
-      direction,
-      trade_date:  tradeDate,
+      pair, direction, trade_date: tradeDate,
       entry_price: entryPrice ? parseFloat(entryPrice) : null,
       exit_price:  exitPrice  ? parseFloat(exitPrice)  : null,
-      pnl:         parseFloat(pnl) || 0,
-      rr:          parseFloat(rr)  || 0,
-      notes,
-      screenshots,
-      session,
-      emotion,
-      followed_plan: followedPlan,
+      pnl: parseFloat(pnl) || 0,
+      rr:  parseFloat(rr)  || 0,
+      notes, screenshots, session, emotion, followed_plan: followedPlan,
     })
     setSaving(false)
   }
@@ -423,8 +405,6 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 export default function TradesPage() {
   const router = useRouter()
 
@@ -455,6 +435,7 @@ export default function TradesPage() {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/login'); return }
+
     const { data, error } = await supabase
       .from('trades')
       .select('*')
@@ -490,12 +471,10 @@ export default function TradesPage() {
       const { error } = await supabase.from('trades').update(formData).eq('id', editingTrade.id)
       if (error) { setError(error.message); return }
     } else {
-      const { error } = await supabase.from('trades').insert({ ...formData, user_id: session.user.id })
+      const { error } = await supabase.from('trades').insert({ ...formData, user_id: session.user.id, source: 'manual' })
       if (error) { setError(error.message); return }
     }
-    setShowForm(false)
-    setEditingTrade(null)
-    setSelectedTrade(null)
+    setShowForm(false); setEditingTrade(null); setSelectedTrade(null)
     fetchTrades()
   }
 
@@ -510,14 +489,10 @@ export default function TradesPage() {
   const losses       = trades.filter(t => t.pnl < 0)
   const winRate      = trades.length > 0 ? Math.round((wins.length / trades.length) * 100) : 0
   const tradesWithRR = trades.filter(t => t.rr > 0)
-  const avgRR        = tradesWithRR.length > 0
-    ? parseFloat((tradesWithRR.reduce((s, t) => s + t.rr, 0) / tradesWithRR.length).toFixed(2))
-    : 0
+  const avgRR        = tradesWithRR.length > 0 ? parseFloat((tradesWithRR.reduce((s, t) => s + t.rr, 0) / tradesWithRR.length).toFixed(2)) : 0
   const grossProfit  = wins.reduce((s, t) => s + t.pnl, 0)
   const grossLoss    = Math.abs(losses.reduce((s, t) => s + t.pnl, 0))
-  const profitFactor = grossLoss > 0
-    ? parseFloat((grossProfit / grossLoss).toFixed(2))
-    : grossProfit > 0 ? Infinity : 0
+  const profitFactor = grossLoss > 0 ? parseFloat((grossProfit / grossLoss).toFixed(2)) : grossProfit > 0 ? Infinity : 0
 
   const accent      = '#2B5EA7'
   const cardBg      = dark ? '#1a1a1a' : '#ffffff'
@@ -569,10 +544,17 @@ export default function TradesPage() {
       )}
 
       {!showForm && !editingTrade && (
-        <button onClick={() => setShowForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accent, color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 20px', fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', marginBottom: '24px' }}>
-          <span style={{ fontSize: '18px', lineHeight: 1, fontWeight: 300 }}>+</span>
-          Log Trade
-        </button>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button onClick={() => setShowForm(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: accent, color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 20px', fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+            <span style={{ fontSize: '18px', lineHeight: 1, fontWeight: 300 }}>+</span>
+            Log Trade
+          </button>
+
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'transparent', border: `0.5px solid ${cardBorder}`, borderRadius: '12px', padding: '10px 18px', opacity: 0.6 }}>
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>MT5 Sync</span>
+            <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#f59e0b', background: dark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.1)', padding: '2px 7px', borderRadius: '5px' }}>SOON</span>
+          </div>
+        </div>
       )}
 
       {(showForm || editingTrade) && (
@@ -597,18 +579,13 @@ export default function TradesPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {trades.map(trade => {
             const tPnlColor = trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textPrimary
-            const date = new Date(trade.trade_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            const date = new Date(trade.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
             const hasExtra = !!(trade.notes || (trade.screenshots?.length > 0))
             return (
               <div
                 key={trade.id}
                 onClick={() => setSelectedTrade(trade)}
-                style={{
-                  background: cardBg, border: `0.5px solid ${cardBorder}`,
-                  borderRadius: '12px', boxShadow: cardShadow,
-                  padding: '12px 18px', cursor: 'pointer',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                }}
+                style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '12px', boxShadow: cardShadow, padding: '12px 18px', cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s' }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLDivElement).style.borderColor = dark ? 'rgba(255,255,255,0.16)' : 'rgba(43,94,167,0.25)'
                   ;(e.currentTarget as HTMLDivElement).style.boxShadow = dark ? '0 2px 16px rgba(0,0,0,0.5)' : '0 2px 16px rgba(43,94,167,0.08)'
@@ -625,6 +602,7 @@ export default function TradesPage() {
                   {trade.session && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '6px', textTransform: 'capitalize' as const, flexShrink: 0 }}>{trade.session}</span>}
                   {trade.emotion && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, textTransform: 'capitalize' as const, flexShrink: 0 }}>{trade.emotion}</span>}
                   {trade.rr > 0 && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, flexShrink: 0 }}>R:R <strong style={{ color: textPrimary }}>1:{trade.rr}</strong></span>}
+                  {trade.source === 'mt5' && <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.06em', color: '#7aaee8', background: dark ? 'rgba(122,174,232,0.1)' : 'rgba(43,94,167,0.07)', padding: '2px 7px', borderRadius: '5px', flexShrink: 0 }}>MT5</span>}
                   {hasExtra && <span style={{ fontSize: '11px', color: textMuted, flexShrink: 0 }}>•••</span>}
                   <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <span style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, letterSpacing: '-0.02em', color: tPnlColor }}>{trade.pnl > 0 ? '+' : ''}€{trade.pnl?.toFixed(0) ?? '—'}</span>

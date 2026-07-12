@@ -360,7 +360,7 @@ export default function TradingWall() {
             const barWidth = maxAmount > 0 ? (post.amount / maxAmount) * 100 : 0
             const name = profileNames[post.user_id] || 'Member'
             return (
-              <div key={post.id} style={{ ...card, marginBottom: isMobile ? '0' : '14px', breakInside: 'avoid', display: 'inline-block', width: '100%', overflow: 'hidden', borderTop: '3px solid #22c55e' }}>
+              <div key={post.id} style={{ background: cardBg, borderTop: '3px solid #22c55e', borderRight: `0.5px solid ${cardBorder}`, borderBottom: `0.5px solid ${cardBorder}`, borderLeft: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, marginBottom: isMobile ? '0' : '14px', breakInside: 'avoid', display: 'inline-block', width: '100%', overflow: 'hidden' }}>
                 <div style={{ padding: isMobile ? '16px 16px 12px' : '20px 20px 14px', background: dark ? 'rgba(34,197,94,0.04)' : 'rgba(34,197,94,0.02)' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div>
