@@ -26,7 +26,7 @@ const CHECKLIST_ITEMS = [
 const JOURNAL_SUBITEMS = [
   { label: 'Overview',  href: '/dashboard/journal' },
   { label: 'Trade Log', href: '/dashboard/journal/trades' },
-  { label: 'Report', href: '/dashboard/journal/report' },
+  { label: 'Report',    href: '/dashboard/journal/report' },
   { label: 'Calendar',  href: '/dashboard/journal/calendar' },
 ]
 
@@ -158,13 +158,7 @@ function ArrivalOverlay({ firstName, onDismiss }: { firstName: string; onDismiss
 
 // ── MOBILE TOP BAR ──
 function MobileTopBar({ dark, onToggleDark, sidebar, border, text, avatarUrl, userEmail }: {
-  dark: boolean
-  onToggleDark: () => void
-  sidebar: string
-  border: string
-  text: string
-  avatarUrl: string | null
-  userEmail: string
+  dark: boolean; onToggleDark: () => void; sidebar: string; border: string; text: string; avatarUrl: string | null; userEmail: string
 }) {
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60, height: '56px', background: sidebar, borderBottom: `0.5px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
@@ -184,20 +178,9 @@ function MobileTopBar({ dark, onToggleDark, sidebar, border, text, avatarUrl, us
 
 // ── MOBILE BOTTOM NAV ──
 function MobileBottomNav({ pathname, moreOpen, setMoreOpen, isAdmin, isPremium, dark, sidebar, border, accent, muted, text, navActive, onNavigate, onLogout }: {
-  pathname: string
-  moreOpen: boolean
-  setMoreOpen: (v: boolean) => void
-  isAdmin: boolean
-  isPremium: boolean
-  dark: boolean
-  sidebar: string
-  border: string
-  accent: string
-  muted: string
-  text: string
-  navActive: string
-  onNavigate: (href: string) => void
-  onLogout: () => void
+  pathname: string; moreOpen: boolean; setMoreOpen: (v: boolean) => void; isAdmin: boolean; isPremium: boolean
+  dark: boolean; sidebar: string; border: string; accent: string; muted: string; text: string
+  navActive: string; onNavigate: (href: string) => void; onLogout: () => void
 }) {
   return (
     <>
@@ -367,6 +350,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const sidebarWidth = collapsed ? '64px' : '240px'
   const allDone = Object.values(checklist).every(Boolean)
   const doneCount = Object.values(checklist).filter(Boolean).length
+  const inJournal = pathname.startsWith('/dashboard/journal')
 
   if (loading) return (
     <div style={{ background: bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -541,6 +525,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           userEmail={user?.email || ''}
         />
       )}
+
+      {/* MOBILE JOURNAL SUB-NAV */}
+      {isMobile && inJournal && (
+        <div style={{
+          position: 'fixed', top: '56px', left: 0, right: 0, zIndex: 59,
+          background: sidebar, borderBottom: `0.5px solid ${border}`,
+          display: 'flex', overflowX: 'auto', padding: '0 12px',
+          WebkitOverflowScrolling: 'touch' as any,
+          msOverflowStyle: 'none' as any,
+          scrollbarWidth: 'none' as any,
+        }}>
+          {JOURNAL_SUBITEMS.map(sub => {
+            const subActive = sub.href === '/dashboard/journal'
+              ? pathname === '/dashboard/journal'
+              : pathname === sub.href || pathname.startsWith(sub.href + '/')
+            return (
+              <button key={sub.href} onClick={() => router.push(sub.href)} style={{
+                flexShrink: 0, padding: '12px 14px', background: 'none', border: 'none',
+                borderBottom: `2px solid ${subActive ? accent : 'transparent'}`,
+                color: subActive ? accent : muted,
+                fontFamily: 'var(--font-inter)', fontSize: '13px',
+                fontWeight: subActive ? 600 : 400, cursor: 'pointer',
+                whiteSpace: 'nowrap' as const,
+              }}>{sub.label}</button>
+            )
+          })}
+        </div>
+      )}
+
       {isMobile && (
         <MobileBottomNav
           pathname={pathname}
@@ -567,7 +580,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         minHeight: '100vh',
         background: bg,
         transition: 'margin-left 0.25s ease',
-        paddingTop: isMobile ? '56px' : '0',
+        paddingTop: isMobile ? (inJournal ? '100px' : '56px') : '0',
         paddingBottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom))' : '0',
       }}>
         {children}
