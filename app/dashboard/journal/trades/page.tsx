@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useIncognito } from '@/lib/hooks'
 
 interface Trade {
   id: string
@@ -43,6 +44,11 @@ const EMOTIONS  = ['Calm', 'Confident', 'Anxious', 'FOMO', 'Revenge', 'Disciplin
 function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
   trade: Trade; dark: boolean; onClose: () => void; onEdit: () => void; onDelete: () => void
 }) {
+  const incognito    = useIncognito()
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
+
   const accent      = '#2B5EA7'
   const cardBg      = dark ? '#0d1e36' : '#ffffff'
   const cardBorder  = dark ? 'rgba(255,255,255,0.08)' : 'rgba(26,26,26,0.08)'
@@ -88,10 +94,16 @@ function TradeModal({ trade, dark, onClose, onEdit, onDelete }: {
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '22px', lineHeight: 1, padding: '0 0 0 12px', flexShrink: 0 }}>×</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: divider, borderBottom: `0.5px solid ${divider}` }}>
-            {[{ label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}€${trade.pnl?.toFixed(0) ?? '—'}`, color: pnlColor }, { label: 'R:R', value: trade.rr > 0 ? `1:${trade.rr}` : '—', color: textPrimary }, { label: 'Emotion', value: trade.emotion || '—', color: textPrimary }].map(({ label, value, color }) => (
+            {[
+              { label: 'P&L', value: `${trade.pnl > 0 ? '+' : ''}€${trade.pnl?.toFixed(0) ?? '—'}`, color: pnlColor, blur: true },
+              { label: 'R:R', value: trade.rr > 0 ? `1:${trade.rr}` : '—', color: textPrimary, blur: false },
+              { label: 'Emotion', value: trade.emotion || '—', color: textPrimary, blur: false }
+            ].map(({ label, value, color, blur }) => (
               <div key={label} style={{ background: rowBg, padding: '14px 16px' }}>
                 <div style={{ ...labelStyle, marginBottom: '5px' }}>{label}</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, color, letterSpacing: '-0.01em', textTransform: 'capitalize' }}>{value}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, color, letterSpacing: '-0.01em', textTransform: 'capitalize' }}>
+                  {blur ? <span style={mask}>{value}</span> : value}
+                </div>
               </div>
             ))}
           </div>
@@ -207,7 +219,6 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
   const inputStyle: React.CSSProperties = { width: '100%', background: inputBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', padding: '9px 12px', fontFamily: 'var(--font-inter)', fontSize: '13px', color: textPrimary, outline: 'none', boxSizing: 'border-box' }
   const labelStyle: React.CSSProperties = { fontFamily: 'var(--font-inter)', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '8px', display: 'block' }
 
-  // Reusable pill-button style builder
   const pillBtn = (active: boolean, activeColor: string, activeBg: string, activeBorder: string): React.CSSProperties => ({
     flex: 1,
     padding: '9px 8px',
@@ -229,7 +240,6 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
     <form onSubmit={handleSubmit} style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
       <div style={{ fontFamily: 'Georgia, serif', fontSize: '18px', fontWeight: 700, color: textPrimary, marginBottom: '20px' }}>{editingTrade ? 'Edit Trade' : 'Log New Trade'}</div>
 
-      {/* Pair + Date */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
         <div>
           <label style={labelStyle}>Pair</label>
@@ -241,50 +251,24 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
         </div>
       </div>
 
-      {/* Direction — Long green / Short red */}
       <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>Direction</label>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => setDirection('long')}
-            style={pillBtn(
-              direction === 'long',
-              '#16a34a',
-              dark ? 'rgba(34,197,94,0.14)' : 'rgba(22,163,74,0.09)',
-              dark ? 'rgba(34,197,94,0.4)'  : 'rgba(22,163,74,0.35)',
-            )}
-          >
-            ▲ Long
-          </button>
-          <button
-            type="button"
-            onClick={() => setDirection('short')}
-            style={pillBtn(
-              direction === 'short',
-              '#dc3232',
-              dark ? 'rgba(220,50,50,0.14)' : 'rgba(220,50,50,0.09)',
-              dark ? 'rgba(220,50,50,0.4)'  : 'rgba(220,50,50,0.35)',
-            )}
-          >
-            ▼ Short
-          </button>
+          <button type="button" onClick={() => setDirection('long')} style={pillBtn(direction === 'long', '#16a34a', dark ? 'rgba(34,197,94,0.14)' : 'rgba(22,163,74,0.09)', dark ? 'rgba(34,197,94,0.4)' : 'rgba(22,163,74,0.35)')}>▲ Long</button>
+          <button type="button" onClick={() => setDirection('short')} style={pillBtn(direction === 'short', '#dc3232', dark ? 'rgba(220,50,50,0.14)' : 'rgba(220,50,50,0.09)', dark ? 'rgba(220,50,50,0.4)' : 'rgba(220,50,50,0.35)')}>▼ Short</button>
         </div>
       </div>
 
-      {/* Entry / Exit */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
         <div><label style={labelStyle}>Entry Price</label><input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} placeholder="0.00" style={inputStyle} /></div>
         <div><label style={labelStyle}>Exit Price</label><input type="number" step="any" value={exitPrice} onChange={e => setExitPrice(e.target.value)} placeholder="0.00" style={inputStyle} /></div>
       </div>
 
-      {/* P&L + R:R */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
         <div><label style={labelStyle}>P&amp;L (€)</label><input type="number" step="any" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="0.00" style={inputStyle} required /></div>
         <div><label style={labelStyle}>Realized R:R</label><input type="number" step="any" value={rr} onChange={e => setRr(e.target.value)} placeholder="0.00" style={inputStyle} /></div>
       </div>
 
-      {/* Session — 4 tap buttons */}
       <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>Session</label>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -292,29 +276,12 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
             const key    = s.toLowerCase().replace(' ', '')
             const active = session === key
             return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSession(active ? '' : key)}
-                style={{
-                  ...pillBtn(
-                    active,
-                    accent,
-                    dark ? 'rgba(43,94,167,0.18)' : 'rgba(43,94,167,0.09)',
-                    dark ? 'rgba(43,94,167,0.5)'  : 'rgba(43,94,167,0.35)',
-                  ),
-                  flex: 'none',
-                  padding: '8px 16px',
-                }}
-              >
-                {s}
-              </button>
+              <button key={s} type="button" onClick={() => setSession(active ? '' : key)} style={{ ...pillBtn(active, accent, dark ? 'rgba(43,94,167,0.18)' : 'rgba(43,94,167,0.09)', dark ? 'rgba(43,94,167,0.5)' : 'rgba(43,94,167,0.35)'), flex: 'none', padding: '8px 16px' }}>{s}</button>
             )
           })}
         </div>
       </div>
 
-      {/* Emotion — tap buttons */}
       <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>Emotion</label>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -322,41 +289,22 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
             const key    = em.toLowerCase()
             const active = emotion === key
             return (
-              <button
-                key={em}
-                type="button"
-                onClick={() => setEmotion(active ? '' : key)}
-                style={{
-                  ...pillBtn(
-                    active,
-                    accent,
-                    dark ? 'rgba(43,94,167,0.18)' : 'rgba(43,94,167,0.09)',
-                    dark ? 'rgba(43,94,167,0.5)'  : 'rgba(43,94,167,0.35)',
-                  ),
-                  flex: 'none',
-                  padding: '8px 16px',
-                }}
-              >
-                {em}
-              </button>
+              <button key={em} type="button" onClick={() => setEmotion(active ? '' : key)} style={{ ...pillBtn(active, accent, dark ? 'rgba(43,94,167,0.18)' : 'rgba(43,94,167,0.09)', dark ? 'rgba(43,94,167,0.5)' : 'rgba(43,94,167,0.35)'), flex: 'none', padding: '8px 16px' }}>{em}</button>
             )
           })}
         </div>
       </div>
 
-      {/* Followed plan */}
       <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         <input type="checkbox" id="followedPlan" checked={followedPlan} onChange={e => setFollowedPlan(e.target.checked)} style={{ width: '15px', height: '15px', accentColor: accent, cursor: 'pointer' }} />
         <label htmlFor="followedPlan" style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, cursor: 'pointer' }}>Followed the trading plan</label>
       </div>
 
-      {/* Notes */}
       <div style={{ marginBottom: '16px' }}>
         <label style={labelStyle}>Notes</label>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="What happened? What did you learn?" style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }} />
       </div>
 
-      {/* Screenshots */}
       <div style={{ marginBottom: '20px' }}>
         <label style={labelStyle}>Screenshots</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -374,7 +322,6 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
         <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
       </div>
 
-      {/* Actions */}
       <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
         <button type="button" onClick={onCancel} style={{ padding: '9px 20px', borderRadius: '10px', border: `0.5px solid ${cardBorder}`, background: 'transparent', color: textMuted, fontFamily: 'var(--font-inter)', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
         <button type="submit" disabled={saving} style={{ padding: '9px 24px', borderRadius: '10px', border: 'none', background: accent, color: '#fff', fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{saving ? 'Saving…' : editingTrade ? 'Update Trade' : 'Log Trade'}</button>
@@ -385,6 +332,11 @@ function TradeForm({ dark, editingTrade, onSave, onCancel, uploadScreenshot, del
 
 export default function TradesPage() {
   const router = useRouter()
+  const incognito = useIncognito()
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
+
   const [trades,        setTrades]        = useState<Trade[]>([])
   const [loading,       setLoading]       = useState(true)
   const [showForm,      setShowForm]      = useState(false)
@@ -539,17 +491,19 @@ export default function TradesPage() {
 
       {!loading && trades.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '14px', marginBottom: '28px' }}>
+          {/* Net Cumulative P&L */}
           <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px 12px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Net Cumulative P&L</div>
               <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)', padding: '2px 8px', borderRadius: '20px', fontWeight: 500 }}>{trades.length}</div>
             </div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '28px', fontWeight: 800, color: pnlColor, letterSpacing: '-0.03em', lineHeight: 1, marginBottom: '14px' }}>
-              {totalPnl >= 0 ? '+' : ''}€{Math.abs(totalPnl).toFixed(0)}
+              <span style={mask}>{totalPnl >= 0 ? '+' : ''}€{Math.abs(totalPnl).toFixed(0)}</span>
             </div>
             <div style={{ marginLeft: '-4px' }}>{renderSparkline()}</div>
           </div>
 
+          {/* Profit Factor */}
           <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Profit Factor</div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '40px', fontWeight: 800, color: pfColor, letterSpacing: '-0.03em', lineHeight: 1, marginBottom: '10px' }}>
@@ -560,17 +514,21 @@ export default function TradesPage() {
             </div>
           </div>
 
+          {/* Win % Gauge */}
           <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px 12px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Trade Win %</div>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{renderGauge()}</div>
           </div>
 
+          {/* Avg Win / Loss */}
           <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '20px' }}>Avg Win / Loss Trade</div>
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)', fontWeight: 500 }}>Avg Win</span>
-                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#22c55e', fontWeight: 700, letterSpacing: '-0.02em' }}>+€{avgWin.toFixed(0)}</span>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#22c55e', fontWeight: 700, letterSpacing: '-0.02em' }}>
+                  <span style={mask}>+€{avgWin.toFixed(0)}</span>
+                </span>
               </div>
               <div style={{ height: '8px', background: dark ? 'rgba(255,255,255,0.06)' : '#ececec', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${(avgWin / maxAvg) * 100}%`, background: 'linear-gradient(90deg, #16a34a, #22c55e)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
@@ -579,7 +537,9 @@ export default function TradesPage() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>
                 <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)', fontWeight: 500 }}>Avg Loss</span>
-                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#dc3232', fontWeight: 700, letterSpacing: '-0.02em' }}>-€{avgLoss.toFixed(0)}</span>
+                <span style={{ fontFamily: 'var(--font-inter)', fontSize: '16px', color: '#dc3232', fontWeight: 700, letterSpacing: '-0.02em' }}>
+                  <span style={mask}>-€{avgLoss.toFixed(0)}</span>
+                </span>
               </div>
               <div style={{ height: '8px', background: dark ? 'rgba(255,255,255,0.06)' : '#ececec', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${(avgLoss / maxAvg) * 100}%`, background: 'linear-gradient(90deg, #b91c1c, #dc3232)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
@@ -677,7 +637,7 @@ export default function TradesPage() {
                       </td>
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                         <span style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', fontWeight: 700, color: tradePnlColor, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
-                          {trade.pnl > 0 ? '+' : ''}€{trade.pnl?.toFixed(0) ?? '—'}
+                          <span style={mask}>{trade.pnl > 0 ? '+' : ''}€{trade.pnl?.toFixed(0) ?? '—'}</span>
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px' }}>

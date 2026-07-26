@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useDarkMode } from '@/lib/hooks'
+import { useDarkMode, useIncognito } from '@/lib/hooks'
 import type { Trade } from '@/lib/types'
 
 const ACCENT = '#2B5EA7'
@@ -88,6 +88,10 @@ function SessionIcon({ session, size = 36 }: { session: string; size?: number })
 }
 
 function AvgWinLossGauge({ avgWin, avgLoss, dark }: { avgWin: number; avgLoss: number; dark: boolean }) {
+  const incognito = useIncognito()
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
   const total = avgWin + avgLoss
   const winPct = total > 0 ? avgWin / total : 0.5
   const W = 160, H = 20
@@ -100,8 +104,8 @@ function AvgWinLossGauge({ avgWin, avgLoss, dark }: { avgWin: number; avgLoss: n
         <circle cx={winPct * W} cy="10" r="7" fill="white" stroke={dark ? '#1a1a1a' : '#f5f5f0'} strokeWidth="2" />
       </svg>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-inter)' }}>
-        <span style={{ color: '#22c55e' }}>Avg Win: €{avgWin.toFixed(0)}</span>
-        <span style={{ color: '#dc3232' }}>Avg Loss: €{avgLoss.toFixed(0)}</span>
+        <span style={{ color: '#22c55e' }}>Avg Win: <span style={mask}>€{avgWin.toFixed(0)}</span></span>
+        <span style={{ color: '#dc3232' }}>Avg Loss: <span style={mask}>€{avgLoss.toFixed(0)}</span></span>
       </div>
     </div>
   )
@@ -362,6 +366,10 @@ function WeeklyBarChart({ trades, dark, textMuted, tableBorder }: {
 function SessionCards({ trades, dark, card, textPrimary, textMuted, tableBorder }: {
   trades: Trade[]; dark: boolean; card: string; textPrimary: string; textMuted: string; tableBorder: string
 }) {
+  const incognito = useIncognito()
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
   const sessions = [
     { key: 'london', label: 'London', hours: '2AM – 5AM' },
     { key: 'ny', label: 'New York', hours: '7AM – 11AM' },
@@ -390,7 +398,9 @@ function SessionCards({ trades, dark, card, textPrimary, textMuted, tableBorder 
               </div>
               {st.length > 0 && <span style={{ fontSize: '9px', fontFamily: 'var(--font-inter)', fontWeight: 600, padding: '3px 8px', borderRadius: '20px', background: statusBg, color: pnlColor }}>{statusLabel}</span>}
             </div>
-            <div style={{ fontSize: '24px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, marginBottom: '8px', letterSpacing: '-0.02em' }}>{st.length > 0 ? `${pnl >= 0 ? '+' : ''}€${pnl.toFixed(0)}` : '—'}</div>
+            <div style={{ fontSize: '24px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              {st.length > 0 ? <span style={mask}>{pnl >= 0 ? '+' : ''}€{pnl.toFixed(0)}</span> : '—'}
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-inter)', color: textMuted }}>
               <span>{st.length} trade{st.length !== 1 ? 's' : ''}</span>
               {st.length > 0 && <span style={{ color: winRate >= 50 ? '#22c55e' : '#dc3232' }}>{winRate}% WR</span>}
@@ -466,6 +476,11 @@ function RecapModal({ recap, dark, textPrimary, textMuted, tableBorder, onClose,
 
 export default function JournalDashboard() {
   const dark = useDarkMode()
+  const incognito = useIncognito()
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
+
   const router = useRouter()
   const pageBg = dark ? '#071428' : '#f4f4f6'
   const card = dark ? '#0d1e36' : '#ffffff'
@@ -535,7 +550,9 @@ export default function JournalDashboard() {
     <>
       <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
         <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Net P&L</div>
-        <div style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '10px' }}>{totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}</div>
+        <div style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pnlColor, lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '10px' }}>
+          <span style={mask}>{totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}</span>
+        </div>
         <div style={{ fontSize: '11px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{trades.length} trades total</div>
       </div>
       <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
@@ -550,9 +567,13 @@ export default function JournalDashboard() {
       <div style={{ background: card, borderRadius: '16px', padding: '22px 24px', border: `1px solid ${tableBorder}` }}>
         <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>Avg Win / Loss</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '10px' }}>
-          <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: '#22c55e', lineHeight: 1, letterSpacing: '-0.02em' }}>€{avgWin.toFixed(0)}</span>
+          <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: '#22c55e', lineHeight: 1, letterSpacing: '-0.02em' }}>
+            <span style={mask}>€{avgWin.toFixed(0)}</span>
+          </span>
           <span style={{ fontSize: '28px', fontFamily: 'var(--font-inter)', fontWeight: 300, color: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)', lineHeight: 1 }}>/</span>
-          <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: '#dc3232', lineHeight: 1, letterSpacing: '-0.02em' }}>€{avgLoss.toFixed(0)}</span>
+          <span style={{ fontSize: '32px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: '#dc3232', lineHeight: 1, letterSpacing: '-0.02em' }}>
+            <span style={mask}>€{avgLoss.toFixed(0)}</span>
+          </span>
         </div>
         <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} />
       </div>
@@ -595,7 +616,9 @@ export default function JournalDashboard() {
         <div style={{ gridColumn: '1 / -1' }}>
           <div style={{ background: card, borderRadius: '14px', padding: '16px', border: `1px solid ${tableBorder}` }}>
             <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '6px' }}>Net P&L</div>
-            <div style={{ fontSize: '32px', fontFamily: 'Georgia, serif', fontWeight: 700, color: pnlColor, marginBottom: '4px' }}>{totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}</div>
+            <div style={{ fontSize: '32px', fontFamily: 'Georgia, serif', fontWeight: 700, color: pnlColor, marginBottom: '4px' }}>
+              <span style={mask}>{totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}</span>
+            </div>
             <div style={{ fontSize: '11px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{trades.length} trades</div>
           </div>
         </div>
@@ -616,8 +639,12 @@ export default function JournalDashboard() {
       <div style={{ background: card, borderRadius: '14px', padding: '14px', border: `1px solid ${tableBorder}`, marginBottom: '14px' }}>
         <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '8px' }}>Avg Win / Loss</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#22c55e' }}>€{avgWin.toFixed(0)}</span>
-          <span style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#dc3232' }}>€{avgLoss.toFixed(0)}</span>
+          <span style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#22c55e' }}>
+            <span style={mask}>€{avgWin.toFixed(0)}</span>
+          </span>
+          <span style={{ fontSize: '18px', fontFamily: 'Georgia, serif', fontWeight: 700, color: '#dc3232' }}>
+            <span style={mask}>€{avgLoss.toFixed(0)}</span>
+          </span>
         </div>
         <AvgWinLossGauge avgWin={avgWin} avgLoss={avgLoss} dark={dark} />
       </div>
@@ -653,7 +680,9 @@ export default function JournalDashboard() {
                     {sess.hours && <div style={{ fontSize: '9px', color: textMuted, fontFamily: 'var(--font-inter)', marginTop: '1px' }}>{sess.hours}</div>}
                   </div>
                 </div>
-                <div style={{ fontSize: '20px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pc, letterSpacing: '-0.02em' }}>{st.length > 0 ? `${pnl >= 0 ? '+' : ''}€${pnl.toFixed(0)}` : '—'}</div>
+                <div style={{ fontSize: '20px', fontFamily: 'var(--font-inter)', fontWeight: 700, color: pc, letterSpacing: '-0.02em' }}>
+                  {st.length > 0 ? <span style={mask}>{pnl >= 0 ? '+' : ''}€{pnl.toFixed(0)}</span> : '—'}
+                </div>
                 <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)', marginTop: '2px' }}>{st.length} trades</div>
               </div>
             )
@@ -673,7 +702,9 @@ export default function JournalDashboard() {
                     <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
                   </div>
                 </div>
-                <div style={{ fontSize: '13px', fontFamily: 'Georgia, serif', fontWeight: 700, color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>{t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}</div>
+                <div style={{ fontSize: '13px', fontFamily: 'Georgia, serif', fontWeight: 700, color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>
+                  <span style={mask}>{t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -727,7 +758,9 @@ export default function JournalDashboard() {
                     <div style={{ fontSize: '10px', color: textMuted, fontFamily: 'var(--font-inter)' }}>{new Date(t.trade_date + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
                   </div>
                 </div>
-                <div style={{ fontSize: '14px', fontFamily: 'var(--font-inter)', fontWeight: 700, letterSpacing: '-0.02em', color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>{t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}</div>
+                <div style={{ fontSize: '14px', fontFamily: 'var(--font-inter)', fontWeight: 700, letterSpacing: '-0.02em', color: t.pnl >= 0 ? '#22c55e' : '#dc3232' }}>
+                  <span style={mask}>{t.pnl >= 0 ? '+' : ''}€{t.pnl.toFixed(2)}</span>
+                </div>
               </div>
             ))}
           </div>

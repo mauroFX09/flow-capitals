@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useDarkMode } from '@/lib/hooks'
+import { useDarkMode, useIncognito } from '@/lib/hooks'
 import { getTheme, getCard } from '@/lib/styles'
 import type { Trade } from '@/lib/types'
 
 export default function CalendarPage() {
   const dark = useDarkMode()
+  const incognito = useIncognito()
   const [trades, setTrades] = useState<Trade[]>([])
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -15,6 +16,10 @@ export default function CalendarPage() {
   const today = new Date()
   const [calYear, setCalYear] = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
+
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -87,7 +92,6 @@ export default function CalendarPage() {
   const lossDays = Object.values(dayMap).filter(d => d.pnl < 0).length
 
   const selectedDayData = selectedDay ? dayMap[selectedDay] : null
-
   const gridCols = 'repeat(7, 1fr) auto'
 
   function getWeekPnl(week: (number | null)[]): number {
@@ -100,7 +104,6 @@ export default function CalendarPage() {
   return (
     <div style={{ padding: isMobile ? '20px 16px' : '40px 48px', background: bg, minHeight: '100vh' }}>
 
-      {/* Header */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: accent, letterSpacing: '0.18em', textTransform: 'uppercase' as const, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '24px', height: '1px', background: accent }} />Trading Journal
@@ -108,7 +111,6 @@ export default function CalendarPage() {
         <h1 style={{ fontSize: isMobile ? '28px' : '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Calendar.</h1>
       </div>
 
-      {/* Month navigation + stats */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap' as const, gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={prevMonth} style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '8px', width: '32px', height: '32px', cursor: 'pointer', color: textMuted, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: cardShadow }}>←</button>
@@ -119,14 +121,16 @@ export default function CalendarPage() {
         {monthTrades.length > 0 && (
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' as const }}>
             {[
-              { label: 'Month P&L', value: `${monthPnl >= 0 ? '+' : ''}${monthPnl.toFixed(0)}€`, color: monthPnl >= 0 ? '#22c55e' : '#dc3232' },
-              { label: 'Trades', value: String(monthTrades.length), color: textPrimary },
-              { label: 'Profit Days', value: String(profitDays), color: '#22c55e' },
-              { label: 'Loss Days', value: String(lossDays), color: '#dc3232' },
+              { label: 'Month P&L', value: `${monthPnl >= 0 ? '+' : ''}${monthPnl.toFixed(0)}€`, color: monthPnl >= 0 ? '#22c55e' : '#dc3232', masked: true },
+              { label: 'Trades', value: String(monthTrades.length), color: textPrimary, masked: false },
+              { label: 'Profit Days', value: String(profitDays), color: '#22c55e', masked: false },
+              { label: 'Loss Days', value: String(lossDays), color: '#dc3232', masked: false },
             ].map(stat => (
               <div key={stat.label} style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '10px', padding: '8px 14px', boxShadow: cardShadow }}>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '2px' }}>{stat.label}</div>
-                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '15px', fontWeight: '700', color: stat.color }}>{stat.value}</div>
+                <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '15px', fontWeight: '700', color: stat.color }}>
+                  {stat.masked ? <span style={mask}>{stat.value}</span> : stat.value}
+                </div>
               </div>
             ))}
           </div>
@@ -134,28 +138,14 @@ export default function CalendarPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: selectedDayData && !isMobile ? '1fr 300px' : '1fr', gap: '16px', alignItems: 'start' }}>
-
-        {/* Calendar grid */}
         <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: isMobile ? '14px' : '24px' }}>
 
-          {/* Day headers */}
           <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: isMobile ? '4px' : '6px', marginBottom: isMobile ? '4px' : '6px' }}>
             {dayLabels.map((d, i) => (
-              <div key={i} style={{
-                textAlign: 'center' as const,
-                fontFamily: 'var(--font-inter)',
-                fontSize: '9px',
-                color: i === 7 ? accent : textMuted,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase' as const,
-                padding: '4px 0',
-                fontWeight: i === 7 ? '600' : '400',
-                minWidth: i === 7 ? (isMobile ? '32px' : '72px') : undefined,
-              }}>{d}</div>
+              <div key={i} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: i === 7 ? accent : textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '4px 0', fontWeight: i === 7 ? '600' : '400', minWidth: i === 7 ? (isMobile ? '32px' : '72px') : undefined }}>{d}</div>
             ))}
           </div>
 
-          {/* Week rows */}
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: isMobile ? '4px' : '6px' }}>
             {weeks.map((week, wi) => {
               const weekPnl = getWeekPnl(week)
@@ -197,7 +187,7 @@ export default function CalendarPage() {
                         {data && !isMobile && (
                           <>
                             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: '700', color: pnlColor, lineHeight: 1, marginBottom: '3px', letterSpacing: '-0.02em' }}>
-                              {pnl > 0 ? '+' : ''}€{pnl.toFixed(0)}
+                              <span style={mask}>{pnl > 0 ? '+' : ''}€{pnl.toFixed(0)}</span>
                             </div>
                             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{tradeCount} trade{tradeCount !== 1 ? 's' : ''}</div>
                           </>
@@ -211,30 +201,11 @@ export default function CalendarPage() {
                     )
                   })}
 
-                  {/* Weekly total P&L cell */}
-                  <div style={{
-                    display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center',
-                    minHeight: isMobile ? '44px' : '72px',
-                    minWidth: isMobile ? '32px' : '72px',
-                    borderRadius: isMobile ? '8px' : '10px',
-                    border: `0.5px solid ${
-                      weekHasTrades
-                        ? (weekPnl > 0 ? 'rgba(34,197,94,0.25)' : weekPnl < 0 ? 'rgba(220,50,50,0.25)' : 'rgba(148,163,184,0.2)')
-                        : (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.05)')
-                    }`,
-                    background: weekHasTrades
-                      ? (weekPnl > 0
-                          ? (dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)')
-                          : weekPnl < 0
-                            ? (dark ? 'rgba(220,50,50,0.06)' : 'rgba(220,50,50,0.04)')
-                            : (dark ? 'rgba(148,163,184,0.05)' : 'rgba(148,163,184,0.03)'))
-                      : 'transparent',
-                    padding: isMobile ? '4px 2px' : '10px 8px',
-                  }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', minHeight: isMobile ? '44px' : '72px', minWidth: isMobile ? '32px' : '72px', borderRadius: isMobile ? '8px' : '10px', border: `0.5px solid ${weekHasTrades ? (weekPnl > 0 ? 'rgba(34,197,94,0.25)' : weekPnl < 0 ? 'rgba(220,50,50,0.25)' : 'rgba(148,163,184,0.2)') : (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.05)')}`, background: weekHasTrades ? (weekPnl > 0 ? (dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)') : weekPnl < 0 ? (dark ? 'rgba(220,50,50,0.06)' : 'rgba(220,50,50,0.04)') : (dark ? 'rgba(148,163,184,0.05)' : 'rgba(148,163,184,0.03)')) : 'transparent', padding: isMobile ? '4px 2px' : '10px 8px' }}>
                     {weekHasTrades ? (
                       <>
                         <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '9px' : '12px', fontWeight: '700', color: weekColor, letterSpacing: '-0.02em', lineHeight: 1, textAlign: 'center' as const }}>
-                          {weekPnl > 0 ? '+' : ''}€{Math.abs(weekPnl) >= 1000 ? `${(weekPnl / 1000).toFixed(1)}k` : weekPnl.toFixed(0)}
+                          <span style={mask}>{weekPnl > 0 ? '+' : ''}€{Math.abs(weekPnl) >= 1000 ? `${(weekPnl / 1000).toFixed(1)}k` : weekPnl.toFixed(0)}</span>
                         </div>
                         {!isMobile && (
                           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: textMuted, marginTop: '3px', opacity: 0.7 }}>
@@ -251,7 +222,6 @@ export default function CalendarPage() {
             })}
           </div>
 
-          {/* Legend */}
           <div style={{ display: 'flex', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: `0.5px solid ${tableBorder}`, flexWrap: 'wrap' as const }}>
             {[{ color: '#22c55e', label: 'Profitable day' }, { color: '#dc3232', label: 'Loss day' }, { color: '#94a3b8', label: 'Breakeven' }].map(item => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted }}>
@@ -262,7 +232,6 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Day detail panel */}
         {selectedDayData && (
           <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '20px', position: isMobile ? 'static' : 'sticky' as any, top: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -271,7 +240,7 @@ export default function CalendarPage() {
                   {new Date(calYear, calMonth, selectedDay!).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '22px', fontWeight: '700', color: selectedDayData.pnl >= 0 ? '#22c55e' : '#dc3232', letterSpacing: '-0.02em' }}>
-                  {selectedDayData.pnl >= 0 ? '+' : ''}€{selectedDayData.pnl.toFixed(0)}
+                  <span style={mask}>{selectedDayData.pnl >= 0 ? '+' : ''}€{selectedDayData.pnl.toFixed(0)}</span>
                 </div>
               </div>
               <button onClick={() => setSelectedDay(null)} style={{ background: 'none', border: `0.5px solid ${cardBorder}`, borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', color: textMuted, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
@@ -286,7 +255,7 @@ export default function CalendarPage() {
                       <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.direction === 'long' ? '#22c55e' : '#dc3232', background: trade.direction === 'long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{trade.direction?.toUpperCase()}</span>
                     </div>
                     <span style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', fontWeight: '700', letterSpacing: '-0.02em', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>
-                      {trade.pnl > 0 ? '+' : ''}€{(trade.pnl ?? 0).toFixed(0)}
+                      <span style={mask}>{trade.pnl > 0 ? '+' : ''}€{(trade.pnl ?? 0).toFixed(0)}</span>
                     </span>
                   </div>
                   {trade.emotion && (

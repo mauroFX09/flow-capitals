@@ -123,7 +123,7 @@ function OnboardingModal({ onboardingStep, setOnboardingStep, onboardingName, se
         )}
         {onboardingStep === 4 && (
           <div style={{ padding: '40px 32px 36px', textAlign: 'center' as const }}>
-            <div style={{ width: '56px', height: '56px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}><span style={{ fontSize: '22px' }}>✓</span></div>
+            <div style={{ width: '56px', height: '56px', background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}><span style={{ fontSize: '22px' }}>✓</span></div>
             <h2 style={{ fontFamily: 'var(--font-playfair)', fontSize: '30px', fontWeight: '700', color: '#0d1e36', letterSpacing: '-0.5px', marginBottom: '10px' }}>You're all set{onboardingName ? `, ${onboardingName.split(' ')[0]}` : ''}.</h2>
             <p style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#8a8070', lineHeight: '1.7', marginBottom: '32px' }}>Your platform is ready. Start by logging your first trade or exploring the courses.</p>
             <button onClick={onComplete} disabled={savingOnboarding} style={{ width: '100%', background: '#0d1e36', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '15px', border: 'none', borderRadius: '10px', cursor: 'pointer' }}>
@@ -157,8 +157,9 @@ function ArrivalOverlay({ firstName, onDismiss }: { firstName: string; onDismiss
 }
 
 // ── MOBILE TOP BAR ──
-function MobileTopBar({ dark, onToggleDark, sidebar, border, text, avatarUrl, userEmail }: {
-  dark: boolean; onToggleDark: () => void; sidebar: string; border: string; text: string; avatarUrl: string | null; userEmail: string
+function MobileTopBar({ dark, onToggleDark, incognito, onToggleIncognito, sidebar, border, text, avatarUrl, userEmail }: {
+  dark: boolean; onToggleDark: () => void; incognito: boolean; onToggleIncognito: () => void
+  sidebar: string; border: string; text: string; avatarUrl: string | null; userEmail: string
 }) {
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60, height: '56px', background: sidebar, borderBottom: `0.5px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
@@ -169,6 +170,9 @@ function MobileTopBar({ dark, onToggleDark, sidebar, border, text, avatarUrl, us
         <span style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px', color: text }}>FLOW <span style={{ color: '#2B5EA7' }}>CAPITALS</span></span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <button onClick={onToggleIncognito} title={incognito ? 'Show numbers' : 'Hide numbers'} style={{ background: incognito ? 'rgba(122,174,232,0.15)' : 'none', border: incognito ? '1px solid rgba(122,174,232,0.3)' : 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '15px', padding: '4px 6px', lineHeight: 1 }}>
+          {incognito ? '🙈' : '👁'}
+        </button>
         <button onClick={onToggleDark} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '4px' }}>{dark ? '🌙' : '☀️'}</button>
         <a href="/dashboard/profile"><AvatarCircle size={32} avatarUrl={avatarUrl} userEmail={userEmail} /></a>
       </div>
@@ -242,6 +246,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [dark, setDark] = useState(false)
+  const [incognito, setIncognito] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
@@ -260,6 +265,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const saved = localStorage.getItem('fc-dark-mode')
     if (saved === 'true') setDark(true)
+    const savedIncognito = localStorage.getItem('fc-incognito')
+    if (savedIncognito === 'true') setIncognito(true)
     const savedCollapsed = localStorage.getItem('fc-sidebar-collapsed')
     if (savedCollapsed === 'true') setCollapsed(true)
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -296,6 +303,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setDark(n)
     localStorage.setItem('fc-dark-mode', n.toString())
     window.dispatchEvent(new Event('fc-theme-change'))
+  }
+
+  function toggleIncognito() {
+    const n = !incognito
+    setIncognito(n)
+    localStorage.setItem('fc-incognito', n.toString())
+    window.dispatchEvent(new Event('fc-incognito-change'))
   }
 
   async function handleLogout() {
@@ -468,6 +482,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </div>
 
+          {/* SIDEBAR BOTTOM */}
           <div style={{ padding: collapsed ? '12px 8px' : '14px', borderTop: `0.5px solid ${border}` }}>
             {!collapsed ? (
               <>
@@ -475,7 +490,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPremium ? accent : '#f59e0b' }} />
                   <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: isPremium ? accent : '#f59e0b', fontWeight: '600' }}>{isPremium ? 'Premium' : 'Standard'}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', padding: '0 2px' }}>
+
+                {/* Dark mode toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', padding: '0 2px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '13px' }}>{dark ? '🌙' : '☀️'}</span>
                     <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: muted }}>{dark ? 'Dark mode' : 'Light mode'}</span>
@@ -484,6 +501,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div style={{ width: '16px', height: '16px', background: '#ffffff', borderRadius: '50%', position: 'absolute', top: '3px', left: dark ? '21px' : '3px', transition: 'left 0.25s ease' }} />
                   </button>
                 </div>
+
+                {/* Incognito toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', padding: '0 2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px' }}>{incognito ? '🙈' : '👁'}</span>
+                    <span style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: incognito ? accent : muted }}>
+                      {incognito ? 'Incognito on' : 'Incognito'}
+                    </span>
+                  </div>
+                  <button onClick={toggleIncognito} style={{ width: '40px', height: '22px', background: incognito ? '#2B5EA7' : 'rgba(26,26,26,0.12)', borderRadius: '11px', border: 'none', cursor: 'pointer', position: 'relative', padding: 0, flexShrink: 0 }}>
+                    <div style={{ width: '16px', height: '16px', background: '#ffffff', borderRadius: '50%', position: 'absolute', top: '3px', left: incognito ? '21px' : '3px', transition: 'left 0.25s ease' }} />
+                  </button>
+                </div>
+
                 <a href="/dashboard/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', textDecoration: 'none', padding: '6px 4px', borderRadius: '8px' }}
                   onMouseEnter={e => e.currentTarget.style.background = navHover}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -501,7 +532,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                <button onClick={toggleDark} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>{dark ? '🌙' : '☀️'}</button>
+                <button onClick={toggleDark} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title={dark ? 'Light mode' : 'Dark mode'}>{dark ? '🌙' : '☀️'}</button>
+                <button onClick={toggleIncognito} style={{ background: incognito ? 'rgba(43,94,167,0.2)' : 'none', border: 'none', cursor: 'pointer', fontSize: '15px', borderRadius: '6px', padding: '2px 4px' }} title={incognito ? 'Incognito on' : 'Incognito off'}>{incognito ? '🙈' : '👁'}</button>
                 <a href="/dashboard/profile"><AvatarCircle size={30} avatarUrl={avatarUrl} userEmail={user?.email || ''} /></a>
                 <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: muted }} title="Sign out"
                   onMouseEnter={e => e.currentTarget.style.color = '#dc3232'}
@@ -518,6 +550,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <MobileTopBar
           dark={dark}
           onToggleDark={toggleDark}
+          incognito={incognito}
+          onToggleIncognito={toggleIncognito}
           sidebar={sidebar}
           border={border}
           text={text}

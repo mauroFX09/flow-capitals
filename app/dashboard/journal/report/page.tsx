@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useIncognito } from '@/lib/hooks'
 
 interface Trade {
   id: string
@@ -16,7 +17,6 @@ interface Trade {
   followed_plan: boolean
 }
 
-// FIX 2: fmt now correctly includes the minus sign for negative numbers
 function fmt(n: number, sign = true): string {
   if (sign && n > 0) return `+€${n.toFixed(0)}`
   if (sign && n < 0) return `-€${Math.abs(n).toFixed(0)}`
@@ -25,10 +25,15 @@ function fmt(n: number, sign = true): string {
 
 export default function ReportPage() {
   const router  = useRouter()
+  const incognito = useIncognito()
   const [trades,   setTrades]   = useState<Trade[]>([])
   const [loading,  setLoading]  = useState(true)
   const [dark,     setDark]     = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
 
   useEffect(() => {
     const check = () => setDark(localStorage.getItem('fc-dark-mode') === 'true')
@@ -59,7 +64,6 @@ export default function ReportPage() {
 
   useEffect(() => { fetchTrades() }, [fetchTrades])
 
-  // ── Derived stats ──────────────────────────────────────────────────────────
   const wins       = trades.filter(t => t.pnl > 0)
   const losses     = trades.filter(t => t.pnl < 0)
   const breakevens = trades.filter(t => t.pnl === 0)
@@ -106,7 +110,6 @@ export default function ReportPage() {
     return new Date(+y, +m - 1).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
   }
 
-  // ── Theme — FIX 1: matching trade log dark mode colors ─────────────────────
   const accent      = '#2B5EA7'
   const pageBg      = dark ? '#071428' : '#f4f4f6'
   const cardBg      = dark ? '#0d1e36' : '#ffffff'
@@ -121,21 +124,17 @@ export default function ReportPage() {
   const pfColor     = profitFactor >= 1.5 ? green : profitFactor >= 1 ? accent : profitFactor === 0 ? textMuted : red
   const wrColor     = winRate >= 50 ? green : red
 
-  // ── Win Rate Gauge SVG ─────────────────────────────────────────────────────
   const renderGauge = () => {
     const r = 46, cx = 62, cy = 54, sw = 10
     const p = winRate / 100
     const bgPath  = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`
     const xE      = cx - r * Math.cos(p * Math.PI)
     const yE      = cy - r * Math.sin(p * Math.PI)
-    const winPath = p <= 0 ? null : p >= 1
-      ? bgPath
+    const winPath = p <= 0 ? null : p >= 1 ? bgPath
       : `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${xE.toFixed(2)} ${yE.toFixed(2)}`
     return (
       <svg width="124" height="78" viewBox="0 0 124 78" style={{ display: 'block' }}>
-        <path d={bgPath} fill="none"
-          stroke={dark ? 'rgba(220,50,50,0.28)' : 'rgba(230,60,60,0.18)'}
-          strokeWidth={sw} strokeLinecap="round" />
+        <path d={bgPath} fill="none" stroke={dark ? 'rgba(220,50,50,0.28)' : 'rgba(230,60,60,0.18)'} strokeWidth={sw} strokeLinecap="round" />
         {winPath && <path d={winPath} fill="none" stroke={green} strokeWidth={sw} strokeLinecap="round" />}
         <text x={cx - r - 2} y={cy + 16} textAnchor="middle" fontFamily="Inter,sans-serif" fontSize="12" fontWeight="700" fill={green}>{wins.length}</text>
         <text x={cx + r + 2} y={cy + 16} textAnchor="middle" fontFamily="Inter,sans-serif" fontSize="12" fontWeight="700" fill={red}>{losses.length}</text>
@@ -146,11 +145,12 @@ export default function ReportPage() {
     )
   }
 
-  // ── Sub-components ─────────────────────────────────────────────────────────
-  const Row = ({ label, value, color, last }: { label: string; value: string; color?: string; last?: boolean }) => (
+  const Row = ({ label, value, color, last, masked = false }: { label: string; value: string; color?: string; last?: boolean; masked?: boolean }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: last ? 'none' : `0.5px solid ${divider}` }}>
       <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>{label}</span>
-      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, color: color ?? textPrimary, letterSpacing: '-0.01em' }}>{value}</span>
+      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: 600, color: color ?? textPrimary, letterSpacing: '-0.01em' }}>
+        {masked ? <span style={mask}>{value}</span> : value}
+      </span>
     </div>
   )
 
@@ -189,28 +189,21 @@ export default function ReportPage() {
   return (
     <div style={{ minHeight: '100vh', background: pageBg, padding: isMobile ? '20px 16px' : '32px 32px' }}>
 
-      {/* Header */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ fontFamily: 'Georgia, serif', fontSize: isMobile ? '24px' : '32px', fontWeight: 700, color: textPrimary, marginBottom: '4px' }}>Report.</div>
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: textMuted }}>Your performance at a glance</div>
       </div>
 
-      {/* ── FIX 3: Top 4 stat cards — elevated visual like trade log ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '14px', marginBottom: '16px' }}>
 
         {/* Total P&L */}
-        <div style={{
-          background: cardBg,
-          border: `0.5px solid ${totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder}`,
-          borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px',
-          ...(totalPnl < 0 && { background: dark ? 'rgba(220,50,50,0.06)' : 'rgba(220,50,50,0.03)' }),
-        }}>
+        <div style={{ background: totalPnl < 0 ? (dark ? 'rgba(220,50,50,0.06)' : 'rgba(220,50,50,0.03)') : cardBg, border: `0.5px solid ${totalPnl < 0 ? 'rgba(220,50,50,0.25)' : cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: textMuted }}>Total P&L</div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, background: dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)', padding: '2px 8px', borderRadius: '20px', fontWeight: 500 }}>{trades.length}</div>
           </div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '34px', fontWeight: 800, color: pnlColor, letterSpacing: '-0.03em', lineHeight: 1, marginBottom: '8px' }}>
-            {fmt(totalPnl)}
+            <span style={mask}>{fmt(totalPnl)}</span>
           </div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>
             {tradingDays.length} trading day{tradingDays.length !== 1 ? 's' : ''}
@@ -221,7 +214,7 @@ export default function ReportPage() {
         <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: textMuted, marginBottom: '10px' }}>Avg Daily P&L</div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '34px', fontWeight: 800, color: avgDailyPnl >= 0 ? green : red, letterSpacing: '-0.03em', lineHeight: 1, marginBottom: '8px' }}>
-            {fmt(avgDailyPnl)}
+            <span style={mask}>{fmt(avgDailyPnl)}</span>
           </div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>
             {winDays.length}W · {lossDays.length}L day{lossDays.length !== 1 ? 's' : ''}
@@ -239,12 +232,10 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {/* Win Rate — with gauge */}
+        {/* Win Rate */}
         <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px 12px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: textMuted, marginBottom: '6px' }}>Win Rate</div>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            {renderGauge()}
-          </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>{renderGauge()}</div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '2px' }}>
             {badgeRow(wins.length, breakevens.length, losses.length)}
           </div>
@@ -252,7 +243,6 @@ export default function ReportPage() {
 
       </div>
 
-      {/* Total Trading Days + Total Trades */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
         <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '18px', boxShadow: cardShadow, padding: '20px 22px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: textMuted, marginBottom: '10px' }}>Total Trading Days</div>
@@ -270,29 +260,26 @@ export default function ReportPage() {
         </div>
       </div>
 
-      {/* P&L Statistics + Performance Extremes */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         <Section title="P&L Statistics">
-          <Row label="Avg Trade P&L"     value={fmt(avgTradePnl)}                           color={avgTradePnl >= 0 ? green : red} />
-          <Row label="Avg Winning Trade"  value={`+€${avgWin.toFixed(0)}`}                  color={green} />
-          <Row label="Avg Losing Trade"   value={`-€${avgLoss.toFixed(0)}`}                 color={red} />
-          <Row label="Avg Winning Day"    value={`+€${avgWinningDay.toFixed(0)}`}            color={green} />
-          <Row label="Avg Losing Day"     value={`-€${Math.abs(avgLosingDay).toFixed(0)}`}  color={red} />
-          <Row label="Trade Expectancy"   value={fmt(expectancy)}                            color={expectancy >= 0 ? green : red} last />
+          <Row label="Avg Trade P&L"    value={fmt(avgTradePnl)}                          color={avgTradePnl >= 0 ? green : red} masked />
+          <Row label="Avg Winning Trade" value={`+€${avgWin.toFixed(0)}`}                 color={green} masked />
+          <Row label="Avg Losing Trade"  value={`-€${avgLoss.toFixed(0)}`}                color={red} masked />
+          <Row label="Avg Winning Day"   value={`+€${avgWinningDay.toFixed(0)}`}          color={green} masked />
+          <Row label="Avg Losing Day"    value={`-€${Math.abs(avgLosingDay).toFixed(0)}`} color={red} masked />
+          <Row label="Trade Expectancy"  value={fmt(expectancy)}                           color={expectancy >= 0 ? green : red} masked last />
         </Section>
 
         <Section title="Performance Extremes">
-          {bestMonth  && <Row label={`Best Month (${formatMonth(bestMonth[0])})`}   value={fmt(bestMonth[1])}  color={green} />}
-          {worstMonth && <Row label={`Worst Month (${formatMonth(worstMonth[0])})`} value={fmt(worstMonth[1])} color={red} />}
-          <Row label="Largest Win"  value={fmt(largestWin)}  color={green} />
-          {/* FIX 2: largestLoss is already negative from Math.min, fmt now adds '-' correctly */}
-          <Row label="Largest Loss" value={fmt(largestLoss)} color={red} />
-          <Row label="Best Day"     value={fmt(bestDay)}     color={green} />
-          <Row label="Worst Day"    value={fmt(worstDay)}    color={red} last />
+          {bestMonth  && <Row label={`Best Month (${formatMonth(bestMonth[0])})`}   value={fmt(bestMonth[1])}  color={green} masked />}
+          {worstMonth && <Row label={`Worst Month (${formatMonth(worstMonth[0])})`} value={fmt(worstMonth[1])} color={red} masked />}
+          <Row label="Largest Win"  value={fmt(largestWin)}  color={green} masked />
+          <Row label="Largest Loss" value={fmt(largestLoss)} color={red} masked />
+          <Row label="Best Day"     value={fmt(bestDay)}     color={green} masked />
+          <Row label="Worst Day"    value={fmt(worstDay)}    color={red} masked last />
         </Section>
       </div>
 
-      {/* Trading Activity + Session Breakdown */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
         <Section title="Trading Activity">
           <Row label="Total Trades"     value={String(trades.length)} />
@@ -315,13 +302,13 @@ export default function ReportPage() {
             const isLast = idx === arr.length - 1 && trades.filter(t => !t.session).length === 0
             return (
               <Row key={sess} label={`${labels[sess]} (${sessTrades.length})`}
-                value={fmt(sessPnl)} color={sessPnl >= 0 ? green : red} last={isLast} />
+                value={fmt(sessPnl)} color={sessPnl >= 0 ? green : red} masked last={isLast} />
             )
           })}
           {trades.filter(t => !t.session).length > 0 && (
             <Row label={`Untagged (${trades.filter(t => !t.session).length})`}
               value={fmt(trades.filter(t => !t.session).reduce((s, t) => s + t.pnl, 0))}
-              color={textMuted} last />
+              color={textMuted} masked last />
           )}
         </Section>
       </div>

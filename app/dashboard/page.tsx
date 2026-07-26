@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useDarkMode } from '@/lib/hooks'
+import { useDarkMode, useIncognito } from '@/lib/hooks'
 import { getTheme } from '@/lib/styles'
 
 const CLOCKS = [
@@ -81,6 +81,7 @@ function WinRateCircle({ winRate, beRate, dark }: { winRate: number; beRate: num
 
 export default function DashboardHome() {
   const dark = useDarkMode()
+  const incognito = useIncognito()
   const [firstName, setFirstName] = useState('')
   const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
   const [allTrades, setAllTrades] = useState<any[]>([])
@@ -90,6 +91,11 @@ export default function DashboardHome() {
 
   const today = new Date()
   const todayIndex = (today.getDay() + 6) % 7
+
+  // blur style for money values
+  const mask: React.CSSProperties = incognito
+    ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
+    : { transition: 'filter 0.2s', display: 'inline-block' }
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -162,8 +168,6 @@ export default function DashboardHome() {
   if (isMobile) {
     return (
       <div style={{ padding: '20px 16px', background: bg, minHeight: '100vh' }}>
-
-        {/* Mobile greeting */}
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{dateStr}</p>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1.1 }}>
@@ -171,7 +175,6 @@ export default function DashboardHome() {
           </h1>
         </div>
 
-        {/* Today's session — prominent on mobile */}
         <div style={{ ...card, background: isRest ? cardBg : sc.bg, border: `0.5px solid ${isRest ? cardBorder : sc.border}`, marginBottom: '12px', opacity: isRest ? 0.7 : 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ flex: 1 }}>
@@ -179,12 +182,8 @@ export default function DashboardHome() {
                 {!isRest && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: sc.label, animation: 'sessionPulse 2s ease-in-out infinite' }} />}
                 {isRest ? 'Today' : 'Live today'}
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '3px' }}>
-                {todaySession?.session_type || 'Rest & Review'}
-              </div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>
-                {todaySession?.description || 'Recovery and reflection'}
-              </div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: isRest ? textMuted : textPrimary, marginBottom: '3px' }}>{todaySession?.session_type || 'Rest & Review'}</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, lineHeight: '1.5' }}>{todaySession?.description || 'Recovery and reflection'}</div>
             </div>
             {hasJoinLink && (
               <a href={todaySession!.discord_url!} target="_blank" rel="noopener noreferrer"
@@ -195,12 +194,11 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* P&L — full width hero stat */}
         <div style={{ ...card, marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '6px' }}>Net P&L · All time</div>
             <div style={{ fontSize: '40px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1 }}>
-              {stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€
+              <span style={mask}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</span>
             </div>
           </div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '6px 12px', borderRadius: '20px' }}>
@@ -208,7 +206,6 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Win Rate + Profit Factor side by side */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
           <div style={{ ...card }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted, marginBottom: '12px' }}>Win Rate</div>
@@ -226,15 +223,14 @@ export default function DashboardHome() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <CircleGauge value={stats.profitFactor} max={3} color={pfColor} label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)} dark={dark} />
               <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '3px' }}>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#22c55e' }}>+{stats.grossProfit.toFixed(0)}€</div>
-                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#dc3232' }}>-{stats.grossLoss.toFixed(0)}€</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#22c55e' }}><span style={mask}>+{stats.grossProfit.toFixed(0)}€</span></div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: '#dc3232' }}><span style={mask}>-{stats.grossLoss.toFixed(0)}€</span></div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* This week */}
         <div style={{ ...card, marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>This Week</div>
@@ -253,14 +249,13 @@ export default function DashboardHome() {
                 <div key={label} style={{ background: bgColor, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: '8px', padding: '8px 4px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: isToday ? accent : textMuted, marginBottom: '2px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, marginBottom: '3px' }}>{date}</div>
-                  {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}</div>}
+                  {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', fontWeight: '700', color: pnlColor }}><span style={mask}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}</span></div>}
                 </div>
               )
             })}
           </div>
         </div>
 
-        {/* Quick nav — horizontal scroll */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', overflowX: 'auto' as const, paddingBottom: '4px' }}>
           {[
             { label: 'Journal', desc: 'Log trades', href: '/dashboard/journal', icon: '◫' },
@@ -275,7 +270,6 @@ export default function DashboardHome() {
           ))}
         </div>
 
-        {/* Quote */}
         <div style={{ background: '#0d1e36', padding: '20px', borderRadius: '16px' }}>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#7aaee8', marginBottom: '8px' }}>Daily reminder</div>
           <p style={{ fontStyle: 'italic', fontSize: '14px', color: '#ffffff', lineHeight: '1.6', margin: 0 }}>&ldquo;{quote}&rdquo;</p>
@@ -291,7 +285,6 @@ export default function DashboardHome() {
     )
   }
 
-  // ── DESKTOP ──
   return (
     <div style={{ padding: '40px 48px', maxWidth: '1100px', background: bg, minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '36px' }}>
@@ -320,7 +313,9 @@ export default function DashboardHome() {
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: textMuted }}>Net P&L</div>
             <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '2px 8px', borderRadius: '10px' }}>{stats.total} trades</div>
           </div>
-          <div style={{ fontSize: '36px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '3px' }}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</div>
+          <div style={{ fontSize: '36px', fontWeight: '700', color: stats.pnl >= 0 ? '#22c55e' : '#dc3232', lineHeight: 1, marginBottom: '3px' }}>
+            <span style={mask}>{stats.pnl >= 0 ? '+' : ''}{stats.pnl.toFixed(0)}€</span>
+          </div>
           <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted }}>All time</div>
         </div>
         <div style={{ ...card }}>
@@ -328,8 +323,8 @@ export default function DashboardHome() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <CircleGauge value={stats.profitFactor} max={3} color={pfColor} label={stats.profitFactor === 0 ? '—' : stats.profitFactor >= 999 ? '∞' : stats.profitFactor.toFixed(2)} dark={dark} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e' }}>+{stats.grossProfit.toFixed(0)}€</div>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}>-{stats.grossLoss.toFixed(0)}€</div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#22c55e' }}><span style={mask}>+{stats.grossProfit.toFixed(0)}€</span></div>
+              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '10px', color: '#dc3232' }}><span style={mask}>-{stats.grossLoss.toFixed(0)}€</span></div>
               <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{stats.profitFactor >= 2 ? 'Excellent' : stats.profitFactor >= 1.5 ? 'Good' : stats.profitFactor >= 1 ? 'Profitable' : stats.profitFactor === 0 ? 'No data' : 'Needs work'}</div>
             </div>
           </div>
@@ -396,7 +391,7 @@ export default function DashboardHome() {
               <div key={label} style={{ background: bgColor, border: `0.5px solid ${isToday ? accent : borderColor}`, borderRadius: '8px', padding: '10px 8px', textAlign: 'center' as const, boxShadow: isToday ? `0 0 0 1px ${accent}` : 'none' }}>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: isToday ? accent : textMuted, marginBottom: '3px', fontWeight: isToday ? '700' : '400' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{date}</div>
-                {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor }}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</div>}
+                {hasTrades && <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: pnlColor }}><span style={mask}>{dayPnl > 0 ? '+' : ''}{dayPnl.toFixed(0)}€</span></div>}
               </div>
             )
           })}
