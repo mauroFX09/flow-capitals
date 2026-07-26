@@ -45,7 +45,7 @@ export default function CalendarPage() {
     if (year === calYear && month - 1 === calMonth) {
       const day = dayNum
       if (!dayMap[day]) dayMap[day] = { pnl: 0, trades: [] }
-      dayMap[day].pnl += tr.pnl || 0
+      dayMap[day].pnl += tr.pnl ?? 0
       dayMap[day].trades.push(tr)
     }
   })
@@ -77,15 +77,25 @@ export default function CalendarPage() {
   }
 
   const monthLabel = new Date(calYear, calMonth).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-  const dayLabels = isMobile ? ['M','T','W','T','F','S','S'] : ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+  const dayLabels = isMobile
+    ? ['M','T','W','T','F','S','S','∑']
+    : ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','Week']
 
   const monthTrades = Object.values(dayMap).flatMap(d => d.trades)
-  const monthPnl = monthTrades.reduce((s, t) => s + (t.pnl || 0), 0)
-  const monthWins = monthTrades.filter(t => t.pnl > 0).length
+  const monthPnl = monthTrades.reduce<number>((s, t) => s + (t.pnl ?? 0), 0)
   const profitDays = Object.values(dayMap).filter(d => d.pnl > 0).length
   const lossDays = Object.values(dayMap).filter(d => d.pnl < 0).length
 
   const selectedDayData = selectedDay ? dayMap[selectedDay] : null
+
+  const gridCols = 'repeat(7, 1fr) auto'
+
+  function getWeekPnl(week: (number | null)[]): number {
+    return week.reduce<number>((sum, day) => {
+      if (day === null) return sum
+      return sum + (dayMap[day]?.pnl ?? 0)
+    }, 0)
+  }
 
   return (
     <div style={{ padding: isMobile ? '20px 16px' : '40px 48px', background: bg, minHeight: '100vh' }}>
@@ -127,62 +137,118 @@ export default function CalendarPage() {
 
         {/* Calendar grid */}
         <div style={{ background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: isMobile ? '14px' : '24px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '4px' : '6px', marginBottom: isMobile ? '4px' : '6px' }}>
+
+          {/* Day headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: isMobile ? '4px' : '6px', marginBottom: isMobile ? '4px' : '6px' }}>
             {dayLabels.map((d, i) => (
-              <div key={i} style={{ textAlign: 'center' as const, fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '4px 0' }}>{d}</div>
+              <div key={i} style={{
+                textAlign: 'center' as const,
+                fontFamily: 'var(--font-inter)',
+                fontSize: '9px',
+                color: i === 7 ? accent : textMuted,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase' as const,
+                padding: '4px 0',
+                fontWeight: i === 7 ? '600' : '400',
+                minWidth: i === 7 ? (isMobile ? '32px' : '72px') : undefined,
+              }}>{d}</div>
             ))}
           </div>
 
+          {/* Week rows */}
           <div style={{ display: 'flex', flexDirection: 'column' as const, gap: isMobile ? '4px' : '6px' }}>
-            {weeks.map((week, wi) => (
-              <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '4px' : '6px' }}>
-                {week.map((day, di) => {
-                  if (!day) return <div key={di} style={{ minHeight: isMobile ? '44px' : '72px' }} />
-                  const data = dayMap[day]
-                  const pnl = data?.pnl
-                  const tradeCount = data?.trades.length || 0
-                  const isToday = isCurrentMonth && day === today.getDate()
-                  const isSelected = selectedDay === day
-                  const isProfit = data && pnl > 0
-                  const isLoss = data && pnl < 0
-                  const isBe = data && pnl === 0
+            {weeks.map((week, wi) => {
+              const weekPnl = getWeekPnl(week)
+              const weekHasTrades = week.some(day => day !== null && dayMap[day] !== undefined)
+              const weekColor = weekPnl > 0 ? '#22c55e' : weekPnl < 0 ? '#dc3232' : textMuted
+              const tradingDaysInWeek = week.filter(d => d !== null && dayMap[d] !== undefined).length
 
-                  let cellBg = 'transparent'
-                  let borderCol = dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.07)'
-                  let pnlColor = textMuted
+              return (
+                <div key={wi} style={{ display: 'grid', gridTemplateColumns: gridCols, gap: isMobile ? '4px' : '6px' }}>
+                  {week.map((day, di) => {
+                    if (!day) return <div key={di} style={{ minHeight: isMobile ? '44px' : '72px' }} />
+                    const data = dayMap[day]
+                    const pnl = data?.pnl ?? 0
+                    const tradeCount = data?.trades.length ?? 0
+                    const isToday = isCurrentMonth && day === today.getDate()
+                    const isSelected = selectedDay === day
+                    const isProfit = data && pnl > 0
+                    const isLoss = data && pnl < 0
+                    const isBe = data && pnl === 0
 
-                  if (isProfit) { cellBg = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.07)'; borderCol = 'rgba(34,197,94,0.3)'; pnlColor = '#22c55e' }
-                  if (isLoss)   { cellBg = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.07)'; borderCol = 'rgba(220,50,50,0.3)'; pnlColor = '#dc3232' }
-                  if (isBe)     { cellBg = dark ? 'rgba(148,163,184,0.07)' : 'rgba(148,163,184,0.05)'; borderCol = 'rgba(148,163,184,0.25)'; pnlColor = '#94a3b8' }
-                  if (isSelected) borderCol = accent
+                    let cellBg = 'transparent'
+                    let borderCol = dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.07)'
+                    let pnlColor = textMuted
 
-                  return (
-                    <div
-                      key={di}
-                      onClick={() => setSelectedDay(selectedDay === day ? null : day)}
-                      style={{ background: cellBg, border: `0.5px solid ${borderCol}`, borderRadius: isMobile ? '8px' : '10px', padding: isMobile ? '6px 4px' : '10px 10px', minHeight: isMobile ? '44px' : '72px', cursor: data ? 'pointer' : 'default', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1.5px ${accent}` : isSelected ? `0 0 0 1.5px ${accent}40` : 'none', transition: 'transform 0.1s ease' }}
-                      onMouseEnter={e => { if (data) e.currentTarget.style.transform = 'scale(1.02)' }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
-                    >
-                      <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '10px' : '11px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: isMobile ? '2px' : '6px', textAlign: isMobile ? 'center' as const : 'left' as const }}>{day}</div>
-                      {data && !isMobile && (
-                        <>
-                          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: '700', color: pnlColor, lineHeight: 1, marginBottom: '3px', letterSpacing: '-0.02em' }}>
-                            {pnl > 0 ? '+' : ''}€{pnl.toFixed(0)}
+                    if (isProfit) { cellBg = dark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.07)'; borderCol = 'rgba(34,197,94,0.3)'; pnlColor = '#22c55e' }
+                    if (isLoss)   { cellBg = dark ? 'rgba(220,50,50,0.1)' : 'rgba(220,50,50,0.07)'; borderCol = 'rgba(220,50,50,0.3)'; pnlColor = '#dc3232' }
+                    if (isBe)     { cellBg = dark ? 'rgba(148,163,184,0.07)' : 'rgba(148,163,184,0.05)'; borderCol = 'rgba(148,163,184,0.25)'; pnlColor = '#94a3b8' }
+                    if (isSelected) borderCol = accent
+
+                    return (
+                      <div
+                        key={di}
+                        onClick={() => setSelectedDay(selectedDay === day ? null : day)}
+                        style={{ background: cellBg, border: `0.5px solid ${borderCol}`, borderRadius: isMobile ? '8px' : '10px', padding: isMobile ? '6px 4px' : '10px 10px', minHeight: isMobile ? '44px' : '72px', cursor: data ? 'pointer' : 'default', position: 'relative' as const, boxShadow: isToday ? `0 0 0 1.5px ${accent}` : isSelected ? `0 0 0 1.5px ${accent}40` : 'none', transition: 'transform 0.1s ease' }}
+                        onMouseEnter={e => { if (data) e.currentTarget.style.transform = 'scale(1.02)' }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+                      >
+                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '10px' : '11px', color: isToday ? accent : textMuted, fontWeight: isToday ? '700' : '400', marginBottom: isMobile ? '2px' : '6px', textAlign: isMobile ? 'center' as const : 'left' as const }}>{day}</div>
+                        {data && !isMobile && (
+                          <>
+                            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', fontWeight: '700', color: pnlColor, lineHeight: 1, marginBottom: '3px', letterSpacing: '-0.02em' }}>
+                              {pnl > 0 ? '+' : ''}€{pnl.toFixed(0)}
+                            </div>
+                            <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{tradeCount} trade{tradeCount !== 1 ? 's' : ''}</div>
+                          </>
+                        )}
+                        {data && isMobile && (
+                          <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: pnlColor }} />
                           </div>
-                          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{tradeCount} trade{tradeCount !== 1 ? 's' : ''}</div>
-                        </>
-                      )}
-                      {data && isMobile && (
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
-                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: pnlColor }} />
+                        )}
+                      </div>
+                    )
+                  })}
+
+                  {/* Weekly total P&L cell */}
+                  <div style={{
+                    display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center',
+                    minHeight: isMobile ? '44px' : '72px',
+                    minWidth: isMobile ? '32px' : '72px',
+                    borderRadius: isMobile ? '8px' : '10px',
+                    border: `0.5px solid ${
+                      weekHasTrades
+                        ? (weekPnl > 0 ? 'rgba(34,197,94,0.25)' : weekPnl < 0 ? 'rgba(220,50,50,0.25)' : 'rgba(148,163,184,0.2)')
+                        : (dark ? 'rgba(255,255,255,0.04)' : 'rgba(26,26,26,0.05)')
+                    }`,
+                    background: weekHasTrades
+                      ? (weekPnl > 0
+                          ? (dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)')
+                          : weekPnl < 0
+                            ? (dark ? 'rgba(220,50,50,0.06)' : 'rgba(220,50,50,0.04)')
+                            : (dark ? 'rgba(148,163,184,0.05)' : 'rgba(148,163,184,0.03)'))
+                      : 'transparent',
+                    padding: isMobile ? '4px 2px' : '10px 8px',
+                  }}>
+                    {weekHasTrades ? (
+                      <>
+                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: isMobile ? '9px' : '12px', fontWeight: '700', color: weekColor, letterSpacing: '-0.02em', lineHeight: 1, textAlign: 'center' as const }}>
+                          {weekPnl > 0 ? '+' : ''}€{Math.abs(weekPnl) >= 1000 ? `${(weekPnl / 1000).toFixed(1)}k` : weekPnl.toFixed(0)}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
+                        {!isMobile && (
+                          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: textMuted, marginTop: '3px', opacity: 0.7 }}>
+                            {tradingDaysInWeek}d
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div style={{ width: '12px', height: '1px', background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           {/* Legend */}
@@ -220,7 +286,7 @@ export default function CalendarPage() {
                       <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', fontWeight: '700', color: trade.direction === 'long' ? '#22c55e' : '#dc3232', background: trade.direction === 'long' ? 'rgba(34,197,94,0.1)' : 'rgba(220,50,50,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{trade.direction?.toUpperCase()}</span>
                     </div>
                     <span style={{ fontFamily: 'var(--font-inter)', fontSize: '14px', fontWeight: '700', letterSpacing: '-0.02em', color: trade.pnl > 0 ? '#22c55e' : trade.pnl < 0 ? '#dc3232' : textMuted }}>
-                      {trade.pnl > 0 ? '+' : ''}€{trade.pnl.toFixed(0)}
+                      {trade.pnl > 0 ? '+' : ''}€{(trade.pnl ?? 0).toFixed(0)}
                     </span>
                   </div>
                   {trade.emotion && (
