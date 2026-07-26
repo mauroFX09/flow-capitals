@@ -73,16 +73,13 @@ function PostForm({ form, setForm, screenshotUrl, setScreenshotUrl, uploading, s
             <div style={{ width: '36px', height: '4px', background: dark ? 'rgba(255,255,255,0.15)' : 'rgba(26,26,26,0.12)', borderRadius: '2px' }} />
           </div>
         )}
-
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: 'var(--font-playfair)', fontSize: isMobile ? '20px' : '22px', fontWeight: '700', color: textPrimary }}>Post Payout</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '20px' }}>✕</button>
         </div>
-
         <div style={{ fontFamily: 'var(--font-inter)', fontSize: '12px', color: textMuted, lineHeight: '1.6', padding: '12px 16px', background: dark ? 'rgba(34,197,94,0.06)' : 'rgba(34,197,94,0.04)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '10px' }}>
           Share your payout with the community. Every post is proof that the blueprint works.
         </div>
-
         <div>
           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Screenshot</label>
           {screenshotUrl ? (
@@ -98,17 +95,14 @@ function PostForm({ form, setForm, screenshotUrl, setScreenshotUrl, uploading, s
           )}
           <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const file = e.target.files?.[0]; if (file) onUpload(file) }} />
         </div>
-
         <div>
           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Payout Amount (€)</label>
           <input type="number" step="any" placeholder="1,250" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontSize: '20px', color: parseFloat(form.amount) > 0 ? '#22c55e' : textPrimary, outline: 'none', boxSizing: 'border-box' as const }} />
         </div>
-
         <div>
           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' }}>Caption <span style={{ opacity: 0.5 }}>(optional)</span></label>
           <textarea value={form.caption} onChange={e => setForm({ ...form, caption: e.target.value })} rows={3} placeholder="First funded payout. The blueprint works." style={{ width: '100%', background: inputBg, border: `0.5px solid ${inputBorder}`, borderRadius: '10px', padding: '12px 14px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '14px', color: textPrimary, outline: 'none', resize: 'none' as const, boxSizing: 'border-box' as const }} />
         </div>
-
         <div>
           <label style={{ display: 'block', fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '10px' }}>Visibility</label>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -120,7 +114,6 @@ function PostForm({ form, setForm, screenshotUrl, setScreenshotUrl, uploading, s
             </button>
           </div>
         </div>
-
         <button onClick={onSave} disabled={saving || !form.amount} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '14px', border: 'none', cursor: saving || !form.amount ? 'not-allowed' : 'pointer', borderRadius: '10px', fontWeight: '700', opacity: saving || !form.amount ? 0.7 : 1, marginTop: 'auto' }}>
           {saving ? 'Posting...' : 'Post to Wall →'}
         </button>
@@ -239,7 +232,6 @@ export default function TradingWall() {
   const accent = dark ? '#7aaee8' : '#2B5EA7'
   const inputBg = dark ? '#0a1018' : '#F5F2EC'
   const inputBorder = dark ? 'rgba(255,255,255,0.1)' : 'rgba(26,26,26,0.12)'
-  const card = { background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow }
 
   const posts = tab === 'public' ? allPublic : myPosts
   const totalCommunityPnl = allPublic.reduce((s, p) => s + (p.amount || 0), 0)
@@ -251,25 +243,11 @@ export default function TradingWall() {
 
       {showForm && (
         <PostForm
-          form={form}
-          setForm={setForm}
-          screenshotUrl={screenshotUrl}
-          setScreenshotUrl={setScreenshotUrl}
-          uploading={uploading}
-          saving={saving}
-          isMobile={isMobile}
-          dark={dark}
-          cardBg={cardBg}
-          cardBorder={cardBorder}
-          textPrimary={textPrimary}
-          textMuted={textMuted}
-          accent={accent}
-          inputBg={inputBg}
-          inputBorder={inputBorder}
-          fileRef={fileRef}
-          onUpload={uploadScreenshot}
-          onSave={savePost}
-          onClose={() => setShowForm(false)}
+          form={form} setForm={setForm} screenshotUrl={screenshotUrl} setScreenshotUrl={setScreenshotUrl}
+          uploading={uploading} saving={saving} isMobile={isMobile} dark={dark}
+          cardBg={cardBg} cardBorder={cardBorder} textPrimary={textPrimary} textMuted={textMuted}
+          accent={accent} inputBg={inputBg} inputBorder={inputBorder} fileRef={fileRef}
+          onUpload={uploadScreenshot} onSave={savePost} onClose={() => setShowForm(false)}
         />
       )}
 
@@ -283,37 +261,17 @@ export default function TradingWall() {
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '28px', fontWeight: '700', color: textPrimary, letterSpacing: '-1px', lineHeight: 1, marginBottom: '12px' }}>Wall of Proof.</h1>
             <div style={{ display: 'flex', gap: '8px' }}>
               <div style={{ flex: 1 }}>
-                <SegmentedControl
-                  options={[
-                    { label: 'Public', value: 'public', count: allPublic.length },
-                    { label: 'My Posts', value: 'personal', count: myPosts.length },
-                  ]}
-                  value={tab}
-                  onChange={setTab}
-                  dark={dark}
-                />
+                <SegmentedControl options={[{ label: 'Public', value: 'public', count: allPublic.length }, { label: 'My Posts', value: 'personal', count: myPosts.length }]} value={tab} onChange={setTab} dark={dark} />
               </div>
-              <button onClick={() => setShowForm(true)} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '10px 14px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const, flexShrink: 0 }}>
-                + Post
-              </button>
+              <button onClick={() => setShowForm(true)} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase' as const, padding: '10px 14px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const, flexShrink: 0 }}>+ Post</button>
             </div>
           </>
         ) : (
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '40px', fontWeight: '700', color: textPrimary, letterSpacing: '-1.5px', lineHeight: 1 }}>Wall of Proof.</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <SegmentedControl
-                options={[
-                  { label: 'Public Wall', value: 'public', count: allPublic.length },
-                  { label: 'My Wall', value: 'personal', count: myPosts.length },
-                ]}
-                value={tab}
-                onChange={setTab}
-                dark={dark}
-              />
-              <button onClick={() => setShowForm(true)} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>
-                + Post Payout
-              </button>
+              <SegmentedControl options={[{ label: 'Public Wall', value: 'public', count: allPublic.length }, { label: 'My Wall', value: 'personal', count: myPosts.length }]} value={tab} onChange={setTab} dark={dark} />
+              <button onClick={() => setShowForm(true)} style={{ background: '#22c55e', color: '#ffffff', fontFamily: 'var(--font-inter)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '10px', fontWeight: '700', whiteSpace: 'nowrap' as const }}>+ Post Payout</button>
             </div>
           </div>
         )}
@@ -337,7 +295,7 @@ export default function TradingWall() {
         </div>
       </div>
 
-      {/* Posts grid */}
+      {/* Posts */}
       {loading ? (
         <div style={{ textAlign: 'center' as const, padding: '80px', fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: textMuted }}>Loading...</div>
       ) : posts.length === 0 ? (
@@ -354,13 +312,30 @@ export default function TradingWall() {
           </button>
         </div>
       ) : (
-        <div style={isMobile ? { display: 'flex', flexDirection: 'column' as const, gap: '12px' } : { columns: '3', columnGap: '14px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: '16px',
+          alignItems: 'start',
+        }}>
           {posts.map(post => {
             const isOwner = post.user_id === userId
             const barWidth = maxAmount > 0 ? (post.amount / maxAmount) * 100 : 0
             const name = profileNames[post.user_id] || 'Member'
             return (
-              <div key={post.id} style={{ background: cardBg, borderTop: '3px solid #22c55e', borderRight: `0.5px solid ${cardBorder}`, borderBottom: `0.5px solid ${cardBorder}`, borderLeft: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, marginBottom: isMobile ? '0' : '14px', breakInside: 'avoid', display: 'inline-block', width: '100%', overflow: 'hidden' }}>
+              <div key={post.id} style={{
+                background: cardBg,
+                borderTop: '3px solid #22c55e',
+                borderRight: `0.5px solid ${cardBorder}`,
+                borderBottom: `0.5px solid ${cardBorder}`,
+                borderLeft: `0.5px solid ${cardBorder}`,
+                borderRadius: '16px',
+                boxShadow: cardShadow,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column' as const,
+              }}>
+                {/* Amount header */}
                 <div style={{ padding: isMobile ? '16px 16px 12px' : '20px 20px 14px', background: dark ? 'rgba(34,197,94,0.04)' : 'rgba(34,197,94,0.02)' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div>
@@ -380,34 +355,42 @@ export default function TradingWall() {
                   </div>
                 </div>
 
-                {post.screenshot_url && (
-                  <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
-                    <img src={post.screenshot_url} alt="payout" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {/* Screenshot */}
+                {post.screenshot_url ? (
+                  <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden', flexShrink: 0 }}>
+                    <img src={post.screenshot_url} alt="payout" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                ) : (
+                  <div style={{ width: '100%', aspectRatio: '16/9', background: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: '32px', opacity: 0.2 }}>📸</span>
                   </div>
                 )}
 
-                <div style={{ padding: isMobile ? '14px 16px' : '16px 20px' }}>
+                {/* Footer */}
+                <div style={{ padding: isMobile ? '14px 16px' : '16px 20px', flex: 1, display: 'flex', flexDirection: 'column' as const, justifyContent: 'space-between', gap: '12px' }}>
                   {post.caption && (
-                    <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: textPrimary, lineHeight: '1.6', marginBottom: '14px' }}>
+                    <p style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', fontSize: '13px', color: textPrimary, lineHeight: '1.6', margin: 0 }}>
                       &ldquo;{post.caption}&rdquo;
                     </p>
                   )}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #2B5EA7, #7aaee8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: '#ffffff', fontWeight: '700' }}>{name[0].toUpperCase()}</span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #2B5EA7, #7aaee8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: '#ffffff', fontWeight: '700' }}>{name[0].toUpperCase()}</span>
+                        </div>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textPrimary, fontWeight: '600' }}>{name}</div>
+                          <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '11px', color: textPrimary, fontWeight: '600' }}>{name}</div>
-                        <div style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted }}>{new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                      </div>
+                      {!post.is_public && isOwner && (
+                        <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '3px 8px', borderRadius: '4px' }}>🔒 Private</span>
+                      )}
                     </div>
-                    {!post.is_public && isOwner && (
-                      <span style={{ fontFamily: 'var(--font-inter)', fontSize: '9px', color: textMuted, background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(26,26,26,0.04)', padding: '3px 8px', borderRadius: '4px' }}>🔒 Private</span>
-                    )}
-                  </div>
-                  <div style={{ height: '3px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${barWidth}%`, background: 'linear-gradient(90deg, #22c55e, #7aaee8)', borderRadius: '2px', transition: 'width 0.6s ease' }} />
+                    <div style={{ height: '3px', background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(26,26,26,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${barWidth}%`, background: 'linear-gradient(90deg, #22c55e, #7aaee8)', borderRadius: '2px', transition: 'width 0.6s ease' }} />
+                    </div>
                   </div>
                 </div>
               </div>
