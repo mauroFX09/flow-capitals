@@ -5,21 +5,30 @@ import { useDarkMode, useIncognito } from '@/lib/hooks'
 import { getTheme } from '@/lib/styles'
 
 const CLOCKS = [
-  { city: 'LONDON', offset: 1 },
-  { city: 'NEW YORK', offset: -4 },
-  { city: 'TOKYO', offset: 9 },
-  { city: 'DUBAI', offset: 4 },
-  { city: 'SYDNEY', offset: 10 },
+  { city: 'London',   offset: 1,  tz: 'BST',  openH: 8,  closeH: 17 },
+  { city: 'New York', offset: -4, tz: 'EDT',  openH: 9,  closeH: 17 },
+  { city: 'Tokyo',    offset: 9,  tz: 'JST',  openH: 9,  closeH: 18 },
+  { city: 'Dubai',    offset: 4,  tz: 'GST',  openH: 8,  closeH: 17 },
+  { city: 'Sydney',   offset: 10, tz: 'AEST', openH: 7,  closeH: 16 },
 ]
 
-function getTime(offset: number) {
+function getTime(offset: number): string {
   const d = new Date()
   const utc = d.getUTCHours() * 3600 + d.getUTCMinutes() * 60 + d.getUTCSeconds()
   const t = (utc + offset * 3600 + 86400) % 86400
   const h = Math.floor(t / 3600).toString().padStart(2, '0')
   const m = Math.floor((t % 3600) / 60).toString().padStart(2, '0')
-  const s = (t % 60).toString().padStart(2, '0')
-  return `${h}:${m}:${s}`
+  return `${h}:${m}`
+}
+
+function isMarketOpen(offset: number, openH: number, closeH: number): boolean {
+  const d = new Date()
+  const utc = d.getUTCHours() * 3600 + d.getUTCMinutes() * 60 + d.getUTCSeconds()
+  const t = (utc + offset * 3600 + 86400) % 86400
+  const h = Math.floor(t / 3600)
+  const m = Math.floor((t % 3600) / 60)
+  const mins = h * 60 + m
+  return mins >= openH * 60 && mins < closeH * 60
 }
 
 const QUOTES = [
@@ -83,7 +92,7 @@ export default function DashboardHome() {
   const dark = useDarkMode()
   const incognito = useIncognito()
   const [firstName, setFirstName] = useState('')
-  const [times, setTimes] = useState(CLOCKS.map(c => getTime(c.offset)))
+  const [times, setTimes] = useState<string[]>(CLOCKS.map(c => getTime(c.offset)))
   const [allTrades, setAllTrades] = useState<any[]>([])
   const [stats, setStats] = useState({ total: 0, pnl: 0, winRate: 0, beRate: 0, profitFactor: 0, grossProfit: 0, grossLoss: 0 })
   const [todaySession, setTodaySession] = useState<ScheduleRow | null>(null)
@@ -92,7 +101,6 @@ export default function DashboardHome() {
   const today = new Date()
   const todayIndex = (today.getDay() + 6) % 7
 
-  // blur style for money values
   const mask: React.CSSProperties = incognito
     ? { filter: 'blur(8px)', userSelect: 'none', transition: 'filter 0.2s', display: 'inline-block' }
     : { transition: 'filter 0.2s', display: 'inline-block' }
@@ -297,13 +305,22 @@ export default function DashboardHome() {
           </h1>
           <p style={{ fontStyle: 'italic', fontSize: '14px', color: textMuted }}>{dateStr}</p>
         </div>
-        <div style={{ display: 'flex', gap: '24px', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, padding: '14px 20px' }}>
-          {CLOCKS.map((c, i) => (
-            <div key={c.city} style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: textMuted, letterSpacing: '0.1em', marginBottom: '3px' }}>{c.city}</div>
-              <div style={{ fontFamily: 'var(--font-playfair)', fontSize: '14px', color: textPrimary }}>{times[i]}</div>
-            </div>
-          ))}
+
+        {/* ── Market Clocks ── */}
+        <div style={{ display: 'flex', alignItems: 'stretch', background: cardBg, border: `0.5px solid ${cardBorder}`, borderRadius: '16px', boxShadow: cardShadow, overflow: 'hidden' }}>
+          {CLOCKS.map((c, i) => {
+            const open = isMarketOpen(c.offset, c.openH, c.closeH)
+            return (
+              <div key={c.city} style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', padding: '12px 22px', borderRight: i < CLOCKS.length - 1 ? `0.5px solid ${cardBorder}` : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: open ? '#22c55e' : dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: textMuted, letterSpacing: '0.08em', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>{c.city}</div>
+                </div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '15px', fontWeight: 700, color: textPrimary, letterSpacing: '-0.03em', lineHeight: 1 }}>{times[i]}</div>
+                <div style={{ fontFamily: 'var(--font-inter)', fontSize: '8px', color: open ? '#22c55e' : textMuted, marginTop: '4px', fontWeight: open ? 600 : 400, letterSpacing: '0.04em' }}>{c.tz}</div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
